@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Marketplace - Sign Up</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .signup-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 28px;
+            color: #2d3436;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3436;
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #636e72;
+            margin-bottom: 32px;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            color: #2d3436;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0984e3;
+            box-shadow: 0 0 0 3px rgba(9,132,227,0.1);
+        }
+
+        input::placeholder {
+            color: #b2bec3;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        button:hover {
+            background-color: #0873c4;
+        }
+
+        .terms {
+            text-align: center;
+            margin: 24px 0;
+            color: #636e72;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .terms a {
+            color: #0984e3;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #636e72;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #0984e3;
+            text-decoration: none;
+            font-weight: 500;
+        }
+   
+        .location-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .location-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            color: #636e72;
+        }
+
+        .location-option.selected {
+            border-color: #0984e3;
+            background-color: #f0f8ff;
+            color: #0984e3;
+            font-weight: 500;
+        }
+
+        .location-dropdown {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .location-dropdown.visible {
+            display: block;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            appearance: none;
+            background: white url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") no-repeat right 16px center;
+            background-size: 15px;
+            color: #2d3436;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #0984e3;
+            box-shadow: 0 0 0 3px rgba(9,132,227,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="logo">Campus Marketplace</div>
+        <h1>Create new account</h1>
+        <p class="subtitle">Get your shopping problems</p>
+
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" placeholder="Full Name" required>
+            </div>
+
+            <!-- Location Type Selector -->
+            <div class="location-type">
+                <div class="location-option" onclick="selectLocationType('university')">University</div>
+                <div class="location-option" onclick="selectLocationType('other')">Other Area</div>
+            </div>
+
+            <!-- University Dropdown -->
+            <div class="location-dropdown" id="university-dropdown">
+                <select required>
+                    <option value="">Select University</option>
+                    <option>University of Nairobi</option>
+                    <option>Kenyatta University</option>
+                    <option>Strathmore University</option>
+                </select>
+            </div>
+
+            <!-- Other Locations Dropdown -->
+            <div class="location-dropdown" id="other-locations-dropdown">
+                <select required>
+                    <option value="">Select Area</option>
+                    <option>Nairobi CBD</option>
+                    <option>Westlands</option>
+                    <option>Karen</option>
+                    <option>Kilimani</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <input type="email" placeholder="Email Address" required>
+            </div>
+            
+            <div class="form-group">
+                <input type="password" placeholder="Password" required>
+            </div>
+            
+            <div class="form-group">
+                <input type="password" placeholder="Confirm Password" required>
+            </div>
+
+            <button type="submit">Sign Up</button>
+            
+            <p class="terms">
+                By registering you agree to our<br>
+                <a href="#">Terms and conditions</a>
+            </p>
+        </form>
+
+        <div class="login-link">
+            Already Registered? <a href="#">Login</a>
+        </div>
+    </div>
+
+    <script>
+        function selectLocationType(type) {
+            // Remove all selections
+            document.querySelectorAll('.location-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+
+            // Hide all dropdowns
+            document.querySelectorAll('.location-dropdown').forEach(dropdown => {
+                dropdown.classList.remove('visible');
+            });
+
+            // Add selection style
+            event.target.classList.add('selected');
+            
+            // Show relevant dropdown
+            if(type === 'university') {
+                document.getElementById('university-dropdown').classList.add('visible');
+            } else {
+                document.getElementById('other-locations-dropdown').classList.add('visible');
+            }
+        }
+    </script>
+</body>
+</html>
