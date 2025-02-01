@@ -75,12 +75,16 @@ WSGI_APPLICATION = 'smw.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "p1396_smw",
-        "USER": "p1396_smw",
-        "PASSWORD": '0PjMsEkuwGijK<6:8WDQ2gwS75Z.l"',
-        "HOST": "pgsql4.serv00.com",
-        "PORT": "5432",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "defaultdb",
+        "USER": "avnadmin",
+        "PASSWORD": 'AVNS_YOJmTZ5x6HcgKNkFKs9',
+        "HOST": "smw-smwp.l.aivencloud.com",
+        "PORT": "16718",
+        'OPTIONS': {
+            'sslmode': 'require',
+            'sslrootcert': 'ctrack/ca.pem',
+        }    
     }
 }
 
