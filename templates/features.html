@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<style>
+body {
+    background-color: #0d1b2a; /* Dark blue background */
+    color: #e0e1dd;           /* Light text for contrast */
+    font-family: 'Arial', sans-serif;
+}
+
+.about-container {
+    text-align: center;
+    margin-top: 100px;
+}
+
+.about-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #778da9; /* Lighter shade of blue */
+    animation: fadeInSlide 2s ease-in-out;
+}
+
+.about-description {
+    font-size: 1.2rem;
+    color: #e0e1dd;
+    margin-top: 20px;
+    animation: fadeIn 3s ease-in-out;
+}
+
+/* Keyframes for fade-in and slide-up animation */
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Simple fade-in animation for the description */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+</style>
+<div class="about-container">
+    <h1 class="about-title">I am features page</h1>
+    <p class="about-description">#replace me content in {.% block content %} replace me {.% block content %}</p>
+</div>
+{% endblock %}
