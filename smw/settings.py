@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
-
 import os
 token = os.environ.get("dbpass")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -132,11 +131,16 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+# Static files (CSS, JavaScript, images)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Directory for static files
+STATIC_URL = '/static/'
 
-STATIC_URL = 'static/'
-MEDIA_URL = 'media/'
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'  # URL for media files
+
+# Media root directory (where media files are stored)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # This specifies the location on your file system
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

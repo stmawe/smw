@@ -1,58 +1,77 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}About Us{% endblock %}
+{% block title %}Login - Campus Marketplace{% endblock %}
 
 {% block content %}
-<style>
-body {
-    background-color: #0d1b2a; /* Dark blue background */
-    color: #e0e1dd;           /* Light text for contrast */
-    font-family: 'Arial', sans-serif;
-}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 
-.about-container {
-    text-align: center;
-    margin-top: 100px;
-}
+    <div class="container">
+        <div class="login-header">
+            <h1>Login</h1>
+            <p>Access your Campus Marketplace account</p>
+        </div>
 
-.about-title {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #778da9; /* Lighter shade of blue */
-    animation: fadeInSlide 2s ease-in-out;
-}
+        <form id="loginForm" onsubmit="return validateLogin()">
+            <div class="form-group">
+                <label>University Email</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="example@university.edu" id="email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="••••••••" id="password" required>
+                </div>
+            </div>
 
-.about-description {
-    font-size: 1.2rem;
-    color: #e0e1dd;
-    margin-top: 20px;
-    animation: fadeIn 3s ease-in-out;
-}
+            <button type="submit">Login to Account</button>
+        </form>
 
-/* Keyframes for fade-in and slide-up animation */
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        <div class="additional-links">
+            <a href="{% url 'login' %}">Forgot Password?</a>
+            <a href="{% url 'register' %}">Create Account</a>
+        </div>
 
-/* Simple fade-in animation for the description */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-</style>
-<div class="about-container">
-    <h1 class="about-title">I am login page</h1>
-    <p class="about-description">#replace me content in {.% block content %} replace me {.% block content %}</p>
-</div>
+        <div class="divider"><span>or continue with</span></div>
+
+        <div class="social-login">
+            <a href="#" class="social-btn">
+                <i class="fab fa-google fa-lg" style="color: #DB4437;"></i>
+            </a>
+            <a href="#" class="social-btn">
+                <i class="fab fa-facebook fa-lg" style="color: #1877F2;"></i>
+            </a>
+            <a href="#" class="social-btn">
+                <i class="fab fa-apple fa-lg" style="color: #000;"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function validateLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email.endsWith('.edu')) {
+                alert('Please use a valid university email address (.edu domain).');
+                return false;
+            }
+
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long.');
+                return false;
+            }
+
+            // You can implement the actual login logic or redirection here
+            alert('Login successful! Redirecting...');
+            // Example redirect (remove if not needed):
+            // window.location.href = "/home";
+            return true;
+        }
+    </script>
 {% endblock %}

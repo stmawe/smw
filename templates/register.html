@@ -1,58 +1,97 @@
-{% extends 'base.html' %}
 
-{% block title %}About Us{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Join Campus Marketplace{% endblock %}
 
 {% block content %}
-<style>
-body {
-    background-color: #0d1b2a; /* Dark blue background */
-    color: #e0e1dd;           /* Light text for contrast */
-    font-family: 'Arial', sans-serif;
-}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 
-.about-container {
-    text-align: center;
-    margin-top: 100px;
-}
+    <div class="container">
+        <h1>Create Account</h1>
+        <form id="registerForm" onsubmit="return validateForm()">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="John Doe" required>
+            </div>
 
-.about-title {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #778da9; /* Lighter shade of blue */
-    animation: fadeInSlide 2s ease-in-out;
-}
+            <div class="form-group">
+                <label>University Email</label>
+                <input type="email" id="email" placeholder="john.doe@university.edu" required>
+            </div>
 
-.about-description {
-    font-size: 1.2rem;
-    color: #e0e1dd;
-    margin-top: 20px;
-    animation: fadeIn 3s ease-in-out;
-}
+            <div class="form-group">
+                <label>University</label>
+                <select id="university" required>
+                    <option value="" disabled selected>Select your university</option>
+                    <option>Harvard University</option>
+                    <option>Stanford University</option>
+                    <option>MIT</option>
+                </select>
+            </div>
 
-/* Keyframes for fade-in and slide-up animation */
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+                <div class="password-strength">
+                    <div class="strength-bar" id="strengthBar"></div>
+                </div>
+            </div>
 
-/* Simple fade-in animation for the description */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-</style>
-<div class="about-container">
-    <h1 class="about-title">I am register page</h1>
-    <p class="about-description">#replace me content in {.% block content %} replace me {.% block content %}</p>
-</div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <div class="terms">
+            By creating an account, you agree to our 
+            <a href="#">Terms of Service</a> and 
+            <a href="#">Privacy Policy</a>.
+        </div>
+
+        <div class="login-link">
+            Already have an account? <a href="{% url 'login' %}">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            const email = document.getElementById('email').value;
+            const university = document.getElementById('university').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!email.endsWith('.edu')) {
+                alert('Please use a valid university email address (.edu domain).');
+                return false;
+            }
+
+            if (university === "") {
+                alert('Please select your university from the dropdown list.');
+                return false;
+            }
+
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long.');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return false;
+            }
+
+            alert('Registration successful! Welcome to Campus Marketplace.');
+            return true;
+        }
+
+        document.getElementById('password').addEventListener('input', function(e) {
+            const strengthBar = document.getElementById('strengthBar');
+            const strength = Math.min(e.target.value.length / 12 * 100, 100);
+            strengthBar.style.width = strength + '%';
+        });
+    </script>
 {% endblock %}
