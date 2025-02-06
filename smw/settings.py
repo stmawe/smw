@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
+
 import os
 token = os.environ.get("dbpass")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,21 +31,37 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+#TENANT_MODEL = "smw.Client"
 # Application definition
 
-INSTALLED_APPS = [
-    'daphne',
+# Tenant-specific apps
+# Shared apps (public schema)
+SHARED_APPS = [
+    'django_tenants',  # Required for Django Tenants
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'daphne',
+    'app',  # Your public app containing Client, ClientDomain, User, Category
 ]
 
+# Tenant-specific apps
+TENANT_APPS = [
+    'django.contrib.contenttypes',  # Required for Django Tenants
+    'mydak',  # Your tenant-specific app containing Shop, Listing, etc.
+]
+
+# Combine SHARED_APPS and TENANT_APPS into INSTALLED_APPS
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
+# Specify the tenant model
+TENANT_MODEL = "app.Client"
+
 MIDDLEWARE = [
+    'django_tenants.middleware.main.TenantMainMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,7 +93,25 @@ ASGI_APPLICATION = 'smw.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+DATABASE_ROUTERS = (
+    'django_tenants.routers.TenantSyncRouter',
+)
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django_tenants.postgresql_backend",  # Changed from 'django.db.backends.postgresql'
+        "NAME": "defaultdb",
+        "USER": "avnadmin",
+        "PASSWORD": token,
+        "HOST": "smw-smwp.l.aivencloud.com",
+        "PORT": "16718",
+        'OPTIONS': {
+            'sslmode': 'require',
+            'sslrootcert': 'ctrack/ca.pem',
+        }    
+    }
+}
+'''
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -91,7 +126,7 @@ DATABASES = {
         }    
     }
 }
-
+'''
 '''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -102,7 +137,7 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
+AUTH_USER_MODEL = 'app.User'  # Replace 'app' with the name of your app containing the User model
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -131,16 +166,11 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, images)
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Directory for static files
-STATIC_URL = '/static/'
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-# Media files (Uploaded files)
-MEDIA_URL = '/media/'  # URL for media files
-
-# Media root directory (where media files are stored)
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # This specifies the location on your file system
-
+STATIC_URL = 'static/'
+MEDIA_URL = 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
