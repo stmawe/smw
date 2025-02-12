@@ -58,6 +58,7 @@ INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in S
 
 # Specify the tenant model
 TENANT_MODEL = "app.Client"
+TENANT_DOMAIN_MODEL = "app.ClientDomain"
 
 MIDDLEWARE = [
     'django_tenants.middleware.main.TenantMainMiddleware',
@@ -167,10 +168,17 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+STATIC_URL = '/static/'  # URL prefix for static files
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Directories where static files are stored
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Directory for collected static files
 
-STATIC_URL = 'static/'
-MEDIA_URL = 'media/'
+# Media files (user-uploaded content)
+MEDIA_URL = '/media/'  # URL prefix for media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where media files are stored
+
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)  # Fix MIME type issues
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

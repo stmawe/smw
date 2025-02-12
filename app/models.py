@@ -12,7 +12,6 @@ class Client(TenantMixin):
     paid_until = models.DateField(null=True, blank=True)
     on_trial = models.BooleanField(default=True)
 
-    # Auto-create schema on save
     auto_create_schema = True
 
     def __str__(self):
@@ -22,10 +21,6 @@ class Client(TenantMixin):
 class ClientDomain(DomainMixin):
     """
     Represents a domain associated with a tenant.
-    For example:
-    - university.domain.tld
-    - area.domain.tld
-    - shopname.university.domain.tld
     """
     def __str__(self):
         return self.domain
@@ -33,7 +28,7 @@ class ClientDomain(DomainMixin):
 
 class User(AbstractUser):
     """
-    Custom User Model
+    Custom User Model.
     """
     ROLE_CHOICES = (
         ('buyer', 'Buyer'),
@@ -47,14 +42,14 @@ class User(AbstractUser):
     # Resolve reverse accessor clashes
     groups = models.ManyToManyField(
         'auth.Group',
-        related_name='custom_user_set',  # Unique related_name
+        related_name='custom_user_set',
         blank=True,
         verbose_name='groups',
         help_text='The groups this user belongs to.',
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        related_name='custom_user_set',  # Unique related_name
+        related_name='custom_user_set',
         blank=True,
         verbose_name='user permissions',
         help_text='Specific permissions for this user.',
@@ -64,7 +59,6 @@ class User(AbstractUser):
 class Category(models.Model):
     """
     Shared category model for organizing listings.
-    Categories are global and not tenant-specific.
     """
     name = models.CharField(max_length=255, unique=True)
 
