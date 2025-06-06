@@ -90,13 +90,30 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = 'smw.asgi.application'
+WSGI_APPLICATION = 'smw.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASE_ROUTERS = (
     'django_tenants.routers.TenantSyncRouter',
 )
+'''
+
+'''
+DATABASES = {
+    "default": {
+        "ENGINE": "django_tenants.postgresql_backend",  # Changed from 'django.db.backends.postgresql'
+        "NAME": "defaultdb",
+        "USER": "avnadmin",
+        "PASSWORD": token,
+        "HOST": "smw-smwp.l.aivencloud.com",
+        "PORT": "16718",
+        'OPTIONS': {
+            'sslmode': 'require',
+            'sslrootcert': 'ctrack/ca.pem',
+        }
+    }
+}
 
 DATABASES = {
     "default": {
@@ -109,6 +126,7 @@ DATABASES = {
 
     }
 }
+
 '''
 DATABASES = {
     "default": {
