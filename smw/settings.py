@@ -101,15 +101,12 @@ DATABASE_ROUTERS = (
 DATABASES = {
     "default": {
         "ENGINE": "django_tenants.postgresql_backend",  # Changed from 'django.db.backends.postgresql'
-        "NAME": "defaultdb",
-        "USER": "avnadmin",
+        "NAME": "smw",
+        "USER": "postgres",
         "PASSWORD": token,
-        "HOST": "smw-smwp.l.aivencloud.com",
-        "PORT": "16718",
-        'OPTIONS': {
-            'sslmode': 'require',
-            'sslrootcert': 'ctrack/ca.pem',
-        }    
+        "HOST": "localhost",
+        "PORT": "5432",
+
     }
 }
 '''

@@ -1,0 +1,77 @@
+{% extends "templates/base.html" %}
+{% load static %}
+
+{% block title %}Login - Campus Marketplace{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+    <div class="container mt-4">
+        <div class="login-header">
+            <h1>Login</h1>
+            <p>Access your Campus Marketplace account</p>
+        </div>
+
+        <form id="loginForm" onsubmit="return validateLogin()">
+            <div class="form-group">
+                <label>University Email</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="example@university.edu" id="email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="••••••••" id="password" required>
+                </div>
+            </div>
+
+            <button type="submit">Login to Account</button>
+        </form>
+
+        <div class="additional-links">
+            <a href="{% url 'login' %}">Forgot Password?</a>
+            <a href="{% url 'register' %}">Create Account</a>
+        </div>
+
+        <div class="divider"><span>or continue with</span></div>
+
+        <div class="social-login">
+            <a href="#" class="social-btn">
+                <i class="fab fa-google fa-lg" style="color: #DB4437;"></i>
+            </a>
+            <a href="#" class="social-btn">
+                <i class="fab fa-facebook fa-lg" style="color: #1877F2;"></i>
+            </a>
+            <a href="#" class="social-btn">
+                <i class="fab fa-apple fa-lg" style="color: #000;"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function validateLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email.endsWith('.edu')) {
+                alert('Please use a valid university email address (.edu domain).');
+                return false;
+            }
+
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long.');
+                return false;
+            }
+
+            // You can implement the actual login logic or redirection here
+            alert('Login successful! Redirecting...');
+            // Example redirect (remove if not needed):
+            // window.location.href = "/home";
+            return true;
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,97 @@
+
+{% extends "templates/base.html" %}
+{% load static %}
+
+{% block title %}Join Campus Marketplace{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+
+    <div class="container mt-4">
+        <h1>Create Account</h1>
+        <form id="registerForm" onsubmit="return validateForm()">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label>University Email</label>
+                <input type="email" id="email" placeholder="john.doe@university.edu" required>
+            </div>
+
+            <div class="form-group">
+                <label>University</label>
+                <label for="university"></label><select id="university" required>
+                    <option value="" disabled selected>Select your university</option>
+                    <option>Harvard University</option>
+                    <option>Stanford University</option>
+                    <option>MIT</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+                <div class="password-strength">
+                    <div class="strength-bar" id="strengthBar"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <div class="terms">
+            By creating an account, you agree to our 
+            <a href="#">Terms of Service</a> and 
+            <a href="#">Privacy Policy</a>.
+        </div>
+
+        <div class="login-link">
+            Already have an account? <a href="{% url 'login' %}">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            const email = document.getElementById('email').value;
+            const university = document.getElementById('university').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!email.endsWith('.edu')) {
+                alert('Please use a valid university email address (.edu domain).');
+                return false;
+            }
+
+            if (university === "") {
+                alert('Please select your university from the dropdown list.');
+                return false;
+            }
+
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long.');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return false;
+            }
+
+            alert('Registration successful! Welcome to Campus Marketplace.');
+            return true;
+        }
+
+        document.getElementById('password').addEventListener('input', function(e) {
+            const strengthBar = document.getElementById('strengthBar');
+            const strength = Math.min(e.target.value.length / 12 * 100, 100);
+            strengthBar.style.width = strength + '%';
+        });
+    </script>
+{% endblock %}

@@ -20,7 +20,7 @@ class Command(BaseCommand):
         if not ClientDomain.objects.filter(domain='domain.tld', tenant__schema_name='public').exists():
             public_domain = ClientDomain.objects.create(
                 tenant=Client.objects.get(schema_name='public'),
-                domain='domain.tld',
+                domain='localhost',
                 is_primary=True
             )
             self.stdout.write(self.style.SUCCESS('Public domain created successfully.'))
