@@ -1,7 +1,11 @@
 .env
 .smw
 ptg
+pth/
 ptg.sh
 ptg.ps1
 __pycache__
 __pycache__
+gy/
+gy.py
+.gitignore
