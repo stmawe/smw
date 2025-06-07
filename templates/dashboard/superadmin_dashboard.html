@@ -1,0 +1,84 @@
+{% extends "home_base.html" %}
+{% load static %}
+
+{% block title %}SuperAdmin Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-body {
+        background-color: #f0f2f5;
+        padding-top: 5rem;
+        padding-bottom: 3rem;
+    }
+    .stat-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    .stat-card .icon {
+        font-size: 2.5rem;
+        color: var(--primary-dark, #1a1a2e);
+    }
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
+    .stat-card p {
+        color: #6c757d;
+        margin: 0;
+    }
+    .dashboard-section {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+</style>
+
+<div class="dashboard-body">
+    <div class="container">
+        <h1 class="mb-4">SuperAdmin Dashboard</h1>
+
+        <!-- Stats Row -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-users"></i></div>
+                    <h3>{{ total_users|default:"0" }}</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-university"></i></div>
+                    <h3>{{ total_tenants|default:"0" }}</h3>
+                    <p>Total University Tenants</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-store"></i></div>
+                    <h3>N/A</h3>
+                    <p>Total Shops</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Recent Activity -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="dashboard-section">
+                    <h4 class="mb-3">Quick Actions</h4>
+                    <a href="{% url 'admin:index' %}" class="btn btn-gold mb-2">Go to Full Django Admin</a>
+                    <a href="#" class="btn btn-outline-secondary mb-2">Manage Blog Posts</a>
+                    <a href="#" class="btn btn-outline-secondary mb-2">View System Logs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

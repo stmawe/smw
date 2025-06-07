@@ -1,0 +1,31 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} | SMW Blog{% endblock %}
+
+{% block content %}
+<main class="confidence-section" style="padding-top: 5rem;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Post Header -->
+                <h1 class="section-title text-center">{{ post.title }}</h1>
+                <p class="text-center text-muted mb-4">
+                    By {{ post.author.get_full_name|default:post.author.username }}
+                    on {{ post.created_on|date:"F d, Y" }}
+                </p>
+
+                <!-- Featured Image -->
+                {% if post.featured_image %}
+                <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-4" alt="{{ post.title }}">
+                {% endif %}
+
+                <!-- Post Content -->
+                <div class="post-content" style="line-height: 1.8;">
+                    {{ post.content|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

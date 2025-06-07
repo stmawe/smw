@@ -1,54 +1,159 @@
-
-{% extends "templates/base.html" %}
+{% extends "home_base.html" %}
 {% load static %}
 
 {% block title %}Join Campus Marketplace{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+<style>
+    /* These styles can be moved to a separate register.css file */
+    .register-body {
+        background-color: #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1rem;
+        /* Adjust for fixed navbar height if necessary */
+        padding-top: 120px;
+        padding-bottom: 60px;
+    }
+    .register-container {
+        background: #fff;
+        padding: 2rem 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 550px;
+    }
+    .register-container h1 {
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.9rem;
+    }
+    .form-group .form-control {
+        height: 50px;
+        border-radius: 8px;
+    }
+    .register-btn {
+        padding: 0.8rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 8px;
+    }
+    .terms, .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .terms a, .login-link a {
+        color: var(--primary-dark, #1a1a2e);
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .terms a:hover, .login-link a:hover {
+        text-decoration: underline;
+    }
+    .password-strength {
+        height: 5px;
+        background-color: #eee;
+        border-radius: 5px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    .strength-bar {
+        height: 100%;
+        width: 0;
+        background-color: #dc3545; /* Starts red */
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+</style>
 
-    <div class="container mt-4">
+<div class="register-body">
+    <div class="register-container">
         <h1>Create Account</h1>
-        <form id="registerForm" onsubmit="return validateForm()">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" placeholder="John Doe" required>
-            </div>
 
-            <div class="form-group">
-                <label>University Email</label>
-                <input type="email" id="email" placeholder="john.doe@university.edu" required>
+        {% if form.errors %}
+            <div class="alert alert-danger" role="alert">
+                <strong>Please correct the errors below.</strong>
             </div>
+        {% endif %}
 
-            <div class="form-group">
-                <label>University</label>
-                <label for="university"></label><select id="university" required>
-                    <option value="" disabled selected>Select your university</option>
-                    <option>Harvard University</option>
-                    <option>Stanford University</option>
-                    <option>MIT</option>
-                </select>
-            </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="••••••••" required>
-                <div class="password-strength">
-                    <div class="strength-bar" id="strengthBar"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% for error in form.first_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% for error in form.last_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="confirmPassword" placeholder="••••••••" required>
+                <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                {{ form.username }}
+                {% for error in form.username.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
             </div>
 
-            <button type="submit">Create Account</button>
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.university_name.id_for_label }}">{{ form.university_name.label }}</label>
+                {{ form.university_name }}
+                {% for error in form.university_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.preferred_subdomain.id_for_label }}">{{ form.preferred_subdomain.label }}</label>
+                {{ form.preferred_subdomain }}
+                {% if form.preferred_subdomain.help_text %}<div class="form-text small">{{ form.preferred_subdomain.help_text }}</div>{% endif %}
+                {% for error in form.preferred_subdomain.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                <div class="password-strength">
+                    <div class="strength-bar" id="strengthBar"></div>
+                </div>
+                {% for error in form.password.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                {{ form.password2 }}
+                {% for error in form.password2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-gold register-btn w-100 mt-3">Create Account</button>
         </form>
 
         <div class="terms">
-            By creating an account, you agree to our 
-            <a href="#">Terms of Service</a> and 
+            By creating an account, you agree to our
+            <a href="#">Terms of Service</a> and
             <a href="#">Privacy Policy</a>.
         </div>
 
@@ -56,42 +161,39 @@
             Already have an account? <a href="{% url 'login' %}">Login here</a>
         </div>
     </div>
+</div>
 
-    <script>
-        function validateForm() {
-            const email = document.getElementById('email').value;
-            const university = document.getElementById('university').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (!email.endsWith('.edu')) {
-                alert('Please use a valid university email address (.edu domain).');
-                return false;
-            }
-
-            if (university === "") {
-                alert('Please select your university from the dropdown list.');
-                return false;
-            }
-
-            if (password.length < 8) {
-                alert('Password must be at least 8 characters long.');
-                return false;
-            }
-
-            if (password !== confirmPassword) {
-                alert('Passwords do not match!');
-                return false;
-            }
-
-            alert('Registration successful! Welcome to Campus Marketplace.');
-            return true;
-        }
-
-        document.getElementById('password').addEventListener('input', function(e) {
-            const strengthBar = document.getElementById('strengthBar');
-            const strength = Math.min(e.target.value.length / 12 * 100, 100);
-            strengthBar.style.width = strength + '%';
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Helper script to add 'form-control' class to all inputs/selects for consistent styling
+        document.querySelectorAll('.register-container input, .register-container select').forEach(el => {
+            el.classList.add('form-control');
+            if(el.name === 'first_name') el.placeholder = 'e.g. John';
+            if(el.name === 'last_name') el.placeholder = 'e.g. Doe';
+            if(el.name === 'username') el.placeholder = 'e.g. johndoe99';
+            if(el.name === 'email') el.placeholder = 'e.g. john.doe@university.edu';
+            if(el.type === 'password') el.placeholder = '••••••••';
         });
-    </script>
+
+        // Password strength meter logic
+        const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function(e) {
+                const strengthBar = document.getElementById('strengthBar');
+                const value = e.target.value;
+                const strength = Math.min(value.length, 12) / 12 * 100;
+
+                strengthBar.style.width = strength + '%';
+
+                if (strength < 33) {
+                    strengthBar.style.backgroundColor = '#dc3545'; // Red
+                } else if (strength < 66) {
+                    strengthBar.style.backgroundColor = '#ffc107'; // Yellow
+                } else {
+                    strengthBar.style.backgroundColor = '#198754'; // Green
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

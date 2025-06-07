@@ -1,0 +1,40 @@
+{
+  "universities": [
+    {
+      "name": "University of Nairobi",
+      "location": {
+        "city": "Nairobi",
+        "county": "Nairobi",
+        "country": "Kenya"
+      },
+      "ranking": 1,
+      "website": "https://www.uonbi.ac.ke",
+      "founded": 1970,
+      "student_count": 84000
+    },
+    {
+      "name": "Kenyatta University",
+      "location": {
+        "city": "Nairobi",
+        "county": "Nairobi",
+        "country": "Kenya"
+      },
+      "ranking": 2,
+      "website": "https://www.ku.ac.ke",
+      "founded": 1985,
+      "student_count": 70000
+    },
+    {
+      "name": "Moi University",
+      "location": {
+        "city": "Eldoret",
+        "county": "Uasin Gishu",
+        "country": "Kenya"
+      },
+      "ranking": 3,
+      "website": "https://www.mu.ac.ke",
+      "founded": 1984,
+      "student_count": 52000
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{% extends 'templates/home_base.html' %}
+{% load static %}
+
+{% block title %}SMW Blog{% endblock %}
+
+{% block content %}
+<main class="featured-section" style="padding-top: 5rem;">
+    <div class="container">
+        <h1 class="section-title">From the Blog</h1>
+        <div class="row">
+            <!-- Blog Entries Column -->
+            <div class="col-lg-8">
+                <div class="row">
+                    {% for post in posts %}
+                    <div class="col-md-6">
+                        <!-- Re-using product-card style for blog posts for consistency -->
+                        <div class="product-card">
+                            {% if post.featured_image %}
+                            <div class="card-img-container">
+                                <a href="{% url 'blog_detail' post.slug %}">
+                                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                                </a>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <p class="product-condition text-muted mb-2">
+                                    {{ post.created_on|date:"F d, Y" }} |
+                                    {% if post.category %}{{ post.category.name }}{% endif %}
+                                </p>
+                                <h5 class="product-title">
+                                    <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none text-dark">{{ post.title }}</a>
+                                </h5>
+                                <p class="product-condition">{{ post.excerpt }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>No blog posts have been published yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Blog Sidebar Column -->
+            <div class="col-lg-4">
+                <!-- Categories Card -->
+                <div class="product-card p-3">
+                    <h5 class="product-title">Categories</h5>
+                    <ul class="list-unstyled">
+                        {% for category in categories %}
+                        <li><a href="#" class="footer-link">{{ category.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
