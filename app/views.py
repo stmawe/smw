@@ -54,6 +54,37 @@ def products_view(request):
 def login_view(request):
     return render(request, 'accounts/login.html')
 
+def explore_view(request):
+    """Browse all shops"""
+    return render(request, 'explore.html')
+
+def listings_view(request):
+    """Browse all listings/products"""
+    return render(request, 'listings.html')
+
+def shop_detail_view(request, shop_id=None):
+    """View a specific shop"""
+    return render(request, 'shop_detail.html')
+
+def listing_detail_view(request, listing_id=None):
+    """View a specific product listing"""
+    return render(request, 'listing_detail.html')
+
+def universities_view(request):
+    """Browse universities"""
+    return render(request, 'universities.html')
+
+def locations_view(request):
+    """Browse locations"""
+    return render(request, 'locations.html')
+
+def create_shop_view(request):
+    """Shop creation wizard"""
+    if request.method == 'POST':
+        # Handle shop creation
+        return render(request, 'create_shop.html', {'success': True})
+    return render(request, 'create_shop.html')
+
 
 @transaction.atomic
 def tenant_register_view(request):

@@ -12,10 +12,69 @@
       <p class="section-subtitle">Explore handpicked stores from talented entrepreneurs</p>
       
       <div class="shops-grid">
-        {% include 'components/shop_card.html' with shop_name="Artisan Crafts" shop_owner="Sarah Johnson" items_count=45 rating=4.8 %}
-        {% include 'components/shop_card.html' with shop_name="Tech Gadgets" shop_owner="Mike Chen" items_count=28 rating=4.6 %}
-        {% include 'components/shop_card.html' with shop_name="Fashion Forward" shop_owner="Emma Davis" items_count=92 rating=4.9 %}
-        {% include 'components/shop_card.html' with shop_name="Book Haven" shop_owner="James Wilson" items_count=156 rating=4.7 %}
+        <div class="shop-card-simple">
+          <div class="shop-banner-simple" style="background: linear-gradient(135deg, #1A72E8 0%, #0F9640 100%);"></div>
+          <div class="shop-content-simple">
+            <div class="shop-header-simple">
+              <div class="shop-logo-simple">◉</div>
+              <h3>Artisan Crafts</h3>
+            </div>
+            <p class="shop-meta">By Sarah Johnson</p>
+            <div class="shop-stats-simple">
+              <span>★★★★☆ 4.8</span>
+              <span>45 items</span>
+            </div>
+            <a href="{% url 'shop_detail' shop_id=1 %}" class="shop-link">Visit Shop →</a>
+          </div>
+        </div>
+
+        <div class="shop-card-simple">
+          <div class="shop-banner-simple" style="background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);"></div>
+          <div class="shop-content-simple">
+            <div class="shop-header-simple">
+              <div class="shop-logo-simple">◈</div>
+              <h3>Tech Gadgets</h3>
+            </div>
+            <p class="shop-meta">By Mike Chen</p>
+            <div class="shop-stats-simple">
+              <span>★★★★☆ 4.6</span>
+              <span>28 items</span>
+            </div>
+            <a href="{% url 'shop_detail' shop_id=2 %}" class="shop-link">Visit Shop →</a>
+          </div>
+        </div>
+
+        <div class="shop-card-simple">
+          <div class="shop-banner-simple" style="background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);"></div>
+          <div class="shop-content-simple">
+            <div class="shop-header-simple">
+              <div class="shop-logo-simple">★</div>
+              <h3>Fashion Forward</h3>
+            </div>
+            <p class="shop-meta">By Emma Davis</p>
+            <div class="shop-stats-simple">
+              <span>★★★★★ 4.9</span>
+              <span>92 items</span>
+            </div>
+            <a href="{% url 'shop_detail' shop_id=3 %}" class="shop-link">Visit Shop →</a>
+          </div>
+        </div>
+
+        <div class="shop-card-simple">
+          <div class="shop-banner-simple" style="background: linear-gradient(135deg, #06B6D4 0%, #10B981 100%);"></div>
+          <div class="shop-content-simple">
+            <div class="shop-header-simple">
+              <div class="shop-logo-simple">📚</div>
+              <h3>Book Haven</h3>
+            </div>
+            <p class="shop-meta">By James Wilson</p>
+            <div class="shop-stats-simple">
+              <span>★★★★☆ 4.7</span>
+              <span>156 items</span>
+            </div>
+            <a href="{% url 'shop_detail' shop_id=4 %}" class="shop-link">Visit Shop →</a>
+          </div>
+        </div>
       </div>
       
       <div class="cta-center">
@@ -47,6 +106,101 @@
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap: var(--space-5);
       margin-bottom: var(--space-8);
+    }
+
+    /* Simple Shop Card for Homepage */
+    .shop-card-simple {
+      background: var(--surface-2);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .shop-card-simple:hover {
+      border-color: var(--border-mid);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .shop-banner-simple {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, var(--blue-600), var(--green-600));
+    }
+
+    .shop-content-simple {
+      padding: var(--space-4);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shop-header-simple {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+    }
+
+    .shop-logo-simple {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--gold-500);
+      font-size: 18px;
+      color: var(--gold-500);
+      flex-shrink: 0;
+    }
+
+    .shop-header-simple h3 {
+      font: 600 16px var(--font-body);
+      color: var(--text-1);
+      margin: 0;
+    }
+
+    .shop-meta {
+      font: 500 13px var(--font-body);
+      color: var(--text-3);
+      margin: 0 0 var(--space-3) 0;
+    }
+
+    .shop-stats-simple {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      flex: 1;
+      align-items: flex-end;
+      font: 500 12px var(--font-body);
+      color: var(--text-2);
+    }
+
+    .shop-stats-simple span:first-child {
+      color: var(--gold-400);
+    }
+
+    .shop-link {
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      background: transparent;
+      color: var(--color-primary);
+      border-top: 1px solid var(--border-mid);
+      text-decoration: none;
+      font: 500 13px var(--font-body);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .shop-link:hover {
+      background: rgba(26, 114, 232, 0.08);
+      color: var(--color-primary-hover);
     }
 
     .cta-center {
