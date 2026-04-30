@@ -1,40 +1,93 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Modern Shops Platform{% endblock %}
+{% block title %}Discover Unique Shops - SMW Marketplace{% endblock %}
 
 {% block content %}
-  <link rel="stylesheet" href="{% static 'css/index.css' %}">
-    
+  {% include 'components/hero.html' %}
+  
+  <section class="featured-section">
     <div class="container">
-        <div class="hero">
-            <h1>Discover Unique Shops</h1>
-            <p>Explore handpicked stores from creative entrepreneurs</p>
-            <div class="search-bar">
-                <input type="text" class="search-input" placeholder="Search shops...">
-            </div>
-        </div>
-
-        <div class="shop-grid">
-            <!-- Sample Shop Cards -->
-            <div class="shop-card">
-                <img src="https://via.placeholder.com/180" alt="Shop Logo">
-                <h2>Artisan Crafts</h2>
-                <p>By: Sarah Johnson</p>
-                <p>🛍️ 45 Items</p>
-                <a href="#" class="view-button">Visit Shop</a>
-            </div>
-
-            <div class="shop-card">
-                <img src="https://via.placeholder.com/180" alt="Shop Logo">
-                <h2>Tech Gadgets</h2>
-                <p>By: Mike Chen</p>
-                <p>🛍️ 28 Items</p>
-                <a href="#" class="view-button">Visit Shop</a>
-            </div>
-
-            <!-- Add more shop cards as needed -->
-        </div>
+      <h2>Featured Shops</h2>
+      <p class="section-subtitle">Explore handpicked stores from talented entrepreneurs</p>
+      
+      <div class="shops-grid">
+        {% include 'components/shop_card.html' with shop_name="Artisan Crafts" shop_owner="Sarah Johnson" items_count=45 rating=4.8 %}
+        {% include 'components/shop_card.html' with shop_name="Tech Gadgets" shop_owner="Mike Chen" items_count=28 rating=4.6 %}
+        {% include 'components/shop_card.html' with shop_name="Fashion Forward" shop_owner="Emma Davis" items_count=92 rating=4.9 %}
+        {% include 'components/shop_card.html' with shop_name="Book Haven" shop_owner="James Wilson" items_count=156 rating=4.7 %}
+      </div>
+      
+      <div class="cta-center">
+        <a href="{% url 'explore' %}" class="btn-primary">Browse All Shops</a>
+      </div>
     </div>
+  </section>
+
+  <style>
+    .featured-section {
+      padding: var(--space-9) 0;
+      background: var(--surface-0);
+    }
+
+    .featured-section h2 {
+      font: 700 40px / 1.2 var(--font-display);
+      color: var(--text-1);
+      margin: 0 0 var(--space-2) 0;
+    }
+
+    .section-subtitle {
+      font: 500 16px var(--font-body);
+      color: var(--text-2);
+      margin: 0 0 var(--space-6) 0;
+    }
+
+    .shops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: var(--space-5);
+      margin-bottom: var(--space-8);
+    }
+
+    .cta-center {
+      text-align: center;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: var(--space-3) var(--space-5);
+      background: var(--color-primary);
+      color: white;
+      border-radius: var(--radius-lg);
+      font: 600 14px var(--font-body);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .featured-section {
+        padding: var(--space-6) 0;
+      }
+
+      .shops-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--space-4);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .shops-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .featured-section h2 {
+        font-size: 28px;
+      }
+    }
+  </style>
 {% endblock %}
