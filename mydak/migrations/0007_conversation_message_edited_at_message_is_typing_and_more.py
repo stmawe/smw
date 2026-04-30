@@ -42,10 +42,6 @@ class Migration(migrations.Migration):
             name='listing',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='mydak.listing'),
         ),
-        migrations.AddIndex(
-            model_name='message',
-            index=models.Index(fields=['conversation', 'is_read'], name='mydak_messa_convers_306575_idx'),
-        ),
         migrations.AddField(
             model_name='conversation',
             name='buyer',
@@ -65,6 +61,10 @@ class Migration(migrations.Migration):
             model_name='message',
             name='conversation',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='mydak.conversation'),
+        ),
+        migrations.AddIndex(
+            model_name='message',
+            index=models.Index(fields=['conversation', 'is_read'], name='mydak_messa_convers_306575_idx'),
         ),
         migrations.AddIndex(
             model_name='conversation',
