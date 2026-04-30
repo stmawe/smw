@@ -74,20 +74,41 @@ def listing_detail_view(request, listing_id=None):
     # Mock listing data for now
     listing_data = {
         'listing': {
-            'title': f'Product #{listing_id}' if listing_id else 'Sample Product',
-            'price': 49.99,
-            'description': 'A high-quality product from a trusted seller. Perfect for your needs.',
+            'id': listing_id or 1,
+            'title': f'Premium Product #{listing_id}' if listing_id else 'Premium Electronics Item',
+            'price': 4999.99,
+            'original_price': 5999.99,
+            'description': 'A high-quality product from a trusted seller. Perfect condition and fully functional. Comes with warranty and after-sales support.',
+            'category': 'Electronics',
+            'condition': 'New',
+            'location': 'Nairobi, Kenya',
+            'created_at': '2025-01-15T10:30:00Z',
             'image': None,
-            'shop': {
-                'name': 'Featured Shop',
-                'id': 1,
+            'specs': {
+                'Brand': 'Premium',
+                'Model': 'PRO-2025',
+                'Color': 'Black',
+                'Warranty': '2 Years',
             },
-            'category': {
-                'name': 'Electronics'
+            'seller': {
+                'name': 'Premium Electronics Store',
+                'slug': 'premium-electronics-store',
+                'rating': 4.8,
+                'logo': None,
             },
-            'rating': 4.7,
-            'reviews_count': 23,
         },
+        'reviews_count': 23,
+        'seller_reviews_count': 142,
+        'seller_listings_count': 47,
+        'related_listings': [
+            {
+                'id': 2,
+                'title': 'Similar Product',
+                'price': 3999.99,
+                'image': None,
+                'rating': 4.5,
+            }
+        ],
         'site_name': 'SMW Marketplace',
     }
     return render(request, 'listing_detail.html', listing_data)
