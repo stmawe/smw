@@ -1,0 +1,589 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ shop.name }} - Shop{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/shop-detail.css' %}">
+
+<div class="shop-detail-wrapper">
+  <!-- Shop header -->
+  <div class="shop-header">
+    {% if shop.banner %}
+      <img src="{{ shop.banner.url }}" alt="{{ shop.name }} banner" class="shop-banner">
+    {% else %}
+      <div class="shop-banner-placeholder"></div>
+    {% endif %}
+
+    <div class="shop-header-content">
+      <div class="shop-hero">
+        {% if shop.logo %}
+          <img src="{{ shop.logo.url }}" alt="{{ shop.name }}" class="shop-logo">
+        {% endif %}
+        
+        <div class="shop-info">
+          <h1>{{ shop.name }}</h1>
+          <p class="shop-owner">by {{ shop.owner.get_full_name|default:shop.owner.username }}</p>
+          
+          <div class="shop-stats">
+            <div class="stat">
+              <span class="stat-value">{{ listings_count }}</span>
+              <span class="stat-label">Items</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ shop.rating|default:"4.8" }}</span>
+              <span class="stat-label">Rating</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ followers_count }}</span>
+              <span class="stat-label">Followers</span>
+            </div>
+          </div>
+
+          <div class="shop-actions">
+            <button class="btn-follow">+ Follow</button>
+            <button class="btn-message">💬 Message</button>
+          </div>
+        </div>
+      </div>
+
+      {% if shop.description %}
+        <div class="shop-description">
+          <h3>About</h3>
+          <p>{{ shop.description }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Shop content -->
+  <div class="container shop-content">
+    <!-- Tabs -->
+    <div class="shop-tabs">
+      <button class="tab-btn active" data-tab="listings">Listings</button>
+      <button class="tab-btn" data-tab="reviews">Reviews</button>
+      <button class="tab-btn" data-tab="about">About</button>
+    </div>
+
+    <!-- Listings tab -->
+    <div class="tab-content active" id="listings-tab">
+      <div class="listings-filter">
+        <input type="text" class="filter-input" placeholder="Search shop items...">
+        <select class="filter-select">
+          <option>Sort by</option>
+          <option>Newest</option>
+          <option>Price: Low to High</option>
+          <option>Price: High to Low</option>
+        </select>
+      </div>
+
+      <div class="listings-grid">
+        {% for listing in shop_listings %}
+          {% include 'components/listing_card.html' with listing=listing %}
+        {% empty %}
+          <div class="empty-state">
+            <p>No items in this shop yet.</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if is_paginated %}
+        <nav class="pagination">
+          {% if page_obj.has_previous %}
+            <a href="?page=1" class="page-link">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link">← Previous</a>
+          {% endif %}
+
+          <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next →</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </div>
+
+    <!-- Reviews tab -->
+    <div class="tab-content" id="reviews-tab">
+      <div class="reviews-section">
+        <h3>Customer Reviews</h3>
+        
+        <div class="reviews-list">
+          {% for review in shop_reviews %}
+            <div class="review-item">
+              <div class="review-header">
+                <span class="review-author">{{ review.author }}</span>
+                <span class="review-rating">⭐ {{ review.rating }}/5</span>
+              </div>
+              <p class="review-text">{{ review.text }}</p>
+              <span class="review-date">{{ review.created_at|date:"M d, Y" }}</span>
+            </div>
+          {% empty %}
+            <p class="empty-state">No reviews yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- About tab -->
+    <div class="tab-content" id="about-tab">
+      <div class="about-section">
+        <h3>About This Shop</h3>
+        
+        <div class="about-grid">
+          <div class="about-item">
+            <h4>Member Since</h4>
+            <p>{{ shop.created_at|date:"M Y" }}</p>
+          </div>
+          
+          <div class="about-item">
+            <h4>Location</h4>
+            <p>{{ shop.location|default:"Not specified" }}</p>
+          </div>
+          
+          <div class="about-item">
+            <h4>Response Time</h4>
+            <p>Usually within 24 hours</p>
+          </div>
+          
+          <div class="about-item">
+            <h4>Shipping</h4>
+            <p>Domestic & International</p>
+          </div>
+        </div>
+
+        {% if shop.description %}
+          <div class="about-full">
+            <h4>Full Description</h4>
+            <p>{{ shop.description }}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ============================================================
+   SHOP DETAIL PAGE STYLES
+   ============================================================ */
+
+.shop-detail-wrapper {
+  background: var(--surface-0);
+  min-height: 100vh;
+}
+
+/* Shop header */
+.shop-header {
+  position: relative;
+  background: var(--surface-1);
+}
+
+.shop-banner {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  display: block;
+}
+
+.shop-banner-placeholder {
+  width: 100%;
+  height: 300px;
+  background: linear-gradient(135deg, var(--blue-800), var(--blue-900));
+}
+
+.shop-header-content {
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.shop-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-6);
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+}
+
+.shop-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  border: 2px solid var(--border-mid);
+  margin-top: -60px;
+}
+
+.shop-info h1 {
+  font: 700 40px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.shop-owner {
+  font: 500 16px var(--font-body);
+  color: var(--text-2);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.shop-stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font: 700 24px var(--font-body);
+  color: var(--color-accent);
+}
+
+.stat-label {
+  font: 500 12px var(--font-body);
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+.shop-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.btn-follow,
+.btn-message {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  font: 600 14px var(--font-body);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-follow {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-follow:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+.btn-message {
+  background: transparent;
+  color: var(--text-1);
+  border: 1px solid var(--border-mid);
+}
+
+.btn-message:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.shop-description {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-dim);
+}
+
+.shop-description h3 {
+  font: 600 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.shop-description p {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Tabs */
+.shop-tabs {
+  display: flex;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--border-dim);
+  margin-bottom: var(--space-6);
+  padding: 0 0 var(--space-4) 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font: 600 14px var(--font-body);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover,
+.tab-btn.active {
+  color: var(--text-1);
+  border-bottom-color: var(--color-primary);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Listings tab */
+.listings-filter {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.filter-input,
+.filter-select {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  color: var(--text-1);
+  font: 500 13px var(--font-body);
+}
+
+.filter-input {
+  flex: 1;
+}
+
+.filter-select {
+  min-width: 180px;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--text-3);
+}
+
+/* Reviews */
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.review-item {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.review-author {
+  font: 600 14px var(--font-body);
+  color: var(--text-1);
+}
+
+.review-rating {
+  font: 500 13px var(--font-body);
+  color: var(--color-accent);
+}
+
+.review-text {
+  font: 500 13px var(--font-body);
+  color: var(--text-2);
+  margin: var(--space-2) 0;
+  line-height: 1.6;
+}
+
+.review-date {
+  font: 500 12px var(--font-body);
+  color: var(--text-3);
+}
+
+/* About */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.about-item {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+}
+
+.about-item h4 {
+  font: 600 14px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.about-item p {
+  font: 500 13px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+}
+
+.about-full {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+}
+
+.about-full h4 {
+  font: 600 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.about-full p {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--border-dim);
+}
+
+.page-link {
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  text-decoration: none;
+  font: 600 13px var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.page-link:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .shop-banner {
+    height: 200px;
+  }
+
+  .shop-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-logo {
+    width: 100px;
+    height: 100px;
+  }
+
+  .shop-info h1 {
+    font-size: 28px;
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .listings-filter {
+    flex-direction: column;
+  }
+
+  .filter-select {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .shop-header-content {
+    padding: var(--space-4);
+  }
+
+  .shop-info h1 {
+    font-size: 20px;
+  }
+
+  .shop-stats {
+    gap: var(--space-4);
+    font-size: 14px;
+  }
+
+  .shop-actions {
+    flex-direction: column;
+  }
+
+  .btn-follow,
+  .btn-message {
+    width: 100%;
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .shop-tabs {
+    gap: var(--space-2);
+  }
+
+  .tab-btn {
+    font-size: 12px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabName = this.dataset.tab;
+      
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Deactivate all buttons
+      tabBtns.forEach(b => b.classList.remove('active'));
+      
+      // Show selected tab
+      document.getElementById(tabName + '-tab').classList.add('active');
+      this.classList.add('active');
+    });
+  });
+});
+</script>
+{% endblock %}

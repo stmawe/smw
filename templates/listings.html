@@ -1,0 +1,511 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Listings - {{ site_name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/listings.css' %}">
+
+<div class="listings-wrapper">
+  <!-- Page header -->
+  <div class="listings-header">
+    <div class="container">
+      <h1>All Listings</h1>
+      <p>Browse all available items from our sellers</p>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="listings-container">
+    <!-- Filters sidebar -->
+    <aside class="listings-filters">
+      <h3>Filter</h3>
+
+      <!-- Search -->
+      <div class="filter-group">
+        <label>Search</label>
+        <input type="text" class="filter-input" placeholder="Item name..." id="itemSearch">
+      </div>
+
+      <!-- Category -->
+      <div class="filter-group">
+        <label>Category</label>
+        <div class="filter-options">
+          <label class="filter-checkbox">
+            <input type="checkbox" value="all" checked>
+            <span>All</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="electronics">
+            <span>Electronics</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="fashion">
+            <span>Fashion</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="books">
+            <span>Books</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="furniture">
+            <span>Furniture</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="other">
+            <span>Other</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Price range -->
+      <div class="filter-group">
+        <label>Price Range</label>
+        <input type="range" class="filter-range" min="0" max="50000" value="50000" id="priceRange">
+        <div class="price-display">
+          <span>KES 0</span> - <span id="priceValue">50000</span>
+        </div>
+      </div>
+
+      <!-- Condition -->
+      <div class="filter-group">
+        <label>Condition</label>
+        <div class="filter-options">
+          <label class="filter-checkbox">
+            <input type="checkbox" value="new">
+            <span>New</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="like-new">
+            <span>Like New</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" value="used">
+            <span>Used</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Rating -->
+      <div class="filter-group">
+        <label>Minimum Rating</label>
+        <select class="filter-select" id="minRating">
+          <option value="0">Any rating</option>
+          <option value="1">⭐ 1 star & up</option>
+          <option value="2">⭐⭐ 2 stars & up</option>
+          <option value="3">⭐⭐⭐ 3 stars & up</option>
+          <option value="4">⭐⭐⭐⭐ 4 stars & up</option>
+          <option value="5">⭐⭐⭐⭐⭐ 5 stars only</option>
+        </select>
+      </div>
+
+      <!-- Sort -->
+      <div class="filter-group">
+        <label>Sort by</label>
+        <select class="filter-select" id="sortBy">
+          <option value="newest">Newest</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="rating">Highest Rated</option>
+          <option value="popular">Most Popular</option>
+        </select>
+      </div>
+
+      <!-- Clear filters -->
+      <button class="btn-clear-filters">Clear All</button>
+    </aside>
+
+    <!-- Listings grid -->
+    <main class="listings-main">
+      <!-- View toggle -->
+      <div class="listings-toolbar">
+        <span class="results-count">
+          {{ listing_count }} items
+        </span>
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="grid" title="Grid view">⊞</button>
+          <button class="view-btn" data-view="list" title="List view">≡</button>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="listings-grid" id="listingsGrid">
+        <!-- Listing cards loaded here -->
+        {% for listing in listings %}
+          {% include 'components/listing_card.html' with listing=listing %}
+        {% empty %}
+          <div class="empty-state">
+            <p>No listings found. Try adjusting your filters.</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+        <nav class="pagination">
+          {% if page_obj.has_previous %}
+            <a href="?page=1" class="page-link">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link">← Previous</a>
+          {% endif %}
+
+          <span class="page-info">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next →</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </main>
+  </div>
+</div>
+
+<style>
+/* ============================================================
+   ALL LISTINGS PAGE STYLES
+   ============================================================ */
+
+.listings-wrapper {
+  background: var(--surface-0);
+  min-height: 100vh;
+}
+
+.listings-header {
+  background: linear-gradient(135deg, var(--gold-800), var(--gold-700));
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--border-mid);
+}
+
+.listings-header h1 {
+  font: 700 48px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.listings-header p {
+  font: 500 16px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+}
+
+.listings-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-6);
+  max-width: 1400px;
+  margin: var(--space-8) auto;
+  padding: 0 var(--space-4);
+}
+
+/* Filters sidebar */
+.listings-filters {
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  height: fit-content;
+  position: sticky;
+  top: var(--space-4);
+}
+
+.listings-filters h3 {
+  font: 700 18px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.filter-group {
+  margin-bottom: var(--space-5);
+}
+
+.filter-group label {
+  display: block;
+  font: 600 13px var(--font-body);
+  color: var(--text-2);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-input,
+.filter-select,
+.filter-range {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  font: 500 13px var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--surface-3);
+}
+
+.filter-range {
+  padding: var(--space-1) 0;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font: 500 13px var(--font-body);
+  color: var(--text-2);
+  padding: var(--space-1) 0;
+}
+
+.filter-checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.filter-checkbox:hover {
+  color: var(--text-1);
+}
+
+.price-display {
+  font: 500 12px var(--font-body);
+  color: var(--text-3);
+  margin-top: var(--space-2);
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-clear-filters {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  font: 600 13px var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  border-color: var(--text-2);
+  color: var(--text-1);
+}
+
+/* Main content */
+.listings-main {
+  flex: 1;
+}
+
+.listings-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-5);
+}
+
+.results-count {
+  font: 600 14px var(--font-body);
+  color: var(--text-2);
+}
+
+.view-toggle {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.view-btn {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font: 600 16px var(--font-body);
+}
+
+.view-btn:hover,
+.view-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.listings-grid.list-view {
+  grid-template-columns: 1fr;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-3);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--border-dim);
+}
+
+.page-link {
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  text-decoration: none;
+  font: 600 13px var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.page-link:hover {
+  background: var(--surface-2);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.page-info {
+  font: 500 13px var(--font-body);
+  color: var(--text-2);
+  padding: 0 var(--space-4);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .listings-container {
+    grid-template-columns: 1fr;
+  }
+
+  .listings-filters {
+    position: static;
+    margin-bottom: var(--space-6);
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .listings-header h1 {
+    font-size: 32px;
+  }
+
+  .listings-container {
+    gap: var(--space-4);
+    margin: var(--space-4) auto;
+    padding: 0 var(--space-2);
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .listings-filters {
+    padding: var(--space-3);
+  }
+
+  .filter-group {
+    margin-bottom: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .listings-header {
+    padding: var(--space-4) var(--space-2);
+  }
+
+  .listings-header h1 {
+    font-size: 24px;
+  }
+
+  .listings-toolbar {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .listings-grid.list-view {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .page-link {
+    padding: var(--space-1) var(--space-2);
+    font-size: 12px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const priceRange = document.getElementById('priceRange');
+  const priceValue = document.getElementById('priceValue');
+
+  if (priceRange) {
+    priceRange.addEventListener('input', function() {
+      priceValue.textContent = new Intl.NumberFormat().format(this.value);
+    });
+  }
+
+  // View toggle
+  const viewBtns = document.querySelectorAll('.view-btn');
+  const listingsGrid = document.getElementById('listingsGrid');
+
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      viewBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      const view = this.dataset.view;
+      if (view === 'list') {
+        listingsGrid.classList.add('list-view');
+      } else {
+        listingsGrid.classList.remove('list-view');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
