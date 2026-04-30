@@ -10,22 +10,9 @@ from .models import Client, ClientDomain, User
 
 def refs(request):
     """
-    Root path handler - differentiates between base domain and tenant domains.
-    Base domain (smw.pgwiz.cloud): show homepage
-    Tenant domains (tenant.smw.pgwiz.cloud): show tenant refs page
+    Root path handler - shows the new homepage with hero and featured shops
     """
-    try:
-        # Check the host to determine if it's a base domain or subdomain
-        host = request.get_host().lower().split(':')[0]  # Remove port if present
-        
-        # If host is exactly smw.pgwiz.cloud (or configured base domain), show homepage
-        if host == 'smw.pgwiz.cloud':
-            return render(request, 'homepage.html')
-        else:
-            # It's a subdomain tenant - show refs page
-            return render(request, 'ref.html')
-    except Exception as e:
-        return HttpResponse(f'<h1>SMW Platform</h1><p>Template error: {str(e)}</p>', status=500)
+    return render(request, 'homepage.html')
 
 def homepage_view(request):
     return render(request, 'homepage.html')
