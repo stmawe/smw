@@ -1,0 +1,688 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ listing.title }} - Buy on {{ site_name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/listing-detail.css' %}">
+
+<div class="listing-detail-wrapper">
+  <div class="container listing-detail-container">
+    <!-- Main content -->
+    <main class="listing-main">
+      <!-- Image gallery -->
+      <div class="gallery-section">
+        <div class="main-image">
+          {% if listing.image %}
+            <img src="{{ listing.image.url }}" alt="{{ listing.title }}" id="mainImage">
+          {% else %}
+            <div class="image-placeholder">No Image</div>
+          {% endif %}
+        </div>
+
+        <div class="gallery-thumbnails">
+          {% if listing.image %}
+            <img src="{{ listing.image.url }}" alt="Thumb" class="thumbnail active" onclick="updateMainImage(this)">
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Details section -->
+      <div class="details-section">
+        <h1 class="listing-title">{{ listing.title }}</h1>
+
+        <!-- Meta info -->
+        <div class="listing-meta">
+          <span class="category-badge">{{ listing.category }}</span>
+          <span class="condition-badge">{{ listing.condition }}</span>
+          <span class="posted-date">Posted {{ listing.created_at|timesince }} ago</span>
+        </div>
+
+        <!-- Rating -->
+        <div class="rating-section">
+          <span class="rating-stars">⭐⭐⭐⭐⭐</span>
+          <span class="rating-text">({{ reviews_count }} reviews)</span>
+        </div>
+
+        <!-- Price -->
+        <div class="price-section">
+          <span class="price">KES {{ listing.price|floatformat:0|intcomma }}</span>
+          {% if listing.original_price %}
+            <span class="original-price">KES {{ listing.original_price|floatformat:0|intcomma }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="description-section">
+          <h3>Description</h3>
+          <p>{{ listing.description }}</p>
+        </div>
+
+        <!-- Details -->
+        {% if listing.specs %}
+          <div class="specs-section">
+            <h3>Specifications</h3>
+            <div class="specs-grid">
+              {% for key, value in listing.specs.items %}
+                <div class="spec-item">
+                  <span class="spec-key">{{ key }}:</span>
+                  <span class="spec-value">{{ value }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="actions-section">
+          <button class="btn-buy">Buy Now</button>
+          <button class="btn-wishlist" onclick="toggleWishlist()">♡ Save</button>
+          <button class="btn-share">📤 Share</button>
+        </div>
+
+        <!-- Seller info -->
+        <div class="seller-section">
+          <h3>About the Seller</h3>
+          <div class="seller-card">
+            {% if listing.seller.logo %}
+              <img src="{{ listing.seller.logo.url }}" alt="{{ listing.seller.name }}" class="seller-logo">
+            {% endif %}
+            
+            <div class="seller-info">
+              <h4>{{ listing.seller.name }}</h4>
+              <div class="seller-rating">
+                <span class="rating-stars">⭐ {{ listing.seller.rating|default:"4.8" }}</span>
+                <span class="rating-text">({{ seller_reviews_count }} reviews)</span>
+              </div>
+              <p class="seller-items">{{ seller_listings_count }} items</p>
+            </div>
+
+            <div class="seller-actions">
+              <a href="{% url 'shop_detail' slug=listing.seller.slug %}" class="btn-visit-shop">Visit Shop</a>
+              <button class="btn-contact">💬 Message</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Sidebar -->
+    <aside class="listing-sidebar">
+      <!-- Quick info -->
+      <div class="quick-info-card">
+        <div class="info-row">
+          <span class="info-label">Location:</span>
+          <span class="info-value">{{ listing.location|default:"Not specified" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Condition:</span>
+          <span class="info-value">{{ listing.condition }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Category:</span>
+          <span class="info-value">{{ listing.category }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ID:</span>
+          <span class="info-value">#{{ listing.id }}</span>
+        </div>
+      </div>
+
+      <!-- Safety tips -->
+      <div class="safety-tips-card">
+        <h4>Safety Tips</h4>
+        <ul>
+          <li>Meet seller in person</li>
+          <li>Check item condition</li>
+          <li>Pay after verification</li>
+          <li>Keep records of transaction</li>
+        </ul>
+      </div>
+
+      <!-- Report -->
+      <button class="btn-report">🚩 Report Listing</button>
+    </aside>
+  </div>
+
+  <!-- Related listings -->
+  <div class="related-section">
+    <div class="container">
+      <h2>Related Items</h2>
+      <div class="related-grid">
+        {% for related in related_listings %}
+          {% include 'components/listing_card.html' with listing=related %}
+        {% empty %}
+          <p>No related items found.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ============================================================
+   LISTING DETAIL PAGE STYLES
+   ============================================================ */
+
+.listing-detail-wrapper {
+  background: var(--surface-0);
+  min-height: 100vh;
+  padding: var(--space-6) 0;
+}
+
+.listing-detail-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 300px;
+  gap: var(--space-6);
+}
+
+/* Gallery section */
+.gallery-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.main-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-dim);
+}
+
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(26, 114, 232, 0.05), rgba(15, 150, 64, 0.05));
+  color: var(--text-3);
+}
+
+.gallery-thumbnails {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  border: 2px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  object-fit: cover;
+  transition: all 0.2s ease;
+}
+
+.thumbnail:hover,
+.thumbnail.active {
+  border-color: var(--color-primary);
+}
+
+/* Details section */
+.details-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.listing-title {
+  font: 700 36px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0;
+}
+
+.listing-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.category-badge,
+.condition-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-pill);
+  font: 600 12px var(--font-body);
+  color: var(--text-2);
+  text-transform: capitalize;
+}
+
+.posted-date {
+  font: 500 12px var(--font-body);
+  color: var(--text-3);
+}
+
+.rating-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rating-stars {
+  font-size: 18px;
+}
+
+.rating-text {
+  font: 500 13px var(--font-body);
+  color: var(--text-3);
+}
+
+.price-section {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dim);
+}
+
+.price {
+  display: block;
+  font: 700 32px var(--font-body);
+  color: var(--color-accent);
+  margin-bottom: var(--space-2);
+}
+
+.original-price {
+  font: 500 14px var(--font-body);
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+.description-section,
+.specs-section {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dim);
+}
+
+.description-section h3,
+.specs-section h3 {
+  font: 700 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.description-section p {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.spec-key {
+  font: 600 12px var(--font-body);
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+.spec-value {
+  font: 500 13px var(--font-body);
+  color: var(--text-1);
+}
+
+.actions-section {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.btn-buy,
+.btn-wishlist,
+.btn-share {
+  flex: 1;
+  min-width: 150px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font: 600 14px var(--font-body);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-buy {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-buy:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+.btn-wishlist,
+.btn-share {
+  background: transparent;
+  color: var(--text-1);
+  border: 1px solid var(--border-mid);
+}
+
+.btn-wishlist:hover,
+.btn-share:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.seller-section {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dim);
+}
+
+.seller-section h3 {
+  font: 700 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.seller-card {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.seller-logo {
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.seller-info {
+  flex: 1;
+}
+
+.seller-info h4 {
+  font: 600 14px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.seller-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.seller-items {
+  font: 500 12px var(--font-body);
+  color: var(--text-3);
+  margin: 0;
+}
+
+.seller-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-direction: column;
+}
+
+.btn-visit-shop,
+.btn-contact {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font: 600 12px var(--font-body);
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-visit-shop {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-visit-shop:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-contact {
+  background: transparent;
+  color: var(--text-1);
+  border: 1px solid var(--border-mid);
+}
+
+.btn-contact:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Sidebar */
+.listing-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.quick-info-card,
+.safety-tips-card {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+}
+
+.safety-tips-card h4 {
+  font: 700 14px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font: 600 12px var(--font-body);
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+.info-value {
+  font: 500 13px var(--font-body);
+  color: var(--text-1);
+}
+
+.safety-tips-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.safety-tips-card li {
+  font: 500 12px var(--font-body);
+  color: var(--text-2);
+  padding: var(--space-2) 0;
+  padding-left: var(--space-3);
+  border-bottom: 1px solid var(--border-dim);
+  position: relative;
+}
+
+.safety-tips-card li:last-child {
+  border-bottom: none;
+}
+
+.safety-tips-card li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--color-success);
+  font-weight: bold;
+}
+
+.btn-report {
+  width: 100%;
+  padding: var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  color: var(--text-2);
+  font: 600 13px var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-report:hover {
+  border-color: #E74C3C;
+  color: #E74C3C;
+  background: rgba(231, 76, 60, 0.05);
+}
+
+/* Related section */
+.related-section {
+  padding: var(--space-8) 0 0;
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--border-dim);
+}
+
+.related-section h2 {
+  font: 700 28px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-5);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .listing-detail-container {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .listing-sidebar {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 768px) {
+  .listing-detail-container {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-sidebar {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .listing-title {
+    font-size: 24px;
+  }
+
+  .price {
+    font-size: 24px;
+  }
+
+  .actions-section {
+    flex-direction: column;
+  }
+
+  .btn-buy,
+  .btn-wishlist,
+  .btn-share {
+    width: 100%;
+  }
+
+  .seller-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .seller-actions {
+    width: 100%;
+  }
+
+  .btn-visit-shop,
+  .btn-contact {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .listing-detail-wrapper {
+    padding: var(--space-3) 0;
+  }
+
+  .listing-title {
+    font-size: 18px;
+  }
+
+  .price {
+    font-size: 20px;
+  }
+
+  .gallery-thumbnails {
+    flex-wrap: wrap;
+  }
+
+  .thumbnail {
+    width: 60px;
+    height: 60px;
+  }
+
+  .related-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+}
+</style>
+
+<script>
+function updateMainImage(img) {
+  const mainImage = document.getElementById('mainImage');
+  mainImage.src = img.src;
+  
+  document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+  img.classList.add('active');
+}
+
+function toggleWishlist() {
+  const btn = event.target;
+  btn.classList.toggle('saved');
+  if (btn.classList.contains('saved')) {
+    btn.textContent = '❤ Saved';
+  } else {
+    btn.textContent = '♡ Save';
+  }
+}
+</script>
+{% endblock %}

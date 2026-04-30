@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Locations - {{ site_name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/directory.css' %}">
+
+<div class="directory-wrapper">
+  <div class="directory-header">
+    <h1>Locations</h1>
+    <p>Browse shops by area or location</p>
+  </div>
+
+  <div class="container directory-container">
+    <!-- Search/Filter -->
+    <div class="directory-controls">
+      <input type="text" class="search-box" placeholder="Search locations..." id="locationSearch">
+      <select class="sort-select" id="sortBy">
+        <option>Sort by</option>
+        <option>Most Shops</option>
+        <option>Alphabetical</option>
+        <option>Nearest</option>
+      </select>
+    </div>
+
+    <!-- Locations grid -->
+    <div class="items-grid">
+      {% for location in locations %}
+        <a href="{% url 'location_detail' slug=location.slug %}" class="directory-card">
+          <div class="card-icon">📍</div>
+          <h3>{{ location.name }}</h3>
+          <p>{{ location.shops_count }} shops</p>
+        </a>
+      {% empty %}
+        <div class="empty-state">
+          <p>No locations found.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+      <nav class="pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page=1" class="page-link">« First</a>
+          <a href="?page={{ page_obj.previous_page_number }}" class="page-link">← Previous</a>
+        {% endif %}
+
+        <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next →</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.directory-wrapper {
+  background: var(--surface-0);
+  min-height: 100vh;
+}
+
+.directory-header {
+  background: linear-gradient(135deg, var(--gold-800), var(--gold-700));
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--border-mid);
+}
+
+.directory-header h1 {
+  font: 700 48px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.directory-header p {
+  font: 500 16px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+}
+
+.directory-container {
+  max-width: 1200px;
+  margin: var(--space-8) auto;
+  padding: 0 var(--space-4);
+}
+
+.directory-controls {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.search-box,
+.sort-select {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  color: var(--text-1);
+  font: 500 14px var(--font-body);
+}
+
+.search-box {
+  flex: 1;
+}
+
+.search-box::placeholder {
+  color: var(--text-3);
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.directory-card {
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.directory-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-icon {
+  font-size: 48px;
+}
+
+.directory-card h3 {
+  font: 700 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0;
+}
+
+.directory-card p {
+  font: 500 13px var(--font-body);
+  color: var(--text-3);
+  margin: 0;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--text-3);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-dim);
+}
+
+.page-link {
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  text-decoration: none;
+  font: 600 13px var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.page-link:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.page-info {
+  font: 500 13px var(--font-body);
+  color: var(--text-2);
+  padding: 0 var(--space-4);
+}
+
+@media (max-width: 768px) {
+  .directory-header h1 {
+    font-size: 32px;
+  }
+
+  .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .directory-controls {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .directory-header {
+    padding: var(--space-4);
+  }
+
+  .directory-header h1 {
+    font-size: 24px;
+  }
+
+  .items-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .directory-card {
+    padding: var(--space-3);
+  }
+
+  .card-icon {
+    font-size: 36px;
+  }
+}
+</style>
+{% endblock %}
