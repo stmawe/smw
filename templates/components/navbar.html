@@ -1,13 +1,13 @@
 <!-- ============================================================
      NAVBAR COMPONENT
-     Sticky glassmorphism navbar with mobile hamburger menu
+     Sticky glassmorphism navbar with scroll collapse to hamburger
      ============================================================ -->
 
 {% load static %}
 
-<header class="navbar-container">
+<header class="navbar-container" id="navbarContainer">
   <nav class="navbar">
-    <div class="container-lg navbar-content">
+    <div class="navbar-content">
       <!-- Logo -->
       <div class="navbar-logo">
         <a href="{% url 'index' %}" class="logo-link">
@@ -56,16 +56,14 @@
       </ul>
     </div>
   </nav>
-</header>
 
-<!-- Scroll Indicator with Hamburger -->
-<div class="navbar-scroll-indicator" id="scrollIndicator">
-  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle navbar" aria-expanded="false">
+  <!-- Scroll Hamburger - appears when navbar collapses -->
+  <button class="scroll-hamburger" id="scrollHamburger" aria-label="Toggle navbar" aria-expanded="false">
     <span class="hamburger-line"></span>
     <span class="hamburger-line"></span>
     <span class="hamburger-line"></span>
   </button>
-</div>
+</header>
 
 <!-- Expanded Navbar Overlay (appears on hamburger click) -->
 <div class="navbar-expanded" id="expandedNavbar">
@@ -103,6 +101,32 @@
   }
 }
 
+@keyframes collapseNavbar {
+  from {
+    width: 100%;
+    height: auto;
+    opacity: 1;
+  }
+  to {
+    width: 56px;
+    height: 56px;
+    opacity: 1;
+  }
+}
+
+@keyframes expandNavbar {
+  from {
+    width: 56px;
+    height: 56px;
+    opacity: 1;
+  }
+  to {
+    width: 100%;
+    height: auto;
+    opacity: 1;
+  }
+}
+
 /* ============================================================
    NAVBAR STYLES
    ============================================================ */
@@ -114,37 +138,129 @@
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-dim);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
 }
 
 .navbar-container.scrolled-down {
-  transform: translateY(-100%);
-  box-shadow: none;
-}
-
-.navbar-scroll-indicator {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1001;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.navbar-scroll-indicator.visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Hamburger Button */
-.hamburger-btn {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--color-primary);
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.navbar {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-container.scrolled-down .navbar {
+  padding: 0;
+  display: none;
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+/* Logo */
+.navbar-logo {
+  flex-shrink: 0;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  font: 700 24px/1 var(--font-display);
+  color: var(--text-1);
+  transition: color 0.2s ease;
+}
+
+.logo-link:hover {
+  color: var(--color-accent);
+}
+
+.logo-icon {
+  color: var(--color-accent);
+  font-size: 28px;
+}
+
+.logo-text {
+  letter-spacing: -0.02em;
+}
+
+/* Navigation Menu */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  font: 500 15px/1.4 var(--font-body);
+  color: var(--text-2);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-1);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Auth Buttons */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* Scroll Hamburger - appears when navbar collapses */
+.scroll-hamburger {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  background: transparent;
   border: none;
   cursor: pointer;
   display: flex;
@@ -152,19 +268,20 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  box-shadow: var(--shadow-lg);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
   padding: 0;
+  z-index: 1001;
 }
 
-.hamburger-btn:hover {
-  background: var(--color-primary-hover);
-  transform: scale(1.08);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+.navbar-container.scrolled-down .scroll-hamburger {
+  opacity: 1;
+  visibility: visible;
 }
 
-.hamburger-btn.active {
-  transform: rotate(90deg);
+.scroll-hamburger:hover {
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .hamburger-line {
@@ -175,15 +292,15 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hamburger-btn.active .hamburger-line:nth-child(1) {
+.scroll-hamburger.active .hamburger-line:nth-child(1) {
   transform: translateY(11px) rotate(45deg);
 }
 
-.hamburger-btn.active .hamburger-line:nth-child(2) {
+.scroll-hamburger.active .hamburger-line:nth-child(2) {
   opacity: 0;
 }
 
-.hamburger-btn.active .hamburger-line:nth-child(3) {
+.scroll-hamburger.active .hamburger-line:nth-child(3) {
   transform: translateY(-11px) rotate(-45deg);
 }
 
@@ -309,91 +426,6 @@
   margin: var(--space-3) 0;
 }
 
-.navbar {
-  padding: var(--space-4) 0;
-}
-
-.navbar-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-5);
-}
-
-/* Logo */
-.navbar-logo {
-  flex-shrink: 0;
-}
-
-.logo-link {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  text-decoration: none;
-  font: 700 24px/1 var(--font-display);
-  color: var(--text-1);
-  transition: color 0.2s ease;
-}
-
-.logo-link:hover {
-  color: var(--color-accent);
-}
-
-.logo-icon {
-  color: var(--color-accent);
-  font-size: 28px;
-}
-
-.logo-text {
-  letter-spacing: -0.02em;
-}
-
-/* Navigation Menu */
-.navbar-menu {
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  flex: 1;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-link {
-  font: 500 15px/1.4 var(--font-body);
-  color: var(--text-2);
-  text-decoration: none;
-  position: relative;
-  transition: color 0.2s ease;
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--color-accent);
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover {
-  color: var(--text-1);
-}
-
-.nav-link:hover::after {
-  width: 100%;
-}
-
-/* Auth Buttons */
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-shrink: 0;
-}
-
 /* Hamburger Toggle (Mobile) */
 .navbar-toggle {
   display: flex;
@@ -516,47 +548,41 @@ document.addEventListener('DOMContentLoaded', function() {
   const drawer = document.querySelector('.navbar-drawer');
   const drawerLinks = document.querySelectorAll('.drawer-link');
   const navbar = document.querySelector('.navbar-container');
-  const scrollIndicator = document.getElementById('scrollIndicator');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const scrollHamburger = document.getElementById('scrollHamburger');
   const expandedNavbar = document.getElementById('expandedNavbar');
   const hamburgerClose = document.getElementById('hamburgerClose');
   const expandedLinks = document.querySelectorAll('.expanded-link:not(.expanded-divider)');
   
   let lastScrollPosition = 0;
-  let isNavbarVisible = true;
+  let isNavbarScrolled = false;
   let isExpandedNavbarOpen = false;
 
-  // Scroll event listener for navbar animation
+  // Scroll event listener for navbar collapse animation
   window.addEventListener('scroll', function() {
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
     
-    if (currentScroll > 100) { // Only hide after scrolling 100px
-      if (currentScroll > lastScrollPosition && isNavbarVisible && !isExpandedNavbarOpen) {
-        // Scrolling down - hide navbar
+    // On scroll down past 100px, collapse navbar to hamburger
+    if (currentScroll > 100) {
+      if (!isNavbarScrolled) {
         navbar.classList.add('scrolled-down');
-        scrollIndicator.classList.add('visible');
-        isNavbarVisible = false;
-      } else if (currentScroll < lastScrollPosition && !isNavbarVisible && !isExpandedNavbarOpen) {
-        // Scrolling up - show navbar
-        navbar.classList.remove('scrolled-down');
-        scrollIndicator.classList.remove('visible');
-        isNavbarVisible = true;
+        isNavbarScrolled = true;
       }
     } else {
-      // Near top - always show navbar
-      navbar.classList.remove('scrolled-down');
-      scrollIndicator.classList.remove('visible');
-      isNavbarVisible = true;
+      // On scroll up or near top, expand navbar back
+      if (isNavbarScrolled) {
+        navbar.classList.remove('scrolled-down');
+        isNavbarScrolled = false;
+      }
     }
     
     lastScrollPosition = currentScroll <= 0 ? 0 : currentScroll;
   });
 
-  // Hamburger button functionality - expand navbar
-  if (hamburgerBtn) {
-    hamburgerBtn.addEventListener('click', function(e) {
+  // Hamburger button functionality - expand navbar overlay
+  if (scrollHamburger) {
+    scrollHamburger.addEventListener('click', function(e) {
       e.stopPropagation();
-      hamburgerBtn.classList.toggle('active');
+      scrollHamburger.classList.toggle('active');
       expandedNavbar.classList.toggle('active');
       isExpandedNavbarOpen = expandedNavbar.classList.contains('active');
     });
@@ -566,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (hamburgerClose) {
     hamburgerClose.addEventListener('click', function(e) {
       e.stopPropagation();
-      hamburgerBtn.classList.remove('active');
+      scrollHamburger.classList.remove('active');
       expandedNavbar.classList.remove('active');
       isExpandedNavbarOpen = false;
     });
@@ -575,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Close expanded navbar when clicking on a link
   expandedLinks.forEach(link => {
     link.addEventListener('click', function() {
-      hamburgerBtn.classList.remove('active');
+      scrollHamburger.classList.remove('active');
       expandedNavbar.classList.remove('active');
       isExpandedNavbarOpen = false;
     });
@@ -585,13 +611,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if (expandedNavbar) {
     expandedNavbar.addEventListener('click', function(e) {
       if (e.target === expandedNavbar) {
-        hamburgerBtn.classList.remove('active');
+        scrollHamburger.classList.remove('active');
         expandedNavbar.classList.remove('active');
         isExpandedNavbarOpen = false;
       }
     });
   }
 
+  // Mobile hamburger drawer
   if (toggle) {
     toggle.addEventListener('click', function() {
       toggle.classList.toggle('active');
