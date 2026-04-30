@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from django.views import generic
+from django.http import HttpResponse
 from mydak.models import BlogPost, BlogCategory, Listing
 from django.contrib import messages
 from django.db import transaction
@@ -8,7 +9,10 @@ from .forms import TenantRegistrationForm
 from .models import Client, ClientDomain, User
 
 def refs(request):
-    return render(request, 'ref.html')
+    try:
+        return render(request, 'ref.html')
+    except Exception as e:
+        return HttpResponse(f'<h1>SMW Platform</h1><p>Template error: {str(e)}</p>', status=500)
 
 def homepage_view(request):
     return render(request, 'homepage.html')
