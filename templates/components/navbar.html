@@ -58,12 +58,51 @@
   </nav>
 </header>
 
-<!-- Scroll Indicator -->
+<!-- Scroll Indicator with Hamburger -->
 <div class="navbar-scroll-indicator" id="scrollIndicator">
-  <button class="scroll-up-btn" id="scrollUpBtn" aria-label="Show navbar">↑</button>
+  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle navbar" aria-expanded="false">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+</div>
+
+<!-- Expanded Navbar Overlay (appears on hamburger click) -->
+<div class="navbar-expanded" id="expandedNavbar">
+  <button class="hamburger-close" id="hamburgerClose" aria-label="Close navbar">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+  <div class="expanded-content">
+    <ul class="expanded-menu">
+      <li><a href="{% url 'index' %}" class="expanded-link">Home</a></li>
+      <li><a href="{% url 'explore' %}" class="expanded-link">Explore Shops</a></li>
+      <li><a href="{% url 'listings' %}" class="expanded-link">Products</a></li>
+      <li><a href="{% url 'universities' %}" class="expanded-link">Universities</a></li>
+      <li><a href="{% url 'locations' %}" class="expanded-link">Locations</a></li>
+      <li class="expanded-divider"></li>
+      <li><a href="{% url 'create_shop' %}" class="expanded-link expanded-link-primary">Sell</a></li>
+      <li><a href="{% url 'login' %}" class="expanded-link expanded-link-secondary">Sign In</a></li>
+    </ul>
+  </div>
 </div>
 
 <style>
+/* ============================================================
+   KEYFRAME ANIMATIONS (must be at top)
+   ============================================================ */
+
+@keyframes slideInContent {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ============================================================
    NAVBAR STYLES
    ============================================================ */
@@ -100,43 +139,174 @@
   visibility: visible;
 }
 
-.navbar-scroll-indicator button {
-  width: 48px;
-  height: 48px;
+/* Hamburger Button */
+.hamburger-btn {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--color-primary);
   border: none;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   box-shadow: var(--shadow-lg);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
 }
 
-.navbar-scroll-indicator button:hover {
+.hamburger-btn:hover {
   background: var(--color-primary-hover);
+  transform: scale(1.08);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.hamburger-btn.active {
+  transform: rotate(90deg);
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 2.5px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(1) {
+  transform: translateY(11px) rotate(45deg);
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(3) {
+  transform: translateY(-11px) rotate(-45deg);
+}
+
+/* Expanded Navbar Overlay */
+.navbar-expanded {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.navbar-expanded.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.hamburger-close {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 48px;
+  height: 48px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.3s ease;
+  padding: 0;
+}
+
+.hamburger-close:hover {
   transform: scale(1.1);
 }
 
-.navbar-scroll-indicator button::before,
-.navbar-scroll-indicator button::after {
-  content: '';
+.hamburger-close .hamburger-line {
+  width: 24px;
+  height: 2.5px;
+  background: var(--text-1);
+  border-radius: 2px;
   position: absolute;
-  background: white;
   transition: all 0.3s ease;
 }
 
-.navbar-scroll-indicator button::before {
-  width: 20px;
-  height: 2px;
-  transform: rotate(0deg);
+.hamburger-close .hamburger-line:nth-child(1) {
+  transform: rotate(45deg);
 }
 
-.navbar-scroll-indicator button::after {
-  width: 2px;
-  height: 20px;
-  transform: rotate(0deg);
+.hamburger-close .hamburger-line:nth-child(2) {
+  transform: rotate(-45deg);
+}
+
+/* Expanded Menu */
+.expanded-content {
+  text-align: center;
+  animation: slideInContent 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.expanded-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.expanded-link {
+  font: 600 28px/1.2 var(--font-display);
+  color: var(--text-1);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: block;
+  padding: var(--space-3);
+}
+
+.expanded-link:hover {
+  color: var(--color-primary);
+}
+
+.expanded-link-primary {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+.expanded-link-primary:hover {
+  background: var(--color-primary-hover);
+  color: white;
+}
+
+.expanded-link-secondary {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+.expanded-link-secondary:hover {
+  background: var(--surface-3);
+}
+
+.expanded-divider {
+  height: 1px;
+  background: var(--border-dim);
+  margin: var(--space-3) 0;
 }
 
 .navbar {
@@ -340,29 +510,33 @@
 </style>
 
 <script>
-// Navbar scroll animation and toggle functionality
+// Navbar scroll animation and hamburger toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
   const toggle = document.querySelector('.navbar-toggle');
   const drawer = document.querySelector('.navbar-drawer');
   const drawerLinks = document.querySelectorAll('.drawer-link');
   const navbar = document.querySelector('.navbar-container');
   const scrollIndicator = document.getElementById('scrollIndicator');
-  const scrollUpBtn = document.getElementById('scrollUpBtn');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const expandedNavbar = document.getElementById('expandedNavbar');
+  const hamburgerClose = document.getElementById('hamburgerClose');
+  const expandedLinks = document.querySelectorAll('.expanded-link:not(.expanded-divider)');
   
   let lastScrollPosition = 0;
   let isNavbarVisible = true;
+  let isExpandedNavbarOpen = false;
 
   // Scroll event listener for navbar animation
   window.addEventListener('scroll', function() {
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
     
     if (currentScroll > 100) { // Only hide after scrolling 100px
-      if (currentScroll > lastScrollPosition && isNavbarVisible) {
+      if (currentScroll > lastScrollPosition && isNavbarVisible && !isExpandedNavbarOpen) {
         // Scrolling down - hide navbar
         navbar.classList.add('scrolled-down');
         scrollIndicator.classList.add('visible');
         isNavbarVisible = false;
-      } else if (currentScroll < lastScrollPosition && !isNavbarVisible) {
+      } else if (currentScroll < lastScrollPosition && !isNavbarVisible && !isExpandedNavbarOpen) {
         // Scrolling up - show navbar
         navbar.classList.remove('scrolled-down');
         scrollIndicator.classList.remove('visible');
@@ -378,13 +552,43 @@ document.addEventListener('DOMContentLoaded', function() {
     lastScrollPosition = currentScroll <= 0 ? 0 : currentScroll;
   });
 
-  // Scroll up button functionality
-  if (scrollUpBtn) {
-    scrollUpBtn.addEventListener('click', function() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      navbar.classList.remove('scrolled-down');
-      scrollIndicator.classList.remove('visible');
-      isNavbarVisible = true;
+  // Hamburger button functionality - expand navbar
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      hamburgerBtn.classList.toggle('active');
+      expandedNavbar.classList.toggle('active');
+      isExpandedNavbarOpen = expandedNavbar.classList.contains('active');
+    });
+  }
+
+  // Close expanded navbar button
+  if (hamburgerClose) {
+    hamburgerClose.addEventListener('click', function(e) {
+      e.stopPropagation();
+      hamburgerBtn.classList.remove('active');
+      expandedNavbar.classList.remove('active');
+      isExpandedNavbarOpen = false;
+    });
+  }
+
+  // Close expanded navbar when clicking on a link
+  expandedLinks.forEach(link => {
+    link.addEventListener('click', function() {
+      hamburgerBtn.classList.remove('active');
+      expandedNavbar.classList.remove('active');
+      isExpandedNavbarOpen = false;
+    });
+  });
+
+  // Close expanded navbar when clicking outside
+  if (expandedNavbar) {
+    expandedNavbar.addEventListener('click', function(e) {
+      if (e.target === expandedNavbar) {
+        hamburgerBtn.classList.remove('active');
+        expandedNavbar.classList.remove('active');
+        isExpandedNavbarOpen = false;
+      }
     });
   }
 
