@@ -183,13 +183,14 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
+# For Serv00 Phusion Passenger: static files must be in public/
 STATIC_URL = '/static/'  # URL prefix for static files
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Directories where static files are stored
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Directory for collected static files
+STATIC_ROOT = os.path.join(BASE_DIR, 'public', 'static')  # Directory for collected static files
 
 # Media files (user-uploaded content)
 MEDIA_URL = '/media/'  # URL prefix for media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where media files are stored
+MEDIA_ROOT = os.path.join(BASE_DIR, 'public', 'media')  # Directory where media files are stored
 
 if DEBUG:
     import mimetypes
