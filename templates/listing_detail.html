@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
 
 {% block title %}{{ listing.title }} - Buy on {{ site_name }}{% endblock %}
 
@@ -47,9 +46,9 @@
 
         <!-- Price -->
         <div class="price-section">
-          <span class="price">KES {{ listing.price|floatformat:0|intcomma }}</span>
+          <span class="price">KES {{ listing.price|floatformat:0 }}</span>
           {% if listing.original_price %}
-            <span class="original-price">KES {{ listing.original_price|floatformat:0|intcomma }}</span>
+            <span class="original-price">KES {{ listing.original_price|floatformat:0 }}</span>
           {% endif %}
         </div>
 
