@@ -29,7 +29,7 @@
 <body class="bg-light">
 
     <!-- Main Navigation -->
-    <header class="navbar-container position-sticky top-0 z-3 shadow-sm">
+    <header class="navbar-container position-sticky top-0 z-3 shadow-sm" id="mainHeader">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4 py-3">
             <div class="container-fluid">
                 <a class="navbar-brand fs-4 fw-bold text-warning" href="{% url 'indexx' %}">SMW</a>
@@ -76,6 +76,11 @@
         </nav>
     </header>
 
+    <!-- Scroll Indicator -->
+    <div id="scrollIndicatorBS" style="position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1001; opacity: 0; visibility: hidden; transition: all 0.3s ease;">
+      <button id="scrollUpBtnBS" style="width: 48px; height: 48px; border-radius: 50%; background: #0d6efd; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(2, 10, 26, 0.5); color: white; font-size: 20px; transition: all 0.2s ease;" aria-label="Show navbar">↑</button>
+    </div>
+
     <!-- Main Content -->
     <main class="container-fluid px-0">
         {% block content %}{% endblock %}
@@ -86,5 +91,74 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+
+    <style>
+    #mainHeader {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(0);
+    }
+
+    #mainHeader.scrolled-down {
+        transform: translateY(-100%);
+        box-shadow: none !important;
+    }
+    </style>
+
+    <script>
+    // Navbar scroll animation for Bootstrap navbar
+    document.addEventListener('DOMContentLoaded', function() {
+      const header = document.getElementById('mainHeader');
+      const scrollIndicatorBS = document.getElementById('scrollIndicatorBS');
+      const scrollUpBtnBS = document.getElementById('scrollUpBtnBS');
+      
+      let lastScrollPosition = 0;
+      let isNavbarVisible = true;
+
+      window.addEventListener('scroll', function() {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (currentScroll > 100) {
+          if (currentScroll > lastScrollPosition && isNavbarVisible) {
+            header.classList.add('scrolled-down');
+            scrollIndicatorBS.style.opacity = '1';
+            scrollIndicatorBS.style.visibility = 'visible';
+            isNavbarVisible = false;
+          } else if (currentScroll < lastScrollPosition && !isNavbarVisible) {
+            header.classList.remove('scrolled-down');
+            scrollIndicatorBS.style.opacity = '0';
+            scrollIndicatorBS.style.visibility = 'hidden';
+            isNavbarVisible = true;
+          }
+        } else {
+          header.classList.remove('scrolled-down');
+          scrollIndicatorBS.style.opacity = '0';
+          scrollIndicatorBS.style.visibility = 'hidden';
+          isNavbarVisible = true;
+        }
+        
+        lastScrollPosition = currentScroll <= 0 ? 0 : currentScroll;
+      });
+
+      if (scrollUpBtnBS) {
+        scrollUpBtnBS.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          header.classList.remove('scrolled-down');
+          scrollIndicatorBS.style.opacity = '0';
+          scrollIndicatorBS.style.visibility = 'hidden';
+          isNavbarVisible = true;
+        });
+
+        scrollUpBtnBS.addEventListener('mouseover', function() {
+          this.style.background = '#0b5ed7';
+          this.style.transform = 'scale(1.1)';
+        });
+
+        scrollUpBtnBS.addEventListener('mouseout', function() {
+          this.style.background = '#0d6efd';
+          this.style.transform = 'scale(1)';
+        });
+      }
+    });
+    </script>
 </body>
 </html>
