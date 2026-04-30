@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Your Shop - {{ site_name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+
+<div class="create-shop-wrapper">
+  <div class="create-shop-container">
+    <div class="wizard-header">
+      <h1>Create Your Shop</h1>
+      <p>Start selling in 3 easy steps</p>
+      
+      <div class="progress-bar">
+        <div class="progress-step active" data-step="1">
+          <span class="step-number">1</span>
+          <span class="step-label">Shop Info</span>
+        </div>
+        <div class="progress-line active" data-line="1"></div>
+        <div class="progress-step" data-step="2">
+          <span class="step-number">2</span>
+          <span class="step-label">Details</span>
+        </div>
+        <div class="progress-line" data-line="2"></div>
+        <div class="progress-step" data-step="3">
+          <span class="step-number">3</span>
+          <span class="step-label">Review</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form class="shop-creation-form" method="POST">
+      {% csrf_token %}
+
+      <!-- Step 1: Basic Info -->
+      <div class="wizard-step active" data-step="1">
+        <h2>Shop Information</h2>
+        
+        <div class="form-group">
+          <label>Shop Name</label>
+          <input type="text" name="shop_name" placeholder="e.g., Fashion Hub" required>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" placeholder="Tell customers about your shop..." rows="5"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category" required>
+            <option value="">Select a category</option>
+            <option value="fashion">Fashion & Clothing</option>
+            <option value="electronics">Electronics</option>
+            <option value="books">Books & Stationery</option>
+            <option value="furniture">Furniture & Home</option>
+            <option value="services">Services</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 2: Details -->
+      <div class="wizard-step" data-step="2">
+        <h2>Shop Details</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Shop Logo</label>
+            <input type="file" name="logo" accept="image/*">
+          </div>
+
+          <div class="form-group">
+            <label>Banner Image</label>
+            <input type="file" name="banner" accept="image/*">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Location</label>
+          <select name="location" required>
+            <option value="">Select location</option>
+            <option value="nairobi">Nairobi</option>
+            <option value="mombasa">Mombasa</option>
+            <option value="kisumu">Kisumu</option>
+            <option value="kampala">Kampala</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" name="terms" required>
+            I agree to the terms and conditions
+          </label>
+        </div>
+      </div>
+
+      <!-- Step 3: Review -->
+      <div class="wizard-step" data-step="3">
+        <h2>Review Your Shop</h2>
+
+        <div class="review-section">
+          <div class="review-item">
+            <span class="review-label">Shop Name:</span>
+            <span class="review-value" id="review-name">-</span>
+          </div>
+          <div class="review-item">
+            <span class="review-label">Category:</span>
+            <span class="review-value" id="review-category">-</span>
+          </div>
+          <div class="review-item">
+            <span class="review-label">Location:</span>
+            <span class="review-value" id="review-location">-</span>
+          </div>
+        </div>
+
+        <p class="review-note">Everything looks good? Create your shop and start selling!</p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="wizard-buttons">
+        <button type="button" class="btn-prev" style="display:none;" onclick="prevStep()">← Previous</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Next →</button>
+        <button type="submit" class="btn-submit" style="display:none;">Create Shop</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+/* ============================================================
+   SHOP CREATION WIZARD STYLES
+   ============================================================ */
+
+.create-shop-wrapper {
+  background: var(--surface-0);
+  min-height: 100vh;
+  padding: var(--space-6) 0;
+}
+
+.create-shop-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.wizard-header {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.wizard-header h1 {
+  font: 700 40px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.wizard-header p {
+  font: 500 16px var(--font-body);
+  color: var(--text-2);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  position: relative;
+  z-index: 2;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--surface-1);
+  border: 2px solid var(--border-mid);
+  border-radius: 50%;
+  font: 700 16px var(--font-body);
+  color: var(--text-2);
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.step-label {
+  font: 600 12px var(--font-body);
+  color: var(--text-3);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.progress-step.active .step-label {
+  color: var(--color-primary);
+}
+
+.progress-line {
+  width: 80px;
+  height: 2px;
+  background: var(--border-dim);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-line.active {
+  background: var(--color-primary);
+}
+
+/* Form */
+.shop-creation-form {
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.wizard-step {
+  display: none;
+}
+
+.wizard-step.active {
+  display: block;
+}
+
+.wizard-step h2 {
+  font: 700 24px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.form-group {
+  margin-bottom: var(--space-5);
+}
+
+.form-group label {
+  display: block;
+  font: 600 13px var(--font-body);
+  color: var(--text-1);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="file"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  font: 500 14px var(--font-body);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--surface-3);
+}
+
+.form-group textarea {
+  resize: vertical;
+  font-family: var(--font-body);
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: var(--space-2);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.review-section {
+  background: var(--surface-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-label {
+  font: 600 13px var(--font-body);
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+
+.review-value {
+  font: 500 14px var(--font-body);
+  color: var(--text-1);
+}
+
+.review-note {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  text-align: center;
+  margin: 0;
+}
+
+/* Buttons */
+.wizard-buttons {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.btn-prev,
+.btn-next,
+.btn-submit {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font: 600 14px var(--font-body);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-next,
+.btn-submit {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-next:hover,
+.btn-submit:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+.btn-prev {
+  background: transparent;
+  color: var(--text-1);
+  border: 1px solid var(--border-mid);
+}
+
+.btn-prev:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .create-shop-container {
+    padding: var(--space-3);
+  }
+
+  .wizard-header h1 {
+    font-size: 28px;
+  }
+
+  .progress-bar {
+    flex-wrap: wrap;
+  }
+
+  .progress-line {
+    width: 100%;
+    height: 1px;
+    position: absolute;
+    top: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-buttons {
+    flex-direction: column-reverse;
+  }
+}
+</style>
+
+<script>
+let currentStep = 1;
+const totalSteps = 3;
+
+function showStep(step) {
+  document.querySelectorAll('.wizard-step').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+  // Update progress bar
+  for (let i = 1; i <= totalSteps; i++) {
+    const stepEl = document.querySelector(`.progress-step[data-step="${i}"]`);
+    const lineEl = document.querySelector(`.progress-line[data-line="${i}"]`);
+    
+    if (i < step) {
+      stepEl.classList.add('active');
+      if (lineEl) lineEl.classList.add('active');
+    } else if (i === step) {
+      stepEl.classList.add('active');
+      if (lineEl) lineEl.classList.remove('active');
+    } else {
+      stepEl.classList.remove('active');
+      if (lineEl) lineEl.classList.remove('active');
+    }
+  }
+
+  // Show/hide buttons
+  const prevBtn = document.querySelector('.btn-prev');
+  const nextBtn = document.querySelector('.btn-next');
+  const submitBtn = document.querySelector('.btn-submit');
+
+  prevBtn.style.display = step > 1 ? 'block' : 'none';
+  nextBtn.style.display = step < totalSteps ? 'block' : 'none';
+  submitBtn.style.display = step === totalSteps ? 'block' : 'none';
+
+  // Update review section
+  if (step === 3) {
+    document.getElementById('review-name').textContent = 
+      document.querySelector('input[name="shop_name"]').value || '-';
+    document.getElementById('review-category').textContent = 
+      document.querySelector('select[name="category"]').value || '-';
+    document.getElementById('review-location').textContent = 
+      document.querySelector('select[name="location"]').value || '-';
+  }
+}
+
+function nextStep() {
+  if (currentStep < totalSteps) {
+    currentStep++;
+    showStep(currentStep);
+    window.scrollTo(0, 0);
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    currentStep--;
+    showStep(currentStep);
+    window.scrollTo(0, 0);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  showStep(1);
+});
+</script>
+{% endblock %}

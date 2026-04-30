@@ -1,59 +1,439 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}About Us{% endblock %}
+{% block title %}About {{ site_name }}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
+
+<div class="about-wrapper">
+  <!-- Hero section -->
+  <section class="about-hero">
+    <h1>About {{ site_name }}</h1>
+    <p>Empowering university communities through peer-to-peer commerce</p>
+  </section>
+
+  <!-- Mission -->
+  <section class="about-section mission-section">
+    <div class="container">
+      <div class="section-content">
+        <h2>Our Mission</h2>
+        <p>
+          {{ site_name }} is dedicated to creating a vibrant marketplace where university students and alumni 
+          can buy, sell, and support each other. We believe in the power of community-driven commerce that's 
+          trusted, convenient, and accessible to everyone.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="about-section how-it-works-section">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="how-it-works-grid">
+        <div class="how-item">
+          <div class="how-number">1</div>
+          <h3>Create Account</h3>
+          <p>Sign up with your university email to join the community</p>
+        </div>
+        <div class="how-item">
+          <div class="how-number">2</div>
+          <h3>Browse or Sell</h3>
+          <p>Explore items from local sellers or list your own products</p>
+        </div>
+        <div class="how-item">
+          <div class="how-number">3</div>
+          <h3>Connect Safely</h3>
+          <p>Message sellers, negotiate, and meet in verified locations</p>
+        </div>
+        <div class="how-item">
+          <div class="how-number">4</div>
+          <h3>Complete Transaction</h3>
+          <p>Secure payment and positive feedback from the community</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="about-section values-section">
+    <div class="container">
+      <h2>Our Values</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">🤝</div>
+          <h3>Community First</h3>
+          <p>We prioritize the needs and safety of our community members above all else.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🔒</div>
+          <h3>Trust & Security</h3>
+          <p>Every transaction is protected and verified for your peace of mind.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">♻️</div>
+          <h3>Sustainability</h3>
+          <p>We promote reuse and reduce waste through circular commerce.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🚀</div>
+          <h3>Innovation</h3>
+          <p>Constantly improving our platform to serve you better.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="about-section testimonials-section">
+    <div class="container">
+      <h2>What Our Users Say</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <p class="testimonial-text">"I found great deals on textbooks and made some extra money selling my stuff. Highly recommended!"</p>
+          <p class="testimonial-author">— Sarah M., Student</p>
+        </div>
+        <div class="testimonial-card">
+          <p class="testimonial-text">"The platform is easy to use and I feel safe selling here. The community is genuine and supportive."</p>
+          <p class="testimonial-author">— James K., Seller</p>
+        </div>
+        <div class="testimonial-card">
+          <p class="testimonial-text">"Finally a marketplace built for our community. Fast transactions and fair pricing!"</p>
+          <p class="testimonial-author">— Emily R., Buyer</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="about-section faq-section">
+    <div class="container">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <h4>Is it really free to use?</h4>
+          <p>Yes! Browsing and creating an account is completely free. We only take a small commission on successful sales.</p>
+        </div>
+        <div class="faq-item">
+          <h4>How do I know it's safe?</h4>
+          <p>All users are verified through their university email. Transactions are protected and we recommend meeting in public places.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I sell anything?</h4>
+          <p>You can sell most items, but we prohibit illegal goods and items that violate university policies.</p>
+        </div>
+        <div class="faq-item">
+          <h4>What if I have a problem?</h4>
+          <p>Our support team is available 24/7 to help resolve disputes and answer any questions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="about-section cta-section">
+    <div class="container">
+      <h2>Ready to Join?</h2>
+      <p>Start exploring, buying, or selling today</p>
+      <div class="cta-buttons">
+        <a href="{% url 'explore' %}" class="btn-primary">Explore Now</a>
+        <a href="{% url 'homepage' %}" class="btn-secondary">Learn More</a>
+      </div>
+    </div>
+  </section>
+</div>
+
 <style>
-body {
-    background-color: #0d1b2a; /* Dark blue background */
-    color: #e0e1dd;           /* Light text for contrast */
-    font-family: 'Arial', sans-serif;
+/* ============================================================
+   ABOUT PAGE STYLES
+   ============================================================ */
+
+.about-wrapper {
+  background: var(--surface-0);
+  min-height: 100vh;
 }
 
-.about-container {
-    text-align: center;
-    margin-top: 100px;
+.about-hero {
+  background: linear-gradient(135deg, var(--blue-800), var(--blue-900));
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--border-mid);
 }
 
-.about-title {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #778da9; /* Lighter shade of blue */
-    animation: fadeInSlide 2s ease-in-out;
+.about-hero h1 {
+  font: 700 56px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
 }
 
-.about-description {
-    font-size: 1.2rem;
-    color: #e0e1dd;
-    margin-top: 20px;
-    animation: fadeIn 3s ease-in-out;
+.about-hero p {
+  font: 500 18px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
 }
 
-/* Keyframes for fade-in and slide-up animation */
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.about-section {
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--border-dim);
 }
 
-/* Simple fade-in animation for the description */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+.about-section h2 {
+  font: 700 40px / 1.2 var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-6) 0;
+  text-align: center;
+}
+
+.section-content {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-content p {
+  font: 500 16px var(--font-body);
+  color: var(--text-2);
+  line-height: 1.8;
+}
+
+/* How It Works */
+.how-it-works-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6);
+}
+
+.how-item {
+  padding: var(--space-6);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.how-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font: 700 24px var(--font-body);
+  margin-bottom: var(--space-3);
+}
+
+.how-item h3 {
+  font: 700 18px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.how-item p {
+  font: 500 14px var(--font-body);
+  color: var(--text-3);
+  margin: 0;
+}
+
+/* Values */
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-6);
+}
+
+.value-card {
+  padding: var(--space-6);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.value-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-4px);
+}
+
+.value-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-3);
+  display: block;
+}
+
+.value-card h3 {
+  font: 700 18px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.value-card p {
+  font: 500 14px var(--font-body);
+  color: var(--text-3);
+  margin: 0;
+}
+
+/* Testimonials */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+.testimonial-card {
+  padding: var(--space-6);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+}
+
+.testimonial-text {
+  font: 500 15px var(--font-body);
+  color: var(--text-2);
+  margin: 0 0 var(--space-3) 0;
+  font-style: italic;
+}
+
+.testimonial-author {
+  font: 600 13px var(--font-body);
+  color: var(--color-accent);
+  margin: 0;
+}
+
+/* FAQ */
+.faq-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-4);
+}
+
+.faq-item h4 {
+  font: 700 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.faq-item p {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+}
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  text-align: center;
+  color: white;
+  padding: var(--space-8) var(--space-4) !important;
+  border-bottom: none;
+}
+
+.cta-section h2,
+.cta-section p {
+  color: white;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  margin-top: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font: 600 15px var(--font-body);
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: white;
+  color: var(--color-primary);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-hero h1 {
+    font-size: 36px;
+  }
+
+  .about-section h2 {
+    font-size: 28px;
+  }
+
+  .how-it-works-grid,
+  .values-grid,
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-section {
+    padding: var(--space-4) 0;
+  }
+
+  .about-hero {
+    padding: var(--space-4);
+  }
+
+  .about-hero h1 {
+    font-size: 24px;
+  }
+
+  .about-section h2 {
+    font-size: 20px;
+  }
+
+  .how-number {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+  }
 }
 </style>
-<div class="about-container">
-    <h1 class="about-title">I am about page</h1>
-    <p class="about-description">#replace me content in {.% block content %} replace me {.% block content %}</p>
-    
-</div>
 {% endblock %}
