@@ -24,7 +24,7 @@ from datetime import datetime
 # ============================================================================
 
 BASE_DIR = Path(__file__).parent.resolve()
-PROJECT_DIR = BASE_DIR / 'public_python'
+PROJECT_DIR = BASE_DIR  # passenger_wsgi.py is in public_python, so BASE_DIR IS public_python
 VENV_DIR = PROJECT_DIR / 'venv'
 PYTHON_VERSION = 'python3.11'
 SITE_PACKAGES = VENV_DIR / 'lib' / PYTHON_VERSION / 'site-packages'

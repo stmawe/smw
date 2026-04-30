@@ -12,12 +12,17 @@ def theme_context(request):
         'theme_engine': None,
     }
     
-    # Get shop from request
-    shop = getattr(request, 'tenant', None) if hasattr(request, 'tenant') else None
+    # Get shop from request - for now, don't use tenant as it's a Client, not Shop
+    # TODO: Link Client to Shop once Shop relationship is established
+    shop = None
     
     if shop:
-        engine = ThemeEngine(shop)
-        context['theme_engine'] = engine
-        context['theme_css'] = engine.get_css()
+        try:
+            engine = ThemeEngine(shop)
+            context['theme_engine'] = engine
+            context['theme_css'] = engine.get_css()
+        except Exception:
+            # If theme loading fails, continue without theme
+            pass
     
     return context
