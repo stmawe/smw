@@ -51,11 +51,46 @@ def listings_view(request):
 
 def shop_detail_view(request, shop_id=None):
     """View a specific shop"""
-    return render(request, 'shop_detail.html')
+    # Mock shop data for now
+    shop_data = {
+        'shop': {
+            'name': f'Shop #{shop_id}' if shop_id else 'Sample Shop',
+            'owner': {
+                'get_full_name': 'John Seller',
+                'username': 'johnseller'
+            },
+            'description': 'A curated collection of quality items from talented creators.',
+            'rating': 4.8,
+            'banner': None,
+            'logo': None,
+        },
+        'listings_count': 24,
+        'followers_count': 156,
+    }
+    return render(request, 'shop_detail.html', shop_data)
 
 def listing_detail_view(request, listing_id=None):
     """View a specific product listing"""
-    return render(request, 'listing_detail.html')
+    # Mock listing data for now
+    listing_data = {
+        'listing': {
+            'title': f'Product #{listing_id}' if listing_id else 'Sample Product',
+            'price': 49.99,
+            'description': 'A high-quality product from a trusted seller. Perfect for your needs.',
+            'image': None,
+            'shop': {
+                'name': 'Featured Shop',
+                'id': 1,
+            },
+            'category': {
+                'name': 'Electronics'
+            },
+            'rating': 4.7,
+            'reviews_count': 23,
+        },
+        'site_name': 'SMW Marketplace',
+    }
+    return render(request, 'listing_detail.html', listing_data)
 
 def universities_view(request):
     """Browse universities"""
