@@ -52,7 +52,7 @@ def products_view(request):
     return render(request, 'product.html')
 
 def login_view(request):
-    return render(request, 'templates/accounts/login.html')
+    return render(request, 'accounts/login.html')
 
 
 @transaction.atomic
@@ -116,7 +116,7 @@ def tenant_register_view(request):
     else:
         form = TenantRegistrationForm()
 
-    return render(request, 'templates/accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html', {'form': form})
 
 
 def search(request):
