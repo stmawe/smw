@@ -1,0 +1,305 @@
+<!-- ============================================================
+     NAVBAR COMPONENT
+     Sticky glassmorphism navbar with mobile hamburger menu
+     ============================================================ -->
+
+{% load static %}
+
+<header class="navbar-container">
+  <nav class="navbar">
+    <div class="container-lg navbar-content">
+      <!-- Logo -->
+      <div class="navbar-logo">
+        <a href="{% url 'index' %}" class="logo-link">
+          <span class="logo-icon">◈</span>
+          <span class="logo-text">UniMarket</span>
+        </a>
+      </div>
+
+      <!-- Hamburger Menu Toggle (Mobile) -->
+      <button class="navbar-toggle hidden-desktop" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <!-- Navigation Menu -->
+      <ul class="navbar-menu hidden-mobile">
+        <li><a href="{% url 'index' %}" class="nav-link">Home</a></li>
+        <li><a href="{% url 'blog' %}" class="nav-link">Explore</a></li>
+        <li><a href="#universities" class="nav-link">Universities</a></li>
+        <li><a href="#locations" class="nav-link">Locations</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+      </ul>
+
+      <!-- Auth Buttons -->
+      <div class="navbar-actions">
+        <a href="{% url 'register' %}" class="btn btn-accent btn-pill btn-sm">
+          Open a Shop
+        </a>
+        <a href="{% url 'login' %}" class="btn btn-ghost btn-pill btn-sm">
+          Sign In
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Drawer -->
+    <div class="navbar-drawer hidden-desktop">
+      <ul class="drawer-menu">
+        <li><a href="{% url 'index' %}" class="drawer-link">Home</a></li>
+        <li><a href="{% url 'blog' %}" class="drawer-link">Explore</a></li>
+        <li><a href="#universities" class="drawer-link">Universities</a></li>
+        <li><a href="#locations" class="drawer-link">Locations</a></li>
+        <li><a href="#how-it-works" class="drawer-link">How It Works</a></li>
+        <li><a href="{% url 'register' %}" class="drawer-link drawer-link-primary">Open a Shop</a></li>
+        <li><a href="{% url 'login' %}" class="drawer-link drawer-link-secondary">Sign In</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<style>
+/* ============================================================
+   NAVBAR STYLES
+   ============================================================ */
+
+.navbar-container {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.navbar {
+  padding: var(--space-4) 0;
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+/* Logo */
+.navbar-logo {
+  flex-shrink: 0;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  font: 700 24px/1 var(--font-display);
+  color: var(--text-1);
+  transition: color 0.2s ease;
+}
+
+.logo-link:hover {
+  color: var(--color-accent);
+}
+
+.logo-icon {
+  color: var(--color-accent);
+  font-size: 28px;
+}
+
+.logo-text {
+  letter-spacing: -0.02em;
+}
+
+/* Navigation Menu */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  font: 500 15px/1.4 var(--font-body);
+  color: var(--text-2);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-1);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Auth Buttons */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* Hamburger Toggle (Mobile) */
+.navbar-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+  z-index: 1001;
+}
+
+.navbar-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text-1);
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.navbar-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translateY(10px);
+}
+
+.navbar-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-10px);
+}
+
+/* Mobile Drawer */
+.navbar-drawer {
+  position: fixed;
+  right: -100%;
+  top: 64px;
+  width: 100%;
+  max-width: 400px;
+  height: calc(100vh - 64px);
+  background: var(--surface-0);
+  border-left: 1px solid var(--border-dim);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  z-index: 999;
+}
+
+.navbar-drawer.active {
+  right: 0;
+}
+
+.drawer-menu {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-4);
+}
+
+.drawer-link {
+  display: block;
+  padding: var(--space-4) 0;
+  font: 500 15px/1.4 var(--font-body);
+  color: var(--text-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-dim);
+  transition: color 0.2s ease;
+}
+
+.drawer-link:hover {
+  color: var(--color-accent);
+}
+
+.drawer-link-primary {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.drawer-link-secondary {
+  color: var(--color-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar-content {
+    padding: 0 var(--space-3);
+  }
+
+  .navbar-menu {
+    display: none;
+  }
+
+  .navbar-actions {
+    display: none;
+  }
+
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .hidden-desktop {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .navbar-toggle {
+    display: none;
+  }
+
+  .navbar-drawer {
+    display: none;
+  }
+}
+</style>
+
+<script>
+// Navbar toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.querySelector('.navbar-toggle');
+  const drawer = document.querySelector('.navbar-drawer');
+  const drawerLinks = document.querySelectorAll('.drawer-link');
+
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      toggle.classList.toggle('active');
+      drawer.classList.toggle('active');
+    });
+
+    // Close drawer when clicking on a link
+    drawerLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        toggle.classList.remove('active');
+        drawer.classList.remove('active');
+      });
+    });
+
+    // Close drawer when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.navbar')) {
+        toggle.classList.remove('active');
+        drawer.classList.remove('active');
+      }
+    });
+  }
+});
+</script>
