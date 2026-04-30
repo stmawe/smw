@@ -26,16 +26,16 @@
       <!-- Navigation Menu -->
       <ul class="navbar-menu hidden-mobile">
         <li><a href="{% url 'index' %}" class="nav-link">Home</a></li>
-        <li><a href="{% url 'blog' %}" class="nav-link">Explore</a></li>
-        <li><a href="#universities" class="nav-link">Universities</a></li>
-        <li><a href="#locations" class="nav-link">Locations</a></li>
-        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="{% url 'explore' %}" class="nav-link">Explore Shops</a></li>
+        <li><a href="{% url 'listings' %}" class="nav-link">Products</a></li>
+        <li><a href="{% url 'universities' %}" class="nav-link">Universities</a></li>
+        <li><a href="{% url 'locations' %}" class="nav-link">Locations</a></li>
       </ul>
 
       <!-- Auth Buttons -->
       <div class="navbar-actions">
-        <a href="{% url 'register' %}" class="btn btn-accent btn-pill btn-sm">
-          Open a Shop
+        <a href="{% url 'create_shop' %}" class="btn btn-accent btn-pill btn-sm">
+          Sell
         </a>
         <a href="{% url 'login' %}" class="btn btn-ghost btn-pill btn-sm">
           Sign In
@@ -47,11 +47,11 @@
     <div class="navbar-drawer hidden-desktop">
       <ul class="drawer-menu">
         <li><a href="{% url 'index' %}" class="drawer-link">Home</a></li>
-        <li><a href="{% url 'blog' %}" class="drawer-link">Explore</a></li>
-        <li><a href="#universities" class="drawer-link">Universities</a></li>
-        <li><a href="#locations" class="drawer-link">Locations</a></li>
-        <li><a href="#how-it-works" class="drawer-link">How It Works</a></li>
-        <li><a href="{% url 'register' %}" class="drawer-link drawer-link-primary">Open a Shop</a></li>
+        <li><a href="{% url 'explore' %}" class="drawer-link">Explore Shops</a></li>
+        <li><a href="{% url 'listings' %}" class="drawer-link">Products</a></li>
+        <li><a href="{% url 'universities' %}" class="drawer-link">Universities</a></li>
+        <li><a href="{% url 'locations' %}" class="drawer-link">Locations</a></li>
+        <li><a href="{% url 'create_shop' %}" class="drawer-link drawer-link-primary">Sell</a></li>
         <li><a href="{% url 'login' %}" class="drawer-link drawer-link-secondary">Sign In</a></li>
       </ul>
     </div>
