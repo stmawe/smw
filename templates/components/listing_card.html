@@ -43,7 +43,7 @@
 
     <!-- Shop Attribution -->
     {% if listing.seller %}
-      <a href="{% url 'shop_detail' slug=listing.seller.slug %}" class="shop-pill">
+      <a href="{% url 'shop_detail' shop_id=listing.seller.id %}" class="shop-pill">
         Shop: {{ listing.seller.name }} →
       </a>
     {% endif %}
