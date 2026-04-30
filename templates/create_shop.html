@@ -233,11 +233,17 @@
 }
 
 .wizard-step {
-  display: none;
+  display: block;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .wizard-step.active {
-  display: block;
+  visibility: visible;
+  height: auto;
+  pointer-events: auto;
 }
 
 .wizard-step h2 {

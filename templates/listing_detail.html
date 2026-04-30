@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/listing-detail.css' %}">
 
 <div class="listing-detail-wrapper">
-  <div class="container listing-detail-container">
+  <div class="listing-detail-container">
     <!-- Main content -->
     <main class="listing-main">
       <!-- Image gallery -->
@@ -146,7 +146,7 @@
 
   <!-- Related listings -->
   <div class="related-section">
-    <div class="container">
+    <div class="related-container">
       <h2>Related Items</h2>
       <div class="related-grid">
         {% for related in related_listings %}
@@ -566,6 +566,12 @@
   padding: var(--space-8) 0 0;
   margin-top: var(--space-8);
   border-top: 1px solid var(--border-dim);
+}
+
+.related-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
 }
 
 .related-section h2 {
