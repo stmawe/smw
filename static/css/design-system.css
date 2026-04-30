@@ -1,6 +1,12 @@
 /* ============================================================
    SMW PLATFORM - DESIGN SYSTEM CSS
    Editorial Luxury Marketplace Aesthetic
+   
+   🎨 THEME SYSTEM READY - All values use CSS custom properties
+   for admin design mode, dynamic theming, and mocking.
+   
+   Theme tokens are managed in database (app.models.ThemeToken)
+   and injected via template context processor (app.theme_utils).
    ============================================================ */
 
 :root {

@@ -15,6 +15,14 @@
         integrity="sha512-yHWDldOzZ4XvDxz3zXLN8Vb2cL5G3OHrWtdzlC+uU9K+yvb7em+i2gqFVf1Nh4xEPwJvDkFRsAyiKlFCWIh..."
         crossorigin="anonymous">
 
+    <!-- Design System -->
+    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+
+    <!-- Theme CSS (Injected via context processor) -->
+    <style>
+        {{ theme_css|safe }}
+    </style>
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
