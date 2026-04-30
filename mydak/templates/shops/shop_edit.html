@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit {{ shop.name }} - UniMarket</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background: #f5f5f5; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
+        .navbar h1 { font-size: 24px; }
+        .container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 40px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+        h1 { color: #333; margin-bottom: 30px; font-size: 24px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        textarea { resize: vertical; min-height: 100px; }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+        .file-input-wrapper input { position: absolute; left: -9999px; }
+        .file-label { display: block; padding: 12px; border: 2px dashed #ddd; border-radius: 4px; text-align: center; cursor: pointer; transition: all 300ms; }
+        .file-label:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
+        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        .btn { flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary { background: #ddd; color: #333; }
+        .btn-secondary:hover { background: #ccc; }
+        .errorlist { list-style: none; background: #fee; padding: 8px; border-left: 4px solid #c33; border-radius: 2px; color: #c33; font-size: 12px; margin-top: 4px; }
+        .messages { margin-bottom: 20px; }
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 10px; }
+        .message.error { background: #fee; color: #c33; border-left: 4px solid #c33; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Edit Shop</h1>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <h1>{{ shop.name }}</h1>
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<ul class="errorlist">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<ul class="errorlist">{% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.logo.id_for_label }}">{{ form.logo.label }}</label>
+                    <div class="file-input-wrapper">
+                        <label class="file-label">Click to upload logo</label>
+                        {{ form.logo }}
+                    </div>
+                    {% if form.logo.errors %}<ul class="errorlist">{% for error in form.logo.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn">Save Changes</button>
+                    <a href="{% url 'shops:detail' shop.id %}" class="btn btn-secondary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Themes - UniMarket</title>
+    <style>
+        {{ theme_css|safe }}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--theme-typography-font-family-primary, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto); background: var(--theme-colors-surface, #f5f5f5); color: var(--theme-colors-text, #333); }
+        .container { max-width: 1000px; margin: 0 auto; padding: var(--theme-spacing-gap-xlarge, 24px); }
+        h1 { margin-bottom: var(--theme-spacing-gap-xlarge, 24px); color: var(--theme-colors-text, #333); }
+        .themes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--theme-spacing-gap-xlarge, 24px); }
+        .theme-card { background: var(--theme-colors-background, white); border: 1px solid var(--theme-colors-border, #ddd); border-radius: var(--theme-borders-radius-medium, 8px); overflow: hidden; box-shadow: var(--theme-shadows-shadow-md, 0 2px 10px rgba(0, 0, 0, 0.1)); transition: all var(--theme-animations-duration-normal, 300ms) var(--theme-animations-easing-ease, ease); }
+        .theme-card:hover { transform: translateY(-4px); box-shadow: var(--theme-shadows-shadow-lg, 0 10px 25px rgba(0, 0, 0, 0.2)); }
+        .theme-preview { height: 150px; background: linear-gradient(135deg, var(--theme-colors-primary, #667eea) 0%, var(--theme-colors-primary-dark, #764ba2) 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+        .theme-info { padding: var(--theme-spacing-gap-large, 16px); }
+        .theme-info h3 { margin-bottom: var(--theme-spacing-gap-small, 4px); }
+        .theme-info p { font-size: var(--theme-typography-font-size-small, 14px); color: var(--theme-colors-text-secondary, #666); margin-bottom: var(--theme-spacing-gap-medium, 8px); }
+        .btn { display: inline-block; padding: var(--theme-spacing-gap-medium, 8px) var(--theme-spacing-gap-large, 16px); background: var(--theme-colors-primary, #667eea); color: white; border: none; border-radius: var(--theme-borders-radius-small, 4px); cursor: pointer; font-size: var(--theme-typography-font-size-small, 14px); text-decoration: none; transition: all var(--theme-animations-duration-fast, 100ms); }
+        .btn:hover { background: var(--theme-colors-primary-dark, #764ba2); }
+        .btn-secondary { background: var(--theme-colors-surface, #f5f5f5); color: var(--theme-colors-text, #333); border: 1px solid var(--theme-colors-border, #ddd); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Available Themes</h1>
+        
+        <div class="themes-grid">
+            {% for theme in themes %}
+                <div class="theme-card">
+                    <div class="theme-preview">
+                        {% if theme.preview_image %}
+                            <img src="{{ theme.preview_image.url }}" alt="{{ theme.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            {{ theme.name }}
+                        {% endif %}
+                    </div>
+                    <div class="theme-info">
+                        <h3>{{ theme.name }}</h3>
+                        <p>{{ theme.description }}</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--theme-spacing-gap-medium, 8px);">
+                            <a href="{% url 'themes:preview' theme.id %}" class="btn btn-secondary">Preview</a>
+                            <form method="post" action="{% url 'themes:apply' theme.id %}" style="display: contents;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn">Apply</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No themes available.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

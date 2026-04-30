@@ -1,0 +1,100 @@
+{% extends 'base/base.html' %}
+
+{% block title %}My Listing Templates{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <h1>📚 My Listing Templates</h1>
+            <p class="text-muted">Quick-start templates for creating listings</p>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Filters -->
+            {% if shops %}
+                <div class="mb-3">
+                    <form method="get" class="d-flex gap-2">
+                        <select name="shop_id" class="form-control w-auto" onchange="this.form.submit()">
+                            <option value="">All Shops</option>
+                            {% for shop in shops %}
+                                <option value="{{ shop.id }}" {% if shop.id == selected_shop.id %}selected{% endif %}>
+                                    {{ shop.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            {% endif %}
+            
+            <!-- Create new template button -->
+            <a href="{% url 'shops:template_create' %}" class="btn btn-primary mb-3">
+                ➕ Create New Template
+            </a>
+            
+            <!-- Templates list -->
+            {% if templates %}
+                <div class="row">
+                    {% for template in templates %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ template.name }}</h5>
+                                    
+                                    {% if template.category %}
+                                        <p class="card-text">
+                                            <span class="badge bg-info">{{ template.category.name }}</span>
+                                            <span class="badge bg-secondary">{{ template.get_condition_display }}</span>
+                                        </p>
+                                    {% endif %}
+                                    
+                                    {% if template.description %}
+                                        <p class="card-text text-muted">
+                                            <small>{{ template.description|truncatewords:20 }}</small>
+                                        </p>
+                                    {% endif %}
+                                    
+                                    <p class="text-muted">
+                                        <small>{{ template.shop.name }}</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="btn-group btn-group-sm w-100" role="group">
+                                        <a href="{% url 'shops:create_from_template' template.id %}" class="btn btn-success">
+                                            ✨ Use Template
+                                        </a>
+                                        <a href="{% url 'shops:template_edit' template.id %}" class="btn btn-warning">
+                                            ✏️ Edit
+                                        </a>
+                                        <form method="post" action="{% url 'shops:template_delete' template.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this template?')">
+                                                🗑️ Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light text-center p-5">
+                    <h5>📭 No templates yet</h5>
+                    <p class="text-muted">Create your first template to speed up listing creation</p>
+                    <a href="{% url 'shops:template_create' %}" class="btn btn-primary">
+                        Create Template
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

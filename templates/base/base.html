@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UniMarket{% endblock %}</title>
+    <style>
+        {{ theme_css|safe }}
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--theme-typography-font-family-primary, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto);
+            background: var(--theme-colors-background, #fff);
+            color: var(--theme-colors-text, #333);
+            line-height: var(--theme-typography-line-height-base, 1.5);
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 { line-height: 1.2; margin-bottom: 1rem; }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.75rem; }
+        h3 { font-size: 1.5rem; }
+        h4 { font-size: 1.25rem; }
+        
+        p { margin-bottom: var(--theme-spacing-gap-large, 16px); }
+        a { color: var(--theme-colors-primary, #667eea); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        /* Layout */
+        .container { max-width: 1200px; margin: 0 auto; padding: var(--theme-spacing-gap-xlarge, 24px); }
+        .container-fluid { width: 100%; margin: 0; padding: var(--theme-spacing-gap-xlarge, 24px); }
+        
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, var(--theme-colors-primary, #667eea) 0%, var(--theme-colors-primary-dark, #764ba2) 100%);
+            color: white;
+            padding: var(--theme-spacing-gap-large, 16px) 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--theme-shadows-shadow-md, 0 2px 10px rgba(0, 0, 0, 0.1));
+        }
+        
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--theme-spacing-gap-xlarge, 24px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand { font-size: 1.5rem; font-weight: 600; }
+        .navbar-nav { display: flex; gap: var(--theme-spacing-gap-xlarge, 24px); list-style: none; }
+        .navbar-nav a { color: white; text-decoration: none; font-size: 0.95rem; }
+        .navbar-nav a:hover { opacity: 0.9; }
+        
+        /* Main layout */
+        .main-content { min-height: calc(100vh - 200px); padding: var(--theme-spacing-gap-xlarge, 24px) 0; }
+        
+        /* Footer */
+        .footer {
+            background: var(--theme-colors-surface, #f5f5f5);
+            border-top: 1px solid var(--theme-colors-border, #ddd);
+            padding: var(--theme-spacing-gap-xlarge, 24px) 0;
+            margin-top: var(--theme-spacing-gap-xlarge, 24px);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--theme-spacing-gap-xlarge, 24px);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--theme-spacing-gap-xlarge, 24px);
+        }
+        
+        .footer-section h4 { margin-bottom: var(--theme-spacing-gap-medium, 8px); }
+        .footer-section ul { list-style: none; }
+        .footer-section li { margin-bottom: var(--theme-spacing-gap-small, 4px); }
+        .footer-section a { color: var(--theme-colors-text-secondary, #666); }
+        .footer-section a:hover { color: var(--theme-colors-primary, #667eea); }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: var(--theme-spacing-gap-large, 16px);
+            border-top: 1px solid var(--theme-colors-border, #ddd);
+            margin-top: var(--theme-spacing-gap-large, 16px);
+            color: var(--theme-colors-text-secondary, #666);
+            font-size: 0.9rem;
+        }
+        
+        /* Messages */
+        .messages { list-style: none; margin: var(--theme-spacing-gap-large, 16px) 0; }
+        .message {
+            padding: var(--theme-spacing-gap-medium, 8px) var(--theme-spacing-gap-large, 16px);
+            border-radius: var(--theme-borders-radius-small, 4px);
+            margin-bottom: var(--theme-spacing-gap-medium, 8px);
+            border-left: 4px solid;
+        }
+        .message.success { background: #efe; color: #3c3; border-color: #3c3; }
+        .message.error { background: #fee; color: #c33; border-color: #c33; }
+        .message.info { background: #eef; color: #33c; border-color: #33c; }
+        .message.warning { background: #ffe; color: #f90; border-color: #f90; }
+        
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    {% block navbar %}
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <a href="/" style="color: white; text-decoration: none;">🛍️ UniMarket</a>
+                </div>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'shops:list' %}">My Shops</a></li>
+                        <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
+                        <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
+                    {% else %}
+                        <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                        <li><a href="{% url 'accounts:register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    {% endblock %}
+    
+    <div class="main-content">
+        {% if messages %}
+            <div class="container">
+                {% include "components/messages.html" %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% block footer %}
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About UniMarket</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Sellers</h4>
+                    <ul>
+                        <li><a href="#">Get Started</a></li>
+                        <li><a href="#">Seller Guide</a></li>
+                        <li><a href="#">Commission</a></li>
+                        <li><a href="#">Help</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Disclaimer</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 UniMarket. All rights reserved.</p>
+            </div>
+        </footer>
+    {% endblock %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

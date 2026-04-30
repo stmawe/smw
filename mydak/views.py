@@ -1,3 +1,152 @@
-from django.shortcuts import render
+"""Shop management views."""
 
-# Create your views here.
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from django.db import transaction
+from .models import Shop
+from .forms import ShopCreationForm, ShopEditForm
+from apps.themes.models import ShopTheme
+from apps.themes.builtin_themes import create_built_in_themes
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def shop_create_view(request):
+    """
+    Create a new shop (step 1 of wizard).
+    """
+    if request.method == 'POST':
+        form = ShopCreationForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Create shop
+                    shop = form.save(commit=False)
+                    shop.owner = request.user
+                    shop.is_active = True
+                    shop.save()
+                    
+                    # Ensure built-in themes exist
+                    create_built_in_themes()
+                    
+                    # Create default theme config for shop
+                    default_theme = None
+                    try:
+                        from apps.themes.models import Theme
+                        default_theme = Theme.objects.get(name='light', is_built_in=True)
+                    except Exception:
+                        pass
+                    
+                    ShopTheme.objects.get_or_create(
+                        shop=shop,
+                        defaults={'theme': default_theme, 'enabled': True}
+                    )
+                    
+                    messages.success(request, f'Shop "{shop.name}" created successfully!')
+                    return redirect('shops:detail', shop_id=shop.id)
+            
+            except Exception as e:
+                messages.error(request, f'Error creating shop: {str(e)}')
+                return redirect('shops:create')
+    else:
+        form = ShopCreationForm()
+    
+    context = {'form': form}
+    return render(request, 'shops/shop_create.html', context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def shop_detail_view(request, shop_id):
+    """View shop details and management."""
+    shop = get_object_or_404(Shop, id=shop_id)
+    
+    # Only shop owner can view
+    if shop.owner != request.user:
+        messages.error(request, 'You do not have permission to view this shop.')
+        return redirect('/')
+    
+    context = {
+        'shop': shop,
+        'shop_theme': getattr(shop, 'theme_config', None),
+    }
+    
+    return render(request, 'shops/shop_detail.html', context)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def shop_edit_view(request, shop_id):
+    """Edit shop details."""
+    shop = get_object_or_404(Shop, id=shop_id)
+    
+    # Only shop owner can edit
+    if shop.owner != request.user:
+        messages.error(request, 'You do not have permission to edit this shop.')
+        return redirect('/')
+    
+    if request.method == 'POST':
+        form = ShopEditForm(request.POST, request.FILES, instance=shop)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Shop updated successfully!')
+            return redirect('shops:detail', shop_id=shop.id)
+    else:
+        form = ShopEditForm(instance=shop)
+    
+    context = {
+        'form': form,
+        'shop': shop,
+    }
+    
+    return render(request, 'shops/shop_edit.html', context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def shop_list_view(request):
+    """List all shops owned by user."""
+    shops = Shop.objects.filter(owner=request.user).order_by('-created_at')
+    
+    context = {
+        'shops': shops,
+    }
+    
+    return render(request, 'shops/shop_list.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def shop_deactivate_view(request, shop_id):
+    """Deactivate a shop."""
+    shop = get_object_or_404(Shop, id=shop_id)
+    
+    if shop.owner != request.user:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+    
+    shop.is_active = False
+    shop.save()
+    
+    messages.success(request, f'Shop "{shop.name}" deactivated.')
+    return redirect('shops:list')
+
+
+@login_required
+@require_http_methods(["POST"])
+def shop_reactivate_view(request, shop_id):
+    """Reactivate a shop."""
+    shop = get_object_or_404(Shop, id=shop_id)
+    
+    if shop.owner != request.user:
+        return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+    
+    shop.is_active = True
+    shop.save()
+    
+    messages.success(request, f'Shop "{shop.name}" reactivated.')
+    return redirect('shops:list')

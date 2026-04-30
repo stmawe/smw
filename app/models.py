@@ -5,23 +5,62 @@ from django.contrib.auth.models import AbstractUser
 
 class Client(TenantMixin):
     """
-    Represents a tenant (University or Area).
+    Represents a tenant (University, Area, or Shop).
     """
-    name = models.CharField(max_length=255, unique=True)
-    type = models.CharField(max_length=20, choices=[('university', 'University'), ('area', 'Area')])
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+    tenant_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('university', 'University'),
+            ('location', 'Location/Area'),
+            ('shop', 'Shop')
+        ],
+        db_index=True
+    )
+    parent_tenant = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='child_tenants',
+        help_text='Parent tenant for shops (linked to University or Location)'
+    )
     paid_until = models.DateField(null=True, blank=True)
     on_trial = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     auto_create_schema = True
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['tenant_type', 'on_trial']),
+            models.Index(fields=['parent_tenant', 'tenant_type']),
+        ]
+
     def __str__(self):
         return self.name
+    
+    def get_users(self):
+        """Get all users in this tenant."""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        # For now, return users with matching role
+        if self.tenant_type == 'university':
+            return User.objects.filter(role='university_admin')
+        elif self.tenant_type == 'location':
+            return User.objects.filter(role='area_admin')
+        return User.objects.none()
 
 
 class ClientDomain(DomainMixin):
     """
     Represents a domain associated with a tenant.
     """
+    class Meta:
+        ordering = ['domain']
+
     def __str__(self):
         return self.domain
 

@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Deployment Dashboard - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .deployment-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .deployment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .deployment-header h1 {
+        margin: 0;
+        font-size: 32px;
+    }
+    
+    .deployment-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .control-panel {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .control-panel h2 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 15px;
+    }
+    
+    .update-button-group {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .btn-update {
+        background: #667eea;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-update:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-update:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .btn-update.loading {
+        opacity: 0.7;
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #4caf50;
+        margin-right: 8px;
+    }
+    
+    .status-indicator.updating {
+        background: #ff9800;
+        animation: pulse 1.5s infinite;
+    }
+    
+    .status-indicator.error {
+        background: #f44336;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .update-status {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .update-status.success {
+        background: #e8f5e9;
+        border-left-color: #4caf50;
+    }
+    
+    .update-status.error {
+        background: #ffebee;
+        border-left-color: #f44336;
+    }
+    
+    .logs-panel {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .logs-panel h2 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 15px;
+    }
+    
+    .log-viewer {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+        line-height: 1.5;
+    }
+    
+    .log-entry {
+        margin: 5px 0;
+        word-wrap: break-word;
+    }
+    
+    .log-entry.error {
+        color: #f44336;
+    }
+    
+    .log-entry.warning {
+        color: #ff9800;
+    }
+    
+    .log-entry.success {
+        color: #4caf50;
+    }
+    
+    .log-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .log-list-item {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .log-list-item:hover {
+        background: #f0f0f0;
+        border-color: #667eea;
+    }
+    
+    .log-filename {
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .log-size {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .info-box strong {
+        color: #1976d2;
+    }
+    
+    .warning-box {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .warning-box strong {
+        color: #e65100;
+    }
+    
+    @media (max-width: 768px) {
+        .update-button-group {
+            flex-direction: column;
+        }
+        
+        .deployment-container {
+            padding: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="deployment-container">
+    <!-- Header -->
+    <div class="deployment-header">
+        <h1>Deployment Dashboard</h1>
+        <p>Manage site updates and monitor deployment logs</p>
+    </div>
+    
+    <!-- Info -->
+    <div class="info-box">
+        <strong>Note:</strong> Use this dashboard to trigger site updates, manage migrations, and view deployment logs. 
+        Updates run in the background and don't require page refresh.
+    </div>
+    
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <h2>Update Controls</h2>
+        
+        <div class="update-status" id="updateStatus" style="display: none;">
+            <span class="status-indicator" id="statusIndicator"></span>
+            <span id="statusMessage"></span>
+        </div>
+        
+        <div class="update-button-group">
+            {% if update_script_exists %}
+                <button class="btn-update" id="updateBtn" onclick="triggerUpdate()">
+                    <span>Start Update</span>
+                </button>
+            {% else %}
+                <button class="btn-update" disabled title="update_site.sh not found">
+                    <span>Update Script Missing</span>
+                </button>
+            {% endif %}
+            
+            <button class="btn-update" onclick="refreshLogs()" style="background: #4caf50;">
+                <span>Refresh Logs</span>
+            </button>
+        </div>
+        
+        <div class="info-box">
+            <strong>Script Status:</strong> 
+            {% if update_script_exists %}
+                OK - update_site.sh is available
+            {% else %}
+                WARNING - update_site.sh not found (create at: /scripts/update_site.sh)
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Logs Panel -->
+    <div class="logs-panel">
+        <h2>Recent Deployment Logs</h2>
+        
+        <ul class="log-list" id="logsList">
+            {% for log in recent_logs %}
+                <li class="log-list-item">
+                    <div class="log-filename">{{ log.filename }}</div>
+                    <div class="log-size">Size: {{ log.size }} bytes</div>
+                    <small>{{ log.content|truncatewords:20 }}</small>
+                </li>
+            {% empty %}
+                <li class="log-list-item" style="text-align: center; color: #999;">
+                    No deployment logs yet. Logs will appear here after running updates.
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Deployment Info -->
+    <div class="warning-box">
+        <strong>Important:</strong>
+        <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+            <li>Deployment updates run automatically every 2 hours via cron job</li>
+            <li>Protected files (.env, db.sqlite3, etc.) are automatically backed up before updates</li>
+            <li>Migrations are applied automatically during updates</li>
+            <li>Static files are collected and optimized</li>
+            <li>Web services are reloaded after update completion</li>
+            <li>Deployments that fail are logged with detailed error messages</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// Update Status Constants
+const STATUS = {
+    IDLE: 'idle',
+    UPDATING: 'updating',
+    SUCCESS: 'success',
+    ERROR: 'error'
+};
+
+let updateStatus = STATUS.IDLE;
+
+function showStatus(message, status = STATUS.IDLE) {
+    const statusDiv = document.getElementById('updateStatus');
+    const indicator = document.getElementById('statusIndicator');
+    const messageSpan = document.getElementById('statusMessage');
+    
+    messageSpan.textContent = message;
+    statusDiv.style.display = 'block';
+    statusDiv.className = 'update-status ' + status;
+    
+    if (status === STATUS.UPDATING) {
+        indicator.className = 'status-indicator updating';
+    } else if (status === STATUS.ERROR) {
+        indicator.className = 'status-indicator error';
+    } else {
+        indicator.className = 'status-indicator';
+    }
+}
+
+function triggerUpdate() {
+    if (updateStatus === STATUS.UPDATING) {
+        showStatus('Update already in progress...', STATUS.UPDATING);
+        return;
+    }
+    
+    const btn = document.getElementById('updateBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    updateStatus = STATUS.UPDATING;
+    
+    showStatus('Starting deployment update...', STATUS.UPDATING);
+    
+    fetch('{% url "trigger_site_update" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStatus('Update started! Monitor logs below', STATUS.SUCCESS);
+            updateStatus = STATUS.SUCCESS;
+            
+            // Refresh logs after 5 seconds
+            setTimeout(refreshLogs, 5000);
+        } else {
+            showStatus('Error: ' + data.error, STATUS.ERROR);
+            updateStatus = STATUS.ERROR;
+        }
+    })
+    .catch(error => {
+        showStatus('Error: ' + error.message, STATUS.ERROR);
+        updateStatus = STATUS.ERROR;
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        
+        // Reset status after 10 seconds
+        setTimeout(() => {
+            if (updateStatus === STATUS.SUCCESS) {
+                showStatus('Update completed!', STATUS.SUCCESS);
+            }
+        }, 10000);
+    });
+}
+
+function refreshLogs() {
+    fetch('{% url "get_deployment_logs" %}?limit=20')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.logs.length > 0) {
+                const logsList = document.getElementById('logsList');
+                logsList.innerHTML = data.logs.map(log => 
+                    '<li class="log-list-item">' +
+                    '<div class="log-filename">' + log.filename + '</div>' +
+                    '<div class="log-size">Size: ' + log.size + ' bytes</div>' +
+                    '<small>' + log.content.substring(0, 100) + '...</small>' +
+                    '</li>'
+                ).join('');
+            }
+        })
+        .catch(error => console.error('Error refreshing logs:', error));
+}
+
+// Auto-refresh logs every 30 seconds when updating
+setInterval(() => {
+    if (updateStatus === STATUS.UPDATING) {
+        refreshLogs();
+    }
+}, 30000);
+</script>
+{% endblock %}

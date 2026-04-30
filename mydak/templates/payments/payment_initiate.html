@@ -1,0 +1,52 @@
+{% extends "base/base.html" %}
+
+{% block title %}Initiate Payment - UniMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 40px;">
+    <div class="card">
+        <div class="card-body">
+            <h1 style="margin-bottom: 30px;">Complete Payment</h1>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <p style="color: #999; margin-bottom: 5px;">Payment for</p>
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">{{ transaction.get_action_display }}</p>
+                
+                <p style="color: #999; margin-bottom: 5px;">Amount</p>
+                <p style="font-size: 24px; font-weight: 600; color: #667eea;">KES {{ transaction.amount }}</p>
+            </div>
+            
+            {% if error %}
+                <div style="background: #fee; color: #c33; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    {{ error }}
+                </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <div style="color: #c33; font-size: 14px; margin-top: 5px;">
+                            {{ form.phone_number.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <p style="color: #999; font-size: 12px; margin-top: 8px;">
+                        {{ form.phone_number.help_text }}
+                    </p>
+                </div>
+                
+                <button type="submit" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                    Send STK Push
+                </button>
+            </form>
+            
+            <p style="color: #999; font-size: 12px; margin-top: 20px; text-align: center;">
+                You will receive a prompt on your phone to enter your M-Pesa PIN
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

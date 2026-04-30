@@ -1,0 +1,94 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Create Listing from Template{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>✨ Create Listing from Template</h1>
+            
+            <!-- Template preview -->
+            <div class="card mb-4 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">📋 {{ template.name }}</h5>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <small class="text-muted">Category</small><br>
+                            {% if template.category %}
+                                <strong>{{ template.category.name }}</strong>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Condition</small><br>
+                            <strong>{{ template.get_condition_display }}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Description</small><br>
+                            {% if template.description %}
+                                <small>{{ template.description|truncatewords:15 }}</small>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form to create listing -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>📝 Listing Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.template_id }}
+                        
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label">Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Price -->
+                        <div class="mb-3">
+                            <label for="id_price" class="form-label">Price (KES)</label>
+                            {{ form.price }}
+                            {% if form.price.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.price.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Non-form fields message -->
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Note:</strong> Category, condition, and description are from your template.
+                                <a href="{% url 'shops:template_edit' template.id %}">Edit template</a> to change them.
+                            </small>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'shops:template_list' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-success">
+                                ✨ Create Listing
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

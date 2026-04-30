@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Preview Bulk Upload{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <h1>👀 Preview Bulk Upload</h1>
+            <p class="text-muted">Review these listings before importing</p>
+            
+            <div class="alert alert-info">
+                <strong>⚠️ Ready to import {{ total_count }} listing(s) to "{{ shop.name }}"</strong>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Price (KES)</th>
+                            <th>Category</th>
+                            <th>Condition</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in preview_data %}
+                            <tr>
+                                <td><small class="text-muted">{{ item.row }}</small></td>
+                                <td>{{ item.title }}</td>
+                                <td class="font-weight-bold">{{ item.price }}</td>
+                                <td><span class="badge bg-info">{{ item.category }}</span></td>
+                                <td>
+                                    {% if item.condition == 'new' %}
+                                        <span class="badge bg-success">New</span>
+                                    {% elif item.condition == 'like_new' %}
+                                        <span class="badge bg-success">Like New</span>
+                                    {% elif item.condition == 'good' %}
+                                        <span class="badge bg-info">Good</span>
+                                    {% elif item.condition == 'fair' %}
+                                        <span class="badge bg-warning">Fair</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ item.condition }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ item.description }}</small></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Confirmation form -->
+            <form method="post" action="{% url 'shops:bulk_confirm' %}">
+                {% csrf_token %}
+                <input type="hidden" name="listing_count" value="{{ total_count }}">
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirm_import" name="confirm" required>
+                    <label class="form-check-label" for="confirm_import">
+                        ✓ I confirm these listings are correct and ready to import
+                    </label>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'shops:bulk_cancel' %}" class="btn btn-secondary">❌ Cancel</a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        ✅ Import {{ total_count }} Listing(s)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

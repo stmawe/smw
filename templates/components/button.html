@@ -1,0 +1,38 @@
+<!-- Button Component -->
+<button class="btn {% if button_class %}{{ button_class }}{% else %}btn-primary{% endif %}" {% if button_disabled %}disabled{% endif %}>
+    {{ button_text }}
+</button>
+
+<style>
+    .btn {
+        padding: var(--theme-spacing-gap-medium, 8px) var(--theme-spacing-gap-large, 16px);
+        background: var(--theme-colors-primary, #667eea);
+        color: white;
+        border: none;
+        border-radius: var(--theme-borders-radius-small, 4px);
+        cursor: pointer;
+        font-size: var(--theme-typography-font-size-base, 16px);
+        font-weight: 600;
+        transition: all var(--theme-animations-duration-fast, 100ms) var(--theme-animations-easing-ease, ease);
+    }
+    
+    .btn:hover:not(:disabled) { background: var(--theme-colors-primary-dark, #764ba2); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .btn-primary { background: var(--theme-colors-primary, #667eea); }
+    .btn-secondary { background: var(--theme-colors-secondary, #f093fb); }
+    .btn-success { background: var(--theme-colors-success, #3c3); }
+    .btn-warning { background: var(--theme-colors-warning, #ff9800); }
+    .btn-danger { background: var(--theme-colors-error, #c33); }
+    .btn-info { background: var(--theme-colors-info, #2196f3); }
+    
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--theme-colors-primary, #667eea);
+        color: var(--theme-colors-primary, #667eea);
+    }
+    
+    .btn-small { padding: var(--theme-spacing-gap-small, 4px) var(--theme-spacing-gap-medium, 8px); font-size: 0.9rem; }
+    .btn-large { padding: var(--theme-spacing-gap-large, 16px) var(--theme-spacing-gap-xlarge, 24px); font-size: 1.1rem; }
+    .btn-full { width: 100%; }
+</style>

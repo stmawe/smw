@@ -1,0 +1,54 @@
+{% extends "base/base.html" %}
+
+{% block title %}Search Listings - UniMarket{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 30px;">Browse Listings</h1>
+    
+    <!-- Search Form -->
+    <div class="card" style="margin-bottom: 30px;">
+        <div class="card-body">
+            <form method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                {{ form.query }}
+                {{ form.category }}
+                {{ form.condition }}
+                {{ form.price_min }}
+                {{ form.price_max }}
+                {{ form.sort_by }}
+                <button type="submit" style="padding: 10px; background: #667eea; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Search</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+        {% for listing in listings %}
+            <a href="{% url 'listings:detail' listing.id %}" style="text-decoration: none; color: inherit;">
+                <div class="card" style="cursor: pointer;">
+                    {% if listing.image %}
+                        <img src="{{ listing.image.url }}" alt="{{ listing.title }}" style="width: 100%; height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div style="width: 100%; height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999;">
+                            No image
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h3 style="margin-bottom: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{ listing.title }}</h3>
+                        <p style="color: #667eea; font-weight: 600; font-size: 18px; margin-bottom: 10px;">KES {{ listing.price }}</p>
+                        <p style="color: #999; font-size: 14px;">{{ listing.get_condition_display }}</p>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999;">
+                <p>No listings found. Try adjusting your search filters.</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <p style="text-align: center; margin-top: 30px; color: #999;">
+        Showing {{ listings|length }} of {{ total_count }} listings
+    </p>
+</div>
+{% endblock %}

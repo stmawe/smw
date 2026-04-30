@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Create Listing Template{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>📋 Create Listing Template</h1>
+            <p class="text-muted">Save a template for quick listing creation</p>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Shop selection -->
+                        <div class="mb-3">
+                            <label for="shop_select" class="form-label">Shop</label>
+                            <select name="shop_id" id="shop_select" class="form-control" required>
+                                {% for shop in shops %}
+                                    <option value="{{ shop.id }}" {% if shop.id == selected_shop.id %}selected{% endif %}>
+                                        {{ shop.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Template form fields -->
+                        {% for field in form %}
+                            {% if field.name != 'shop' %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {% if field.field.widget.input_type == 'textarea' %}
+                                        {{ field }}
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'shops:template_list' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                💾 Create Template
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Help -->
+            <div class="alert alert-info mt-4">
+                <h6>💡 What is a template?</h6>
+                <p>A template saves common listing details like category, condition, and description. You can quickly create new listings by just entering the title and price.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

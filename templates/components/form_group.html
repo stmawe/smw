@@ -1,0 +1,62 @@
+<!-- Form Group Component -->
+<div class="form-group">
+    {% if form_label %}
+        <label for="{{ form_id }}">{{ form_label }}</label>
+    {% endif %}
+    
+    {% if form_type == 'textarea' %}
+        <textarea id="{{ form_id }}" name="{{ form_name }}" {% if form_placeholder %}placeholder="{{ form_placeholder }}"{% endif %} {% if form_required %}required{% endif %} {% if form_rows %}rows="{{ form_rows }}"{% endif %}></textarea>
+    {% elif form_type == 'select' %}
+        <select id="{{ form_id }}" name="{{ form_name }}" {% if form_required %}required{% endif %}>
+            <option value="">-- Select --</option>
+            {% for choice_val, choice_label in form_choices %}
+                <option value="{{ choice_val }}">{{ choice_label }}</option>
+            {% endfor %}
+        </select>
+    {% else %}
+        <input type="{{ form_type|default:'text' }}" id="{{ form_id }}" name="{{ form_name }}" {% if form_placeholder %}placeholder="{{ form_placeholder }}"{% endif %} {% if form_required %}required{% endif %}>
+    {% endif %}
+    
+    {% if form_hint %}
+        <small class="form-hint">{{ form_hint }}</small>
+    {% endif %}
+</div>
+
+<style>
+    .form-group { margin-bottom: var(--theme-spacing-gap-large, 16px); }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: var(--theme-spacing-gap-small, 4px);
+        color: var(--theme-colors-text, #333);
+        font-weight: 600;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: var(--theme-spacing-gap-medium, 8px) var(--theme-spacing-gap-medium, 8px);
+        border: 1px solid var(--theme-colors-border, #ddd);
+        border-radius: var(--theme-borders-radius-small, 4px);
+        font-size: var(--theme-typography-font-size-base, 16px);
+        font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--theme-colors-primary, #667eea);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    
+    .form-hint {
+        display: block;
+        margin-top: var(--theme-spacing-gap-small, 4px);
+        color: var(--theme-colors-text-secondary, #666);
+        font-size: 0.9rem;
+    }
+</style>

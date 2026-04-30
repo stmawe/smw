@@ -1,0 +1,76 @@
+{% extends "base/base.html" %}
+
+{% block title %}Payment Status - UniMarket{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 40px;">
+    <div class="card">
+        <div class="card-body">
+            <h1 style="margin-bottom: 30px;">Payment Status</h1>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <p style="color: #999; margin-bottom: 5px;">Transaction ID</p>
+                <p style="font-size: 14px; font-family: monospace; margin-bottom: 20px;">{{ transaction.id }}</p>
+                
+                <p style="color: #999; margin-bottom: 5px;">Amount</p>
+                <p style="font-size: 24px; font-weight: 600; color: #667eea; margin-bottom: 20px;">KES {{ transaction.amount }}</p>
+                
+                <p style="color: #999; margin-bottom: 5px;">Status</p>
+                <p style="font-size: 18px; font-weight: 600;">
+                    {% if transaction.status == 'success' %}
+                        <span style="color: #3c3;">✓ {{ status_display }}</span>
+                    {% elif transaction.status == 'failed' or transaction.status == 'expired' %}
+                        <span style="color: #c33;">✗ {{ status_display }}</span>
+                    {% else %}
+                        <span style="color: #ff9800;">⏱ {{ status_display }}</span>
+                    {% endif %}
+                </p>
+            </div>
+            
+            {% if transaction.status == 'success' %}
+                <div style="background: #efe; color: #3c3; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="font-weight: 600; margin-bottom: 5px;">Payment Successful!</p>
+                    <p>Your payment has been confirmed. M-Pesa Receipt: {{ transaction.mpesa_receipt }}</p>
+                </div>
+                
+                <a href="{% url 'shops:list' %}" style="display: block; text-align: center; padding: 12px; background: #667eea; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; text-decoration: none;">
+                    Continue
+                </a>
+            
+            {% elif transaction.status == 'failed' or transaction.status == 'expired' %}
+                <div style="background: #fee; color: #c33; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="font-weight: 600; margin-bottom: 5px;">Payment {{ transaction.status|lower }}</p>
+                    <p>Please try again or contact support if the problem persists.</p>
+                </div>
+                
+                <a href="{% url 'payment_initiate' transaction.id %}" style="display: block; text-align: center; padding: 12px; background: #ff9800; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; text-decoration: none;">
+                    Try Again
+                </a>
+            
+            {% else %}
+                <div style="background: #eef; color: #667eea; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="font-weight: 600; margin-bottom: 5px;">Waiting for Payment</p>
+                    <p>Check your phone for the M-Pesa prompt. This page will update automatically.</p>
+                </div>
+                
+                <button onclick="location.reload()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                    Check Status
+                </button>
+            {% endif %}
+            
+            {% if transaction.phone_number %}
+                <p style="color: #999; font-size: 12px; margin-top: 20px; text-align: center;">
+                    Payment phone: {{ transaction.phone_number }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if transaction.status == 'initiated' %}
+<script>
+    // Auto-refresh every 5 seconds while payment is pending
+    setTimeout(() => location.reload(), 5000);
+</script>
+{% endif %}
+{% endblock %}

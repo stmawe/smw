@@ -4,15 +4,15 @@ from .models import Client, ClientDomain, User, Category
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'schema_name', 'type', 'on_trial', 'paid_until') # Add created_on if you add it to model
+    list_display = ('name', 'schema_name', 'tenant_type', 'on_trial', 'paid_until')
     search_fields = ('name', 'schema_name')
-    list_filter = ('type', 'on_trial')
+    list_filter = ('tenant_type', 'on_trial')
 
 @admin.register(ClientDomain)
 class ClientDomainAdmin(admin.ModelAdmin):
     list_display = ('domain', 'tenant', 'is_primary')
     search_fields = ('domain', 'tenant__name')
-    list_filter = ('is_primary', 'tenant__type')
+    list_filter = ('is_primary', 'tenant__tenant_type')
 
 # Customize the User admin
 class UserAdmin(BaseUserAdmin):

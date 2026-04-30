@@ -1,0 +1,113 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Bulk Upload Listings{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>📤 Bulk Upload Listings</h1>
+            <p class="text-muted">Import multiple listings from a CSV file in one go</p>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Upload CSV File</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Shop selection -->
+                        <div class="mb-3">
+                            <label for="shop_select" class="form-label">Select Shop</label>
+                            <select name="shop_id" id="shop_select" class="form-control" required>
+                                {% for shop in shops %}
+                                    <option value="{{ shop.id }}" {% if shop.id == selected_shop.id %}selected{% endif %}>
+                                        {{ shop.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- CSV upload -->
+                        <div class="mb-3">
+                            <label for="csv_file" class="form-label">CSV File</label>
+                            <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
+                            <div class="form-text">
+                                <strong>Required columns:</strong> title, price, category, condition<br>
+                                <strong>Optional columns:</strong> description, image_url<br>
+                                <strong>Max file size:</strong> 5MB
+                            </div>
+                        </div>
+                        
+                        <!-- CSV format help -->
+                        <div class="alert alert-info">
+                            <h6>📋 CSV Format Example:</h6>
+                            <pre style="font-size: 0.85rem;">title,price,category,condition,description
+Laptop Dell XPS,45000,Electronics,good,Excellent condition laptop
+iPhone 12,30000,Electronics,like_new,Never used
+Books Bundle,2000,Books,good,University textbooks</pre>
+                        </div>
+                        
+                        <!-- Action selection -->
+                        <div class="mb-3">
+                            <label class="form-label">Action</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="action" id="preview" value="preview" checked>
+                                <label class="form-check-label" for="preview">
+                                    Preview Only (review before importing)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="action" id="import" value="import">
+                                <label class="form-check-label" for="import">
+                                    Import Directly (no preview)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'seller_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Upload CSV
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Download template -->
+            <div class="mt-4">
+                <p class="text-center">
+                    <a href="#" class="btn btn-outline-secondary btn-sm" id="download_template">
+                        📥 Download CSV Template
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('download_template').addEventListener('click', function(e) {
+    e.preventDefault();
+    const csv = 'title,price,category,condition,description\nSample Item,5000,Electronics,good,Description here';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'listings_template.csv';
+    a.click();
+});
+</script>
+{% endblock %}

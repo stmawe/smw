@@ -1,11 +1,79 @@
 .env
+.env.production
+.env.local
+.env.*.local
 .smw
 ptg
 pth/
 ptg.sh
 ptg.ps1
 __pycache__
-__pycache__
 gy/
 gy.py
 .gitignore
+
+# Database and sensitive files
+db.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+config/secrets.py
+config/secrets.*.py
+
+# Deployment scripts (may contain hardcoded paths/credentials)
+deploy.py
+server.env
+.deploy_version
+.last_deploy_time
+
+# Backups and logs
+.backups/
+logs/
+*.backup
+*.bak
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.swp
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Python
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Static and media files (not committed, built during deployment)
+static/collected/
+media/
+staticfiles/
+
+# OS files
+Thumbs.db
+*.pem
+*.key
+
+# Sensitive credentials
+secrets.json
+config.json
+*.pem
+*.key
+
+# npm/node (if used)
+node_modules/
+npm-debug.log
+
+# Production build artifacts
+*.min.js
+*.min.css
