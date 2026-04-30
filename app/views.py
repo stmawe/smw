@@ -104,10 +104,18 @@ def listing_detail_view(request, listing_id=None):
         'related_listings': [
             {
                 'id': 2,
-                'title': 'Similar Product',
+                'title': 'Similar Premium Product',
                 'price': 3999.99,
+                'original_price': None,
                 'image': None,
                 'rating': 4.5,
+                'category': 'Electronics',
+                'created_at': '2025-01-14T08:00:00Z',
+                'seller': {
+                    'id': 1,
+                    'name': 'Premium Electronics Store',
+                    'slug': 'premium-electronics-store',
+                }
             }
         ],
         'site_name': 'SMW Marketplace',
