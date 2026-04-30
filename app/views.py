@@ -91,6 +91,7 @@ def listing_detail_view(request, listing_id=None):
                 'Warranty': '2 Years',
             },
             'seller': {
+                'id': 1,
                 'name': 'Premium Electronics Store',
                 'slug': 'premium-electronics-store',
                 'rating': 4.8,
