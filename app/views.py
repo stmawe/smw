@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.db import transaction
 from .forms import TenantRegistrationForm
 from .models import Client, ClientDomain, User
+from datetime import datetime, timedelta
 
 def refs(request):
     """
@@ -71,7 +72,10 @@ def shop_detail_view(request, shop_id=None):
 
 def listing_detail_view(request, listing_id=None):
     """View a specific product listing"""
-    # Mock listing data for now
+    # Mock listing data for now - use proper datetime objects for timesince filter
+    created_date = datetime.now() - timedelta(days=3)
+    related_created = datetime.now() - timedelta(days=4)
+    
     listing_data = {
         'listing': {
             'id': listing_id or 1,
@@ -82,7 +86,7 @@ def listing_detail_view(request, listing_id=None):
             'category': 'Electronics',
             'condition': 'New',
             'location': 'Nairobi, Kenya',
-            'created_at': '2025-01-15T10:30:00Z',
+            'created_at': created_date,
             'image': None,
             'specs': {
                 'Brand': 'Premium',
@@ -110,7 +114,7 @@ def listing_detail_view(request, listing_id=None):
                 'image': None,
                 'rating': 4.5,
                 'category': 'Electronics',
-                'created_at': '2025-01-14T08:00:00Z',
+                'created_at': related_created,
                 'seller': {
                     'id': 1,
                     'name': 'Premium Electronics Store',
