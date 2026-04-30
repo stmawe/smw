@@ -26,6 +26,9 @@ server.env
 .deploy_version
 .last_deploy_time
 
+# Debug scripts and temporary setup files
+debug/
+
 # Backups and logs
 .backups/
 logs/
