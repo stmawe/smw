@@ -44,6 +44,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # For humanize template filters (intcomma, timesince, etc.)
     'app',  # Your public app containing Client, ClientDomain, User, Category
 ]
 
