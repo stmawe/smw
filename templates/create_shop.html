@@ -4,8 +4,6 @@
 {% block title %}Create Your Shop - {{ site_name }}{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/forms.css' %}">
-
 <div class="create-shop-wrapper">
   <div class="create-shop-container">
     <div class="wizard-header">
@@ -138,13 +136,13 @@
 .create-shop-wrapper {
   background: var(--surface-0);
   min-height: 100vh;
-  padding: var(--space-6) 0;
+  padding: var(--space-4) 0;
 }
 
 .create-shop-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: var(--space-6);
+  padding: 0 var(--container-padding);
 }
 
 .wizard-header {
@@ -228,9 +226,10 @@
 /* Form */
 .shop-creation-form {
   background: var(--surface-1);
-  border: 1px solid var(--border-dim);
+  border: 1px solid var(--border-mid);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  padding: var(--space-5);
+  margin-top: var(--space-5);
 }
 
 .wizard-step {
@@ -267,12 +266,13 @@
   width: 100%;
   padding: var(--space-3);
   background: var(--surface-2);
-  border: 1px solid var(--border-dim);
+  border: 1px solid var(--border-mid);
   border-radius: var(--radius-md);
   color: var(--text-1);
   font: 500 14px var(--font-body);
   transition: all 0.2s ease;
   box-sizing: border-box;
+  appearance: none;
 }
 
 .form-group input:focus,
@@ -281,14 +281,22 @@
   outline: none;
   border-color: var(--color-primary);
   background: var(--surface-3);
+  box-shadow: 0 0 0 3px rgba(26, 114, 232, 0.1);
 }
 
-.form-group textarea {
-  resize: vertical;
-  font-family: var(--font-body);
+.form-group input:required,
+.form-group select:required {
+  border-color: var(--border-mid);
 }
 
 .form-group input[type="checkbox"] {
+  margin-right: var(--space-2);
+  width: auto;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.form-group label input[type="checkbox"] {
   margin-right: var(--space-2);
 }
 
