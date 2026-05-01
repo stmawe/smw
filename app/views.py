@@ -5,9 +5,11 @@ from django.http import HttpResponse
 from mydak.models import BlogPost, BlogCategory, Listing
 from django.contrib import messages
 from django.db import transaction
+from django.contrib.auth import authenticate, login
 from .forms import TenantRegistrationForm
 from .models import Client, ClientDomain, User
 from datetime import datetime, timedelta
+
 
 def refs(request):
     """
@@ -40,6 +42,21 @@ def products_view(request):
     return render(request, 'product.html')
 
 def login_view(request):
+    """Handle user login with username or email"""
+    if request.method == 'POST':
+        username_or_email = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Authenticate using the custom backend
+        user = authenticate(request, username=username_or_email, password=password)
+        
+        if user is not None:
+            login(request, user)
+            # Redirect to dashboard or explore page
+            return redirect('explore')
+        else:
+            messages.error(request, 'Invalid username/email or password.')
+    
     return render(request, 'accounts/login.html')
 
 def explore_view(request):
