@@ -153,10 +153,38 @@ def locations_view(request):
 
 def create_shop_view(request):
     """Shop creation wizard"""
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        messages.info(request, 'Please log in to create a shop.')
+        return redirect('login')
+    
+    # Check if user already has 2 shops (max limit)
+    from mydak.models import Shop
+    shop_count = Shop.objects.filter(owner=request.user, is_active=True).count()
+    if shop_count >= 2:
+        messages.error(request, 'You have reached the maximum number of shops (2). Delete an existing shop to create a new one.')
+        return redirect('explore')
+    
     if request.method == 'POST':
         # Handle shop creation
-        return render(request, 'create_shop.html', {'success': True})
-    return render(request, 'create_shop.html')
+        shop_name = request.POST.get('shop_name')
+        shop_description = request.POST.get('shop_description', '')
+        
+        # Create the shop
+        shop = Shop.objects.create(
+            owner=request.user,
+            name=shop_name,
+            description=shop_description
+        )
+        
+        messages.success(request, f'Shop "{shop_name}" created successfully!')
+        return redirect('explore')
+    
+    context = {
+        'remaining_shops': 2 - shop_count,
+        'shop_count': shop_count
+    }
+    return render(request, 'create_shop.html', context)
 
 
 @transaction.atomic

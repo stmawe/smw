@@ -647,5 +647,59 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Debug FAB for testing
+  const debugLog = [];
+  const fab = document.createElement('div');
+  fab.id = 'debug-fab';
+  fab.innerHTML = `
+    <button id="debug-toggle" aria-label="Toggle debug">🐛</button>
+    <div id="debug-panel" style="display:none; position: fixed; bottom: 80px; right: 20px; background: rgba(0,0,0,0.9); color: #0f0; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; max-width: 300px; z-index: 9999; max-height: 200px; overflow-y: auto;">
+      <div id="debug-content"></div>
+      <button id="copy-log" style="width: 100%; margin-top: 8px; padding: 6px; background: #0f0; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Copy Log</button>
+    </div>
+  `;
+  document.body.appendChild(fab);
+
+  const debugToggle = document.getElementById('debug-toggle');
+  const debugPanel = document.getElementById('debug-panel');
+  const debugContent = document.getElementById('debug-content');
+  const copyLogBtn = document.getElementById('copy-log');
+
+  // Update debug info on scroll
+  window.addEventListener('scroll', function() {
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    debugLog.push({
+      time: new Date().toLocaleTimeString(),
+      scroll: currentScroll,
+      isScrolled: isNavbarScrolled,
+      navbarTop: navbar.style.top || 'auto'
+    });
+    if (debugLog.length > 10) debugLog.shift();
+    updateDebugPanel();
+  });
+
+  function updateDebugPanel() {
+    debugContent.innerHTML = debugLog.map(log => 
+      `<div>Scroll: ${log.scroll}px | State: ${log.isScrolled ? 'COLLAPSED' : 'EXPANDED'} | ${log.time}</div>`
+    ).join('');
+  }
+
+  debugToggle.addEventListener('click', function() {
+    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+    updateDebugPanel();
+  });
+
+  copyLogBtn.addEventListener('click', function() {
+    const logText = debugLog.map(log => 
+      `${log.time} | Scroll: ${log.scroll}px | ${log.isScrolled ? 'COLLAPSED' : 'EXPANDED'}`
+    ).join('\n');
+    navigator.clipboard.writeText(logText).then(() => {
+      copyLogBtn.textContent = 'Copied! ✓';
+      setTimeout(() => {
+        copyLogBtn.textContent = 'Copy Log';
+      }, 2000);
+    });
+  });
 });
 </script>
