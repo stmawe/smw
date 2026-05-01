@@ -186,4 +186,5 @@ admin_crud_patterns = [
 admin_subdomain_patterns = admin_subdomain_base
 # admin_subdomain_patterns = admin_subdomain_base + admin_crud_patterns  # TODO: Re-enable once all view functions are implemented
 
-urlpatterns = admin_patterns + seller_patterns + deployment_patterns + admin_crud_patterns
+# Main urlpatterns - exclude admin_crud_patterns as most view functions are not yet implemented
+urlpatterns = admin_patterns + seller_patterns + deployment_patterns
