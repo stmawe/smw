@@ -87,7 +87,7 @@
                   {% endif %}
                 </td>
                 <td>
-                  <a href="{% url 'admin:user-detail' listing.seller.id %}">
+                  <a href="{% url 'admin_user_detail' listing.seller.id %}">
                     {{ listing.seller.username }}
                   </a>
                 </td>
@@ -113,7 +113,7 @@
                 </td>
                 <td>
                   <div class="btn-group btn-group-sm" role="group">
-                    <a href="{% url 'admin:listing-detail' listing.id %}" class="btn btn-outline-primary" title="View">
+                    <a href="{% url 'admin_listing_detail' listing.id %}" class="btn btn-outline-primary" title="View">
                       <i class="bi bi-eye"></i>
                     </a>
                     {% if perms.admin.approve_listings %}

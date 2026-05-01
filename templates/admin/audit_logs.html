@@ -50,7 +50,7 @@
                   <small>{{ log.created_at|date:"M d, Y H:i:s" }}</small>
                 </td>
                 <td>
-                  <a href="{% url 'admin:user-detail' log.admin.id %}">
+                  <a href="{% url 'admin_user_detail' log.admin.id %}">
                     <strong>{{ log.admin.username }}</strong>
                   </a>
                 </td>

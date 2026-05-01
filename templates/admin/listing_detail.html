@@ -43,7 +43,7 @@
           <div class="col-md-6">
             <h6>Seller</h6>
             <p>
-              <a href="{% url 'admin:user-detail' listing.seller.id %}">
+              <a href="{% url 'admin_user_detail' listing.seller.id %}">
                 {{ listing.seller.username }}
               </a>
             </p>
@@ -184,7 +184,7 @@
       <!-- Shop Info -->
       {% include "admin/components/card.html" with title="Shop Information" icon="bi-shop" %}
         <h6>{{ listing.shop.name }}</h6>
-        <a href="{% url 'admin:shop-detail' listing.shop.id %}">View Shop →</a>
+        <a href="{% url 'admin_shop_detail' listing.shop.id %}">View Shop →</a>
         <hr>
         <small class="text-muted">{{ listing.shop.listings_count }} listings</small>
       

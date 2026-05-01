@@ -16,7 +16,7 @@
       <p class="text-muted mb-0">Manage all shops, activate, suspend, or delete.</p>
     </div>
     {% if perms.admin.create_shops %}
-      <a href="{% url 'admin:shop-create' %}" class="btn btn-primary">
+      <a href="{% url 'admin_shop_create' %}" class="btn btn-primary">
         <i class="bi bi-shop"></i> Add Shop
       </a>
     {% endif %}
@@ -92,7 +92,7 @@
                   {% endif %}
                 </td>
                 <td>
-                  <a href="{% url 'admin:user-detail' shop.owner.id %}">
+                  <a href="{% url 'admin_user_detail' shop.owner.id %}">
                     {{ shop.owner.username }}
                   </a>
                 </td>
@@ -117,12 +117,12 @@
                 <td>
                   <div class="btn-group btn-group-sm" role="group">
                     {% if perms.admin.change_shops %}
-                      <a href="{% url 'admin:shop-detail' shop.id %}" class="btn btn-outline-primary" title="View/Edit">
+                      <a href="{% url 'admin_shop_detail' shop.id %}" class="btn btn-outline-primary" title="View/Edit">
                         <i class="bi bi-pencil"></i>
                       </a>
                     {% endif %}
                     {% if perms.admin.manage_shop_ssl %}
-                      <a href="{% url 'admin:shop-ssl' shop.id %}" class="btn btn-outline-info" title="SSL/Domain">
+                      <a href="{% url 'admin_shop_ssl' shop.id %}" class="btn btn-outline-info" title="SSL/Domain">
                         <i class="bi bi-lock"></i>
                       </a>
                     {% endif %}

@@ -79,12 +79,12 @@
                   <code style="font-size: 0.85rem;">{{ txn.id|truncatewords:1 }}</code>
                 </td>
                 <td>
-                  <a href="{% url 'admin:user-detail' txn.buyer.id %}">
+                  <a href="{% url 'admin_user_detail' txn.buyer.id %}">
                     {{ txn.buyer.username }}
                   </a>
                 </td>
                 <td>
-                  <a href="{% url 'admin:user-detail' txn.seller.id %}">
+                  <a href="{% url 'admin_user_detail' txn.seller.id %}">
                     {{ txn.seller.username }}
                   </a>
                 </td>
@@ -110,7 +110,7 @@
                 </td>
                 <td>
                   <div class="btn-group btn-group-sm">
-                    <a href="{% url 'admin:transaction-detail' txn.id %}" class="btn btn-outline-primary" title="View">
+                    <a href="{% url 'admin_transaction_detail' txn.id %}" class="btn btn-outline-primary" title="View">
                       <i class="bi bi-eye"></i>
                     </a>
                     {% if txn.status == "completed" and perms.admin.process_refunds %}
