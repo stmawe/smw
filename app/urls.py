@@ -2,13 +2,13 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
+from accounts.views import login_view as accounts_login_view
 
 # Import the new and existing views
 from .views import (
     BlogListView,
     BlogDetailView,
-    tenant_register_view,  # <-- Import the new registration view
-    login_view,
+    tenant_register_view,
     explore_view,
     listings_view,
     shop_detail_view,
@@ -46,7 +46,7 @@ urlpatterns = [
     path('create-shop/', create_shop_view, name='create_shop'),
 
     # --- AUTH URLS ---
-    path('login/', login_view, name='login'),  # Keep your login view
+    path('login/', accounts_login_view, name='login'),  # Use accounts login which works
     # Point 'register/' to the new tenant registration logic
     path('register/', tenant_register_view, name='register'),
 

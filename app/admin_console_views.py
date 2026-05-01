@@ -74,9 +74,10 @@ def add_ssl_for_shop_view(request, shop_id):
                 'domain': domain
             })
         else:
+            error_msg = result.get('error', 'Unknown error')
             return JsonResponse({
                 'success': False,
-                'message': f'Failed to generate SSL: {result.get("error", "Unknown error")}',
+                'message': f'Failed to generate SSL: {error_msg}',
                 'domain': domain
             }, status=400)
     

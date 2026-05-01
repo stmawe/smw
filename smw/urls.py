@@ -24,8 +24,6 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('themes/', include('apps.themes.urls')),
     path('shops/', include('mydak.urls')),
-    path('dashboard/', include('app.admin_urls')),
-    path('console/', include('app.admin_urls')),
     path('', include('app.urls'))
 ]
 
