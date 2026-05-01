@@ -116,12 +116,24 @@ class Command(BaseCommand):
                 user = User.objects.get(username=username)
                 self.stdout.write(f"Admin user '{username}' already exists")
                 
-                # Update password and email if different
+                # Update email if different
                 if user.email != email:
                     user.email = email
-                    user.save()
                     self.stdout.write(f"  Updated email: {email}")
                 
+                # Update is_staff and is_superuser
+                is_staff = admin_data.get('is_staff', True)
+                is_superuser = admin_data.get('is_superuser', False)
+                
+                if user.is_staff != is_staff:
+                    user.is_staff = is_staff
+                    self.stdout.write(f"  Updated is_staff: {is_staff}")
+                
+                if user.is_superuser != is_superuser:
+                    user.is_superuser = is_superuser
+                    self.stdout.write(f"  Updated is_superuser: {is_superuser}")
+                
+                user.save()
                 updated_count += 1
                 
             except User.DoesNotExist:
