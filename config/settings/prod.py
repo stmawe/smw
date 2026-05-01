@@ -4,7 +4,7 @@ from .base import *
 from decouple import config, Csv
 
 # Production-specific settings
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 # Production database from env
