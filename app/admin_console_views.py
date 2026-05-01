@@ -9,7 +9,6 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from mydak.models import Shop
-from app.models import ClientDomain
 import subprocess
 import json
 
