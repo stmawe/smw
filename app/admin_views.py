@@ -17,7 +17,16 @@ def admin_dashboard_view(request, username=None):
     """
     Admin dashboard main page.
     Shows overview of shops, sales, analytics.
+    
+    Accessed from:
+    - /dashboard/ on main site
+    - / or /dashboard/ on admin.smw.pgwiz.cloud subdomain
     """
+    # If accessing admin subdomain root, redirect to /dashboard/
+    if getattr(request, 'is_admin_subdomain', False) and request.path == '/':
+        from django.shortcuts import redirect
+        return redirect('/dashboard/')
+    
     # If username is specified, check if user has permission to view it
     if username:
         target_user = get_object_or_404(User, username=username)

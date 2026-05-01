@@ -29,7 +29,15 @@ SECRET_KEY = 'django-insecure-smaid%$rcpugk6@==5&0n7u)%k19!gt&v-e$y&@8#52)3&-$zq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "smw.pgwiz.cloud",
+    ".smw.pgwiz.cloud",   # Leading dot = matches all subdomains (admin.smw.pgwiz.cloud, etc.)
+    "pgwiz.cloud",
+    ".pgwiz.cloud",
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+]
 
 #TENANT_MODEL = "smw.Client"
 # Application definition
@@ -71,6 +79,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Custom subdomain detection middleware
+    'smw.middleware.SubdomainMiddleware',
 ]
 
 ROOT_URLCONF = 'smw.urls'
