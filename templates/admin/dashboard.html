@@ -12,8 +12,8 @@
     </div>
     
     <nav class="admin-nav">
-      <a href="{% url 'admin_dashboard' %}" class="admin-nav-link active">Dashboard</a>
-      <a href="{% url 'admin_shops' %}{{ target_user.username }}/" class="admin-nav-link">My Shops</a>
+      <a href="{% url 'admin_dashboard_full' %}" class="admin-nav-link active">Dashboard</a>
+      <a href="{% url 'admin_shops' target_user.username %}" class="admin-nav-link">My Shops</a>
       <a href="/" class="admin-nav-link">Back to Site</a>
     </nav>
   </div>
