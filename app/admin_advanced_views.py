@@ -598,5 +598,100 @@ def api_activity_feed_updates(request):
         ],
         'count': len(activities),
     }
-    
+
     return JsonResponse(data)
+
+
+# ============================================================================
+# MODERATION CENTER VIEWS
+# ============================================================================
+
+@login_required
+@permission_required('admin.can_moderate')
+def admin_moderation_center(request):
+    """Admin moderation center - manage flagged content"""
+    try:
+        flagged_listings = Listing.objects.filter(status='flagged').select_related('shop')[:50]
+        
+        context = {
+            'title': 'Moderation Center',
+            'flagged_listings': flagged_listings,
+            'flagged_count': Listing.objects.filter(status='flagged').count(),
+        }
+        return render(request, 'admin/moderation_center.html', context)
+    except Exception as e:
+        messages.error(request, f"Error loading moderation center: {str(e)}")
+        return redirect('admin:dashboard_full')
+
+
+@login_required
+@permission_required('admin.can_moderate')
+@require_http_methods(["POST"])
+def admin_flag_listing(request, listing_id):
+    """Flag a listing for review"""
+    try:
+        listing = get_object_or_404(Listing, id=listing_id)
+        listing.status = 'flagged'
+        listing.save()
+        
+        messages.success(request, f'Listing {listing_id} flagged for review')
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+    except Exception as e:
+        messages.error(request, f"Error flagging listing: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+
+
+@login_required
+@permission_required('admin.can_moderate')
+@require_http_methods(["POST"])
+def admin_unflag_listing(request, listing_id):
+    """Remove flag from listing"""
+    try:
+        listing = get_object_or_404(Listing, id=listing_id)
+        listing.status = 'active'
+        listing.save()
+        
+        messages.success(request, f'Listing {listing_id} unflagged')
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+    except Exception as e:
+        messages.error(request, f"Error unflagging listing: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+
+
+@login_required
+@permission_required('admin.can_ban_users')
+@require_http_methods(["POST"])
+def admin_ban_user_extended(request, user_id):
+    """Ban user with extended options"""
+    try:
+        user = get_object_or_404(User, id=user_id)
+        reason = request.POST.get('reason', '')
+        duration_days = request.POST.get('duration_days', 0)
+        
+        user.is_active = False
+        user.save()
+        
+        messages.success(request, f'User {user.username} banned')
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+    except Exception as e:
+        messages.error(request, f"Error banning user: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+
+
+@login_required
+@permission_required('admin.can_process_refunds')
+@require_http_methods(["POST"])
+def admin_process_refund(request, transaction_id):
+    """Process refund for a transaction"""
+    try:
+        transaction = get_object_or_404(Transaction, id=transaction_id)
+        reason = request.POST.get('reason', '')
+        
+        transaction.status = 'refunded'
+        transaction.save()
+        
+        messages.success(request, f'Refund processed for transaction {transaction_id}')
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
+    except Exception as e:
+        messages.error(request, f"Error processing refund: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))

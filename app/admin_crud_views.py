@@ -1943,6 +1943,123 @@ def admin_theme_delete(request, theme_id):
     return redirect('admin:themes_list')
 
 
+# ============================================================================
+# ACTIVITY FEED & CHANGELOG VIEWS
+# ============================================================================
+
+@login_required
+@permission_required('admin.can_view_activity')
+def admin_activity_feed_view(request):
+    """Display activity feed of admin actions"""
+    try:
+        feed_entries = AdminActivityFeed.objects.all().order_by('-created_at')[:100]
+        
+        context = {
+            'title': 'Activity Feed',
+            'feed_entries': feed_entries,
+            'total_entries': AdminActivityFeed.objects.count(),
+        }
+        return render(request, 'admin/activity_feed.html', context)
+    except Exception as e:
+        messages.error(request, f"Error loading activity feed: {str(e)}")
+        return redirect('admin:dashboard_full')
+
+
+@login_required
+@permission_required('admin.can_view_activity')
+def admin_changelog_view(request):
+    """Display changelog of system changes"""
+    try:
+        audit_logs = AdminAuditLog.objects.all().order_by('-created_at')[:200]
+        
+        # Group by date
+        from django.db.models.functions import TruncDate
+        from django.db.models import Count as DBCount
+        
+        changelog = AdminAuditLog.objects.all().order_by('-created_at')
+        
+        context = {
+            'title': 'Changelog',
+            'changelog': changelog[:100],
+            'total_changes': AdminAuditLog.objects.count(),
+        }
+        return render(request, 'admin/changelog.html', context)
+    except Exception as e:
+        messages.error(request, f"Error loading changelog: {str(e)}")
+        return redirect('admin:dashboard_full')
+
+
+# ============================================================================
+# API ENDPOINTS FOR AJAX/MODALS
+# ============================================================================
+
+@login_required
+@permission_required('admin.can_view_users')
+@require_http_methods(["GET"])
+def api_user_details(request, user_id):
+    """API endpoint to get user details for modal/AJAX"""
+    try:
+        user = get_object_or_404(User, id=user_id)
+        
+        data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'is_active': user.is_active,
+            'is_staff': user.is_staff,
+            'date_joined': user.date_joined.isoformat(),
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@permission_required('admin.can_view_shops')
+@require_http_methods(["GET"])
+def api_shop_details(request, shop_id):
+    """API endpoint to get shop details for modal/AJAX"""
+    try:
+        shop = get_object_or_404(Shop, id=shop_id)
+        
+        data = {
+            'id': shop.id,
+            'name': shop.name,
+            'owner': str(shop.owner) if hasattr(shop, 'owner') else '',
+            'is_active': getattr(shop, 'is_active', True),
+            'created_at': shop.created_at.isoformat() if hasattr(shop, 'created_at') else '',
+            'listings_count': shop.listing_set.count() if hasattr(shop, 'listing_set') else 0,
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@permission_required('admin.can_view_listings')
+@require_http_methods(["GET"])
+def api_listing_details(request, listing_id):
+    """API endpoint to get listing details for modal/AJAX"""
+    try:
+        listing = get_object_or_404(Listing, id=listing_id)
+        
+        data = {
+            'id': listing.id,
+            'title': listing.title if hasattr(listing, 'title') else '',
+            'shop': str(listing.shop) if hasattr(listing, 'shop') else '',
+            'price': str(getattr(listing, 'price', 0)),
+            'status': getattr(listing, 'status', 'active'),
+            'created_at': listing.created_at.isoformat() if hasattr(listing, 'created_at') else '',
+            'is_featured': getattr(listing, 'is_featured', False),
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 @login_required
 @permission_required(AdminPermission.MANAGE_THEMES)
 def admin_theme_preview(request, theme_id):
