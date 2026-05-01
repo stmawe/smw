@@ -39,7 +39,7 @@ def admin_login_view(request):
     """
     if request.user.is_authenticated:
         if request.user.is_staff or request.user.is_superuser:
-            return redirect('admin_dashboard')
+            return redirect('admin_dashboard_full')
         else:
             return redirect('admin_login')
     
@@ -54,7 +54,7 @@ def admin_login_view(request):
             # Check if user is admin/staff
             if user.is_staff or user.is_superuser:
                 login(request, user)
-                return redirect('admin_dashboard')
+                return redirect('admin_dashboard_full')
             else:
                 messages.error(request, 'Only admin users can access this area.')
         else:
@@ -84,7 +84,7 @@ def admin_dashboard_view(request, username=None):
         # Only allow viewing own dashboard unless superuser
         if request.user != target_user and not request.user.is_superuser:
             messages.error(request, 'You do not have permission to view this dashboard.')
-            return redirect('admin_dashboard')
+            return redirect('admin_dashboard_full')
         user = target_user
     else:
         user = request.user
@@ -114,7 +114,7 @@ def admin_shops_view(request, username=None):
         target_user = get_object_or_404(User, username=username)
         if request.user != target_user and not request.user.is_superuser:
             messages.error(request, 'You do not have permission to view this page.')
-            return redirect('admin_dashboard')
+            return redirect('admin_dashboard_full')
         user = target_user
     else:
         user = request.user
