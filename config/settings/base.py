@@ -232,6 +232,7 @@ CLOUDFLARE_ZONE_ID = config('CLOUDFLARE_ZONE_ID', default='')
 # Django-Allauth Configuration
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
+    'app.auth_backends.UsernameOrEmailBackend',  # Support both username and email login
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]

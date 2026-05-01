@@ -47,16 +47,8 @@ def admin_login_view(request):
         username_email = request.POST.get('username')
         password = request.POST.get('password')
         
-        # Try to authenticate
+        # authenticate() will use UsernameOrEmailBackend which supports both
         user = authenticate(request, username=username_email, password=password)
-        
-        # If not found by username, try email
-        if user is None:
-            try:
-                user_obj = User.objects.get(email=username_email)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
         
         if user is not None:
             # Check if user is admin/staff
