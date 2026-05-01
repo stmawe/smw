@@ -1,8 +1,7 @@
 """
 Middleware to route admin.smw.pgwiz.cloud to admin URL config
 """
-from django.http import HttpResponse
-from django.urls import path
+from types import ModuleType
 
 
 class AdminSubdomainMiddleware:
@@ -14,7 +13,10 @@ class AdminSubdomainMiddleware:
         self.get_response = get_response
         # Load admin patterns once
         from app.admin_urls import admin_subdomain_patterns
-        self.admin_patterns = admin_subdomain_patterns
+        
+        # Create a module-like object with urlpatterns
+        self.admin_urlconf = ModuleType('admin_urlconf')
+        self.admin_urlconf.urlpatterns = admin_subdomain_patterns
     
     def __call__(self, request):
         # Check if this is the admin subdomain
@@ -23,11 +25,10 @@ class AdminSubdomainMiddleware:
         if host == 'admin.smw.pgwiz.cloud':
             request.is_admin_subdomain = True
             # Replace the urlconf for this request
-            request.urlconf = 'app.admin_urls.admin_subdomain_urlconf'
+            request.urlconf = self.admin_urlconf
         else:
             request.is_admin_subdomain = False
         
         response = self.get_response(request)
         return response
-
 

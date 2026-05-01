@@ -5,6 +5,7 @@ from . import university_admin_views, deployment_views, admin_views, admin_conso
 from mydak import seller_views
 
 # Admin subdomain URLs (for https://admin.smw.pgwiz.cloud/)
+# This becomes the urlpatterns when middleware routes to admin subdomain
 admin_subdomain_patterns = [
     # Admin login (root path - shows login page for unauthenticated users)
     path('', admin_views.admin_login_view, name='admin_login'),
@@ -23,11 +24,6 @@ admin_subdomain_patterns = [
     # Catch-all for generic username paths (must come last)
     path('<str:username>/', admin_views.admin_dashboard_view, name='admin_dashboard_user'),
 ]
-
-# URLconf for admin subdomain routing
-admin_subdomain_urlconf = type('URLConf', (), {
-    'urlpatterns': admin_subdomain_patterns
-})
 
 # University admin URLs
 admin_patterns = [
