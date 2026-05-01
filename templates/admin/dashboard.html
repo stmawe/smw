@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'admin/base.html' %}
 {% load static %}
 
 {% block title %}Admin Dashboard - {{ target_user.get_full_name|default:target_user.username }}{% endblock %}
@@ -57,7 +57,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="no-data">You don't have any shops yet. <a href="{% url 'create_shop' %}">Create one now!</a></p>
+        <p class="no-data">You don't have any shops yet.</p>
       {% endif %}
     </div>
   </main>

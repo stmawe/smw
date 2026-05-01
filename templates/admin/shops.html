@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'admin/base.html' %}
 {% load static %}
 
 {% block title %}My Shops - Admin Dashboard{% endblock %}
@@ -7,7 +7,6 @@
 <div class="admin-wrapper">
   <div class="admin-header">
     <h1>My Shops</h1>
-    <a href="{% url 'create_shop' %}" class="btn-primary">+ Create New Shop</a>
   </div>
   
   {% if shops %}
@@ -34,7 +33,6 @@
     <div class="empty-state">
       <h2>No shops yet</h2>
       <p>Create your first shop to start selling</p>
-      <a href="{% url 'create_shop' %}" class="btn-primary">Create Shop</a>
     </div>
   {% endif %}
 </div>
