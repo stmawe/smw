@@ -57,15 +57,21 @@ admin_crud_patterns = [
     
     # User Management
     path('admin/users/', admin_crud_views.admin_users_list, name='admin_users_list'),
+    path('admin/user/create/', admin_crud_views.admin_user_detail, name='admin_user_create'),
     path('admin/user/<int:user_id>/', admin_crud_views.admin_user_detail, name='admin_user_detail'),
     path('admin/user/<int:user_id>/suspend/', admin_crud_views.admin_user_suspend, name='admin_user_suspend'),
     path('admin/user/<int:user_id>/unsuspend/', admin_crud_views.admin_user_unsuspend, name='admin_user_unsuspend'),
     
     # Shop Management
     path('admin/shops/', admin_crud_views.admin_shops_list, name='admin_shops_list'),
+    path('admin/shop/create/', admin_crud_views.admin_shop_detail, name='admin_shop_create'),
     path('admin/shop/<int:shop_id>/', admin_crud_views.admin_shop_detail, name='admin_shop_detail'),
+    path('admin/shop/<int:shop_id>/ssl/', admin_crud_views.admin_ssl_domain_detail, name='admin_shop_ssl'),
+    path('admin/shop/<int:shop_id>/listings/', admin_crud_views.admin_listings_moderation, name='admin_shop_listings'),
+    path('admin/shop/<int:shop_id>/analytics/', admin_advanced_views.admin_analytics_dashboard, name='admin_shop_analytics'),
     
     # Listing Moderation
+    path('admin/listings/', admin_crud_views.admin_listings_moderation, name='admin_listings_list'),
     path('admin/listings/moderation/', admin_crud_views.admin_listings_moderation, name='admin_listings_moderation'),
     path('admin/listing/<int:listing_id>/', admin_crud_views.admin_listing_detail, name='admin_listing_detail'),
     
@@ -76,9 +82,11 @@ admin_crud_patterns = [
     
     # Transactions
     path('admin/transactions/', admin_crud_views.admin_transactions_list, name='admin_transactions_list'),
+    path('admin/transaction/<int:transaction_id>/', admin_advanced_views.admin_analytics_dashboard, name='admin_transaction_detail'),
     
     # Settings & Configuration
     path('admin/settings/', admin_crud_views.admin_settings_view, name='admin_settings_view'),
+    path('admin/settings/general/', admin_crud_views.admin_settings_view, name='admin_settings'),
     
     # Theme Management
     path('admin/themes/', admin_crud_views.admin_themes_list, name='admin_themes_list'),
