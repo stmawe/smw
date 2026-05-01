@@ -28,12 +28,12 @@ def get_optimized_shops_queryset():
     """Get shops with owner and stats in single query."""
     return Shop.objects.select_related('owner').prefetch_related(
         Prefetch(
-            'listing_set',
+            'listings',
             queryset=Listing.objects.filter(status='active').only('id', 'shop_id')
         )
     ).annotate(
-        listing_count=Count('listing'),
-        active_listing_count=Count('listing', filter=Q(listing__status='active'))
+        listing_count=Count('listings'),
+        active_listing_count=Count('listings', filter=Q(listings__status='active'))
     ).only(
         'id', 'name', 'owner_id', 'is_active', 'has_ssl', 'ssl_expires_at', 'created_at'
     )
