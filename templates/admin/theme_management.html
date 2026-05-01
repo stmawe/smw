@@ -1,284 +1,368 @@
 {% extends "admin/base.html" %}
-{% load admin_filters %}
 {% load static %}
 
-{% block title %}Theme Management - Admin{% endblock %}
+{% block title %}Theme Studio - Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin-overrides.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <!-- Breadcrumbs -->
+<div class="container-fluid theme-studio">
   {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
-  
-  <!-- Page Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+
+  <div class="theme-studio-header mb-4">
     <div>
-      <h1 class="mb-1">Theme Management</h1>
-      <p class="text-muted mb-0">Customize platform appearance and design.</p>
+      <p class="text-uppercase text-muted small mb-1">Unified design system</p>
+      <h1 class="mb-2">Theme Studio</h1>
+      <p class="text-muted mb-0">Shape the admin shell, tenant look-and-feel, and mobile experience from one control panel.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn btn-outline-secondary" onclick="setPreviewMode('desktop')">
+        <i class="bi bi-display"></i> Desktop
+      </button>
+      <button type="button" class="btn btn-outline-secondary" onclick="setPreviewMode('tablet')">
+        <i class="bi bi-tablet"></i> Tablet
+      </button>
+      <button type="button" class="btn btn-outline-secondary" onclick="setPreviewMode('mobile')">
+        <i class="bi bi-phone"></i> Mobile
+      </button>
     </div>
   </div>
 
-  <!-- Tabs -->
-  <ul class="nav nav-tabs mb-4" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="colors-tab" data-bs-toggle="tab" data-bs-target="#colors" type="button" role="tab">
-        <i class="bi bi-palette"></i> Colors
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="fonts-tab" data-bs-toggle="tab" data-bs-target="#fonts" type="button" role="tab">
-        <i class="bi bi-fonts"></i> Fonts
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="branding-tab" data-bs-toggle="tab" data-bs-target="#branding" type="button" role="tab">
-        <i class="bi bi-image"></i> Branding
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="presets-tab" data-bs-toggle="tab" data-bs-target="#presets" type="button" role="tab">
-        <i class="bi bi-boxes"></i> Presets
-      </button>
-    </li>
-  </ul>
-
-  <!-- Tab Content -->
-  <div class="tab-content">
-    <!-- Colors Tab -->
-    <div class="tab-pane fade show active" id="colors" role="tabpanel">
-      {% include "admin/components/card.html" with title="Brand Colors" icon="bi-palette" %}
-        <form method="post" class="row g-4">
-          {% csrf_token %}
-          
-          <div class="col-md-6">
-            <label for="primaryColor" class="form-label">Primary Color</label>
-            <div class="input-group">
-              <input type="color" class="form-control form-control-color" id="primaryColor" name="primary_color" value="{{ theme.primary_color }}" style="width: 80px;">
-              <input type="text" class="form-control" value="{{ theme.primary_color }}" disabled>
+  <div class="row g-4 theme-studio-layout">
+    <div class="col-12 col-xl-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h5 class="mb-1">Theme library</h5>
+              <p class="text-muted mb-0">{{ total }} saved theme{{ total|pluralize }}</p>
             </div>
-            <small class="text-muted">Main brand color (buttons, links, headers)</small>
+            <span class="badge bg-primary">{{ active_theme.name|default:"No active theme" }}</span>
           </div>
 
-          <div class="col-md-6">
-            <label for="secondaryColor" class="form-label">Secondary Color</label>
-            <div class="input-group">
-              <input type="color" class="form-control form-control-color" id="secondaryColor" name="secondary_color" value="{{ theme.secondary_color }}" style="width: 80px;">
-              <input type="text" class="form-control" value="{{ theme.secondary_color }}" disabled>
-            </div>
-            <small class="text-muted">Accent color</small>
+          <div class="row g-3">
+            {% for item in theme_presets %}
+              <div class="col-12">
+                <button type="button" class="theme-preset-card w-100 text-start" onclick="applyPreset('{{ item.id }}')">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="theme-preset-icon"><i class="bi {{ item.icon }}"></i></div>
+                      <div>
+                        <div class="fw-semibold">{{ item.label }}</div>
+                        <small class="text-muted">{{ item.description }}</small>
+                      </div>
+                    </div>
+                    <i class="bi bi-arrow-right text-muted"></i>
+                  </div>
+                </button>
+              </div>
+            {% endfor %}
           </div>
+        </div>
+      </div>
 
-          <div class="col-md-6">
-            <label for="successColor" class="form-label">Success Color</label>
-            <div class="input-group">
-              <input type="color" class="form-control form-control-color" id="successColor" name="success_color" value="{{ theme.success_color }}" style="width: 80px;">
-              <input type="text" class="form-control" value="{{ theme.success_color }}" disabled>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <label for="dangerColor" class="form-label">Danger Color</label>
-            <div class="input-group">
-              <input type="color" class="form-control form-control-color" id="dangerColor" name="danger_color" value="{{ theme.danger_color }}" style="width: 80px;">
-              <input type="text" class="form-control" value="{{ theme.danger_color }}" disabled>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <label for="warningColor" class="form-label">Warning Color</label>
-            <div class="input-group">
-              <input type="color" class="form-control form-control-color" id="warningColor" name="warning_color" value="{{ theme.warning_color }}" style="width: 80px;">
-              <input type="text" class="form-control" value="{{ theme.warning_color }}" disabled>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <label for="infoColor" class="form-label">Info Color</label>
-            <div class="input-group">
-              <input type="color" class="form-control form-control-color" id="infoColor" name="info_color" value="{{ theme.info_color }}" style="width: 80px;">
-              <input type="text" class="form-control" value="{{ theme.info_color }}" disabled>
-            </div>
-          </div>
-
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check"></i> Save Colors
-            </button>
-            <button type="reset" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-counterclockwise"></i> Reset
-            </button>
-          </div>
-        </form>
-      
+      <div class="card shadow-sm">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-layers me-2"></i>Saved themes</span>
+          <span class="badge bg-light text-dark">{{ total }}</span>
+        </div>
+        <div class="list-group list-group-flush">
+          {% for theme in themes %}
+            <a class="list-group-item list-group-item-action {% if selected_theme and theme.id == selected_theme.id %}active{% endif %}" href="{% url 'admin_theme_detail' theme.id %}">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">{{ theme.name }}</div>
+                  <small class="{% if selected_theme and theme.id == selected_theme.id %}text-white-50{% else %}text-muted{% endif %}">
+                    {{ theme.get_theme_type_display }}
+                  </small>
+                </div>
+                <div class="text-end">
+                  {% if theme.is_active %}<span class="badge bg-success">Active</span>{% endif %}
+                  {% if theme.is_public %}<span class="badge bg-info text-dark">Public</span>{% else %}<span class="badge bg-secondary">Draft</span>{% endif %}
+                </div>
+              </div>
+            </a>
+          {% empty %}
+            <div class="list-group-item text-muted">No themes yet. Create the first studio theme below.</div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
 
-    <!-- Fonts Tab -->
-    <div class="tab-pane fade" id="fonts" role="tabpanel">
-      {% include "admin/components/card.html" with title="Font Settings" icon="bi-fonts" %}
-        <form method="post" class="row g-3">
-          {% csrf_token %}
-          
-          <div class="col-md-6">
-            <label for="headingFont" class="form-label">Heading Font</label>
-            <select class="form-select" id="headingFont" name="heading_font">
-              <option value="system" {% if theme.heading_font == "system" %}selected{% endif %}>System Font</option>
-              <option value="georgia" {% if theme.heading_font == "georgia" %}selected{% endif %}>Georgia</option>
-              <option value="playfair" {% if theme.heading_font == "playfair" %}selected{% endif %}>Playfair Display</option>
-              <option value="montserrat" {% if theme.heading_font == "montserrat" %}selected{% endif %}>Montserrat</option>
-            </select>
-          </div>
-
-          <div class="col-md-6">
-            <label for="bodyFont" class="form-label">Body Font</label>
-            <select class="form-select" id="bodyFont" name="body_font">
-              <option value="system" {% if theme.body_font == "system" %}selected{% endif %}>System Font</option>
-              <option value="opensans" {% if theme.body_font == "opensans" %}selected{% endif %}>Open Sans</option>
-              <option value="lato" {% if theme.body_font == "lato" %}selected{% endif %}>Lato</option>
-              <option value="roboto" {% if theme.body_font == "roboto" %}selected{% endif %}>Roboto</option>
-            </select>
-          </div>
-
-          <div class="col-md-6">
-            <label for="baseFontSize" class="form-label">Base Font Size</label>
-            <div class="input-group">
-              <input type="number" class="form-control" id="baseFontSize" name="base_font_size" value="{{ theme.base_font_size }}" min="12" max="20" step="1">
-              <span class="input-group-text">px</span>
+    <div class="col-12 col-xl-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+            <div>
+              <p class="text-uppercase text-muted small mb-1">Wizard</p>
+              <h4 class="mb-1">{{ selected_theme.name|default:"Build a new theme" }}</h4>
+              <p class="text-muted mb-0">Step through identity, presets, overrides, and publish controls.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-primary" onclick="saveTheme(false)">
+                <i class="bi bi-save"></i> Save theme
+              </button>
+              <button type="button" class="btn btn-success" onclick="saveTheme(true)">
+                <i class="bi bi-lightning-charge"></i> Save & activate
+              </button>
             </div>
           </div>
 
-          <div class="col-md-6">
-            <label for="lineHeight" class="form-label">Line Height</label>
-            <input type="number" class="form-control" id="lineHeight" name="line_height" value="{{ theme.line_height }}" min="1.2" max="2" step="0.1">
-          </div>
+          <ul class="nav nav-pills wizard-stepper mb-4">
+            <li class="nav-item"><span class="nav-link active">1. Identity</span></li>
+            <li class="nav-item"><span class="nav-link">2. Presets</span></li>
+            <li class="nav-item"><span class="nav-link">3. Overrides</span></li>
+            <li class="nav-item"><span class="nav-link">4. Publish</span></li>
+          </ul>
 
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check"></i> Save Font Settings
-            </button>
-          </div>
-        </form>
-      
-    </div>
-
-    <!-- Branding Tab -->
-    <div class="tab-pane fade" id="branding" role="tabpanel">
-      {% include "admin/components/card.html" with title="Branding Assets" icon="bi-image" %}
-        <form method="post" enctype="multipart/form-data" class="row g-3">
-          {% csrf_token %}
-          
-          <div class="col-md-6">
-            <label for="logoUpload" class="form-label">Logo</label>
-            <input type="file" class="form-control" id="logoUpload" name="logo" accept="image/*">
-            <small class="text-muted">PNG, JPG, or SVG (max 2MB)</small>
-            {% if theme.logo %}
-              <div class="mt-2">
-                <img src="{{ theme.logo }}" alt="Logo" style="max-width: 150px; height: auto;">
-              </div>
-            {% endif %}
-          </div>
-
-          <div class="col-md-6">
-            <label for="faviconUpload" class="form-label">Favicon</label>
-            <input type="file" class="form-control" id="faviconUpload" name="favicon" accept="image/x-icon,image/png">
-            <small class="text-muted">ICO or PNG (max 100KB)</small>
-          </div>
-
-          <div class="col-12">
-            <label for="siteTagline" class="form-label">Site Tagline</label>
-            <input type="text" class="form-control" id="siteTagline" name="tagline" value="{{ theme.tagline }}" placeholder="Your site tagline here">
-          </div>
-
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check"></i> Save Branding
-            </button>
-          </div>
-        </form>
-      
-    </div>
-
-    <!-- Presets Tab -->
-    <div class="tab-pane fade" id="presets" role="tabpanel">
-      {% include "admin/components/card.html" with title="Theme Presets" icon="bi-boxes" %}
-        <p class="text-muted mb-4">Choose a preset or customize your own:</p>
-        
-        <div class="row g-3">
-          <div class="col-md-4">
-            <div class="card border-2 cursor-pointer" onclick="applyPreset('modern')">
-              <div style="height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-              <div class="card-body">
-                <h6 class="card-title">Modern</h6>
-                <p class="card-text small text-muted">Purple gradient with clean fonts</p>
-                <button class="btn btn-sm btn-outline-primary">Apply</button>
+          <div class="row g-4">
+            <div class="col-12 col-lg-6">
+              <div class="theme-section">
+                <h6 class="mb-3">Identity</h6>
+                <div class="mb-3">
+                  <label class="form-label">Theme name</label>
+                  <input id="themeName" type="text" class="form-control" value="{{ selected_theme.name|default:'' }}" placeholder="White Aurora">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Slug</label>
+                  <input id="themeSlug" type="text" class="form-control" value="{{ selected_theme.slug|default:'' }}" placeholder="white-aurora">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Theme type</label>
+                  <select id="themeType" class="form-select">
+                    <option value="global" {% if selected_theme.theme_type == "global" %}selected{% endif %}>Global site theme</option>
+                    <option value="variant" {% if selected_theme.theme_type == "variant" %}selected{% endif %}>Variant</option>
+                    <option value="page-specific" {% if selected_theme.theme_type == "page-specific" %}selected{% endif %}>Page-specific override</option>
+                    <option value="accessibility" {% if selected_theme.theme_type == "accessibility" %}selected{% endif %}>Accessibility mode</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Description</label>
+                  <textarea id="themeDescription" class="form-control" rows="3" placeholder="Explain what this theme changes.">{{ selected_theme.description|default:'' }}</textarea>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="col-md-4">
-            <div class="card border-2">
-              <div style="height: 60px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
-              <div class="card-body">
-                <h6 class="card-title">Vibrant</h6>
-                <p class="card-text small text-muted">Pink and coral with modern feel</p>
-                <button class="btn btn-sm btn-outline-primary">Apply</button>
+            <div class="col-12 col-lg-6">
+              <div class="theme-section h-100">
+                <h6 class="mb-3">Presets</h6>
+                <div class="row g-3">
+                  {% for item in theme_presets %}
+                    <div class="col-12">
+                      <button type="button" class="theme-preset-card w-100" onclick="applyPreset('{{ item.id }}')">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="theme-preset-icon"><i class="bi {{ item.icon }}"></i></div>
+                            <div class="text-start">
+                              <div class="fw-semibold">{{ item.label }}</div>
+                              <small class="text-muted">{{ item.description }}</small>
+                            </div>
+                          </div>
+                          <span class="badge bg-light text-dark">Apply</span>
+                        </div>
+                      </button>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="alert alert-info mt-3 mb-0">
+                  <i class="bi bi-info-circle me-1"></i> Presets preload token overrides. You can still fine-tune everything below.
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="col-md-4">
-            <div class="card border-2">
-              <div style="height: 60px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
-              <div class="card-body">
-                <h6 class="card-title">Ocean</h6>
-                <p class="card-text small text-muted">Cool blues and cyans</p>
-                <button class="btn btn-sm btn-outline-primary">Apply</button>
+            <div class="col-12">
+              <div class="theme-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Token overrides</h6>
+                  <span class="badge bg-light text-dark">JSON</span>
+                </div>
+                <textarea id="tokenOverrides" class="form-control font-monospace" rows="10" spellcheck="false">{{ selected_theme_overrides_json|escape }}</textarea>
+                <small class="text-muted">Keep keys as token names. The wizard will translate them into theme overrides on save.</small>
               </div>
             </div>
-          </div>
 
-          <div class="col-md-4">
-            <div class="card border-2">
-              <div style="height: 60px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
-              <div class="card-body">
-                <h6 class="card-title">Warm</h6>
-                <p class="card-text small text-muted">Sunset oranges and yellows</p>
-                <button class="btn btn-sm btn-outline-primary">Apply</button>
+            <div class="col-12">
+              <div class="theme-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Custom CSS override</h6>
+                  <span class="badge bg-light text-dark">Optional</span>
+                </div>
+                <textarea id="customCss" class="form-control font-monospace" rows="8" spellcheck="false">{{ selected_theme_custom_css|escape }}</textarea>
               </div>
             </div>
-          </div>
 
-          <div class="col-md-4">
-            <div class="card border-2">
-              <div style="height: 60px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
-              <div class="card-body">
-                <h6 class="card-title">Pastel</h6>
-                <p class="card-text small text-muted">Soft, gentle colors</p>
-                <button class="btn btn-sm btn-outline-primary">Apply</button>
+            <div class="col-12 col-lg-6">
+              <div class="theme-section h-100">
+                <h6 class="mb-3">Availability</h6>
+                <div class="form-check form-switch mb-3">
+                  <input id="isPublic" class="form-check-input" type="checkbox" {% if selected_theme.is_public %}checked{% endif %}>
+                  <label class="form-check-label" for="isPublic">Available to tenants</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                  <input id="isActive" class="form-check-input" type="checkbox" {% if selected_theme.is_active %}checked{% endif %}>
+                  <label class="form-check-label" for="isActive">Set as active theme</label>
+                </div>
+                <div class="form-text">Use these controls to expose or activate the theme without breaking tenant-specific overrides.</div>
               </div>
             </div>
-          </div>
 
-          <div class="col-md-4">
-            <div class="card border-2">
-              <div style="height: 60px; background: linear-gradient(135deg, #434343 0%, #000000 100%);"></div>
-              <div class="card-body">
-                <h6 class="card-title">Dark</h6>
-                <p class="card-text small text-muted">Professional dark theme</p>
-                <button class="btn btn-sm btn-outline-primary">Apply</button>
+            <div class="col-12 col-lg-6">
+              <div class="theme-section h-100">
+                <h6 class="mb-3">Quick actions</h6>
+                <div class="d-grid gap-2">
+                  <a class="btn btn-outline-primary" href="{% url 'admin_themes_list' %}"><i class="bi bi-arrow-counterclockwise"></i> Back to library</a>
+                  {% if selected_theme %}
+                    <form method="post" action="{% url 'admin_theme_activate' selected_theme.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-success w-100"><i class="bi bi-check2-circle"></i> Activate selected theme</button>
+                    </form>
+                    <form method="post" action="{% url 'admin_theme_publish' selected_theme.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-info w-100"><i class="bi bi-upload"></i> Publish selected theme</button>
+                    </form>
+                    <form method="post" action="{% url 'admin_theme_unpublish' selected_theme.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-warning w-100"><i class="bi bi-download"></i> Unpublish selected theme</button>
+                    </form>
+                  {% endif %}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-phone me-2"></i>Live preview</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-secondary active" onclick="setPreviewMode('desktop')">Desktop</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="setPreviewMode('tablet')">Tablet</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="setPreviewMode('mobile')">Mobile</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="previewFrame" class="theme-preview-frame theme-preview-desktop">
+            <style id="themePreviewStyle">{{ preview_css|default:''|safe }}</style>
+            <div class="theme-preview-topbar">
+              <div class="d-flex align-items-center gap-2">
+                <span class="theme-dot bg-danger"></span>
+                <span class="theme-dot bg-warning"></span>
+                <span class="theme-dot bg-success"></span>
+              </div>
+              <div class="theme-preview-title">{{ selected_theme.name|default:active_theme.name|default:"Theme preview" }}</div>
+              <span class="badge bg-light text-dark">{{ selected_theme.get_theme_type_display|default:active_theme.get_theme_type_display|default:"Preview" }}</span>
+            </div>
+
+            <div class="theme-preview-body">
+              <aside class="theme-preview-sidebar">
+                <div class="fw-semibold mb-3">Navigation</div>
+                <div class="theme-preview-chip active">Dashboard</div>
+                <div class="theme-preview-chip">Users</div>
+                <div class="theme-preview-chip">Shops</div>
+                <div class="theme-preview-chip">Themes</div>
+              </aside>
+
+              <section class="theme-preview-main">
+                <div class="row g-3 mb-3">
+                  <div class="col-md-4"><div class="theme-preview-card"><small>Users</small><h3>{{ total|default:0 }}</h3></div></div>
+                  <div class="col-md-4"><div class="theme-preview-card"><small>Active</small><h3>{{ active_theme.name|default:"White" }}</h3></div></div>
+                  <div class="col-md-4"><div class="theme-preview-card"><small>Mode</small><h3 id="previewModeLabel">Desktop</h3></div></div>
+                </div>
+
+                <div class="theme-preview-card mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Theme tokens</strong>
+                    <span class="badge bg-primary">{{ merged_tokens|length }}</span>
+                  </div>
+                  <div class="theme-token-grid">
+                    {% for key, value in merged_tokens.items %}
+                      <div class="theme-token-item">
+                        <code>{{ key }}</code>
+                        <span>{{ value }}</span>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <div class="theme-preview-card">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Mobile-first surfaces</strong>
+                    <span class="badge bg-success">Responsive</span>
+                  </div>
+                  <p class="mb-0 text-muted">Cards, tables, filters, and menus should collapse into a unified stack on smaller screens instead of splitting into separate mobile markup.</p>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+{{ theme_payload|json_script:"theme-payload" }}
+{{ preset_overrides|json_script:"preset-overrides" }}
+
 <script>
-function applyPreset(presetName) {
-  if (confirm(`Apply "${presetName}" theme preset?`)) {
-    console.log('Applying preset:', presetName);
-    // Submit form to apply preset
+  const themePayload = JSON.parse(document.getElementById('theme-payload').textContent || '{}');
+  const presetOverrides = JSON.parse(document.getElementById('preset-overrides').textContent || '{}');
+  const themeId = {% if selected_theme %}{{ selected_theme.id }}{% else %}null{% endif %};
+  const updateUrl = {% if selected_theme %}"{% url 'admin_theme_update' selected_theme.id %}"{% else %}null{% endif %};
+  const createUrl = "{% url 'admin_theme_create' %}";
+
+  function getCsrfToken() {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
   }
-}
+
+  function applyPreset(presetId) {
+    const overrides = presetOverrides[presetId] || {};
+    document.getElementById('tokenOverrides').value = JSON.stringify(overrides, null, 2);
+    document.getElementById('themeDescription').value = `Preset applied: ${presetId}`;
+  }
+
+  function setPreviewMode(mode) {
+    const frame = document.getElementById('previewFrame');
+    frame.classList.remove('theme-preview-desktop', 'theme-preview-tablet', 'theme-preview-mobile');
+    frame.classList.add(`theme-preview-${mode}`);
+    document.getElementById('previewModeLabel').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+  }
+
+  async function saveTheme(activate) {
+    const payload = {
+      name: document.getElementById('themeName').value.trim(),
+      slug: document.getElementById('themeSlug').value.trim(),
+      description: document.getElementById('themeDescription').value,
+      theme_type: document.getElementById('themeType').value,
+      token_overrides: JSON.parse(document.getElementById('tokenOverrides').value || '{}'),
+      custom_css: document.getElementById('customCss').value,
+      is_public: document.getElementById('isPublic').checked,
+      is_active: activate || document.getElementById('isActive').checked,
+      preset: Object.keys(presetOverrides).find((key) => {
+        return JSON.stringify(presetOverrides[key]) === JSON.stringify(JSON.parse(document.getElementById('tokenOverrides').value || '{}'));
+      }) || ''
+    };
+
+    const url = themeId ? updateUrl : createUrl;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      alert(data.error || 'Theme save failed');
+      return;
+    }
+
+    window.location.href = data.url || window.location.href;
+  }
 </script>
 {% endblock %}

@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
+from django.utils.text import slugify
 from datetime import timedelta
 import json
 
@@ -75,6 +76,165 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+THEME_PRESETS = {
+    'white': {
+        'blue-950': '#ffffff',
+        'blue-900': '#f8fafc',
+        'blue-800': '#eef2ff',
+        'blue-500': '#2563eb',
+        'blue-400': '#3b82f6',
+        'gold-400': '#d97706',
+        'surface-0': '#ffffff',
+        'surface-1': '#f8fafc',
+        'surface-2': '#eef2f7',
+        'text-1': '#0f172a',
+        'text-2': '#475569',
+        'text-3': '#94a3b8',
+        'glass-blur': 'blur(14px)',
+    },
+    'dark': {
+        'blue-950': '#020617',
+        'blue-900': '#0f172a',
+        'blue-800': '#111827',
+        'blue-500': '#1d4ed8',
+        'blue-400': '#60a5fa',
+        'gold-400': '#f59e0b',
+        'surface-0': '#020617',
+        'surface-1': '#0f172a',
+        'surface-2': '#111827',
+        'text-1': '#f8fafc',
+        'text-2': '#cbd5e1',
+        'text-3': '#94a3b8',
+        'glass-blur': 'blur(18px)',
+    },
+    'midnight': {
+        'blue-950': '#01040d',
+        'blue-900': '#07111f',
+        'blue-800': '#0b1d33',
+        'blue-500': '#3b82f6',
+        'blue-400': '#60a5fa',
+        'gold-400': '#eab308',
+        'surface-0': '#01040d',
+        'surface-1': '#07111f',
+        'surface-2': '#0b1d33',
+        'text-1': '#f8fafc',
+        'text-2': '#cbd5e1',
+        'text-3': '#64748b',
+    },
+}
+
+
+def _build_theme_payload(theme):
+    """Serialize a theme for JSON responses and preview panels."""
+    if theme is None:
+        return {}
+
+    return {
+        'id': theme.id,
+        'name': theme.name,
+        'slug': theme.slug,
+        'description': theme.description,
+        'theme_type': theme.theme_type,
+        'is_active': theme.is_active,
+        'is_public': theme.is_public,
+        'token_overrides': dict(theme.token_overrides) if theme.token_overrides else {},
+        'custom_css': theme.custom_css or '',
+        'preview_css': theme.generate_css(),
+        'preview_tokens': theme.get_merged_tokens(),
+    }
+
+
+def _coerce_token_overrides(value):
+    """Normalize token overrides from JSON payloads."""
+    if not value:
+        return {}
+    if isinstance(value, dict):
+        return value
+    raise ValueError('token_overrides must be an object')
+
+
+def _resolve_slug(name, slug_value=None, exclude_id=None):
+    """Generate a unique slug for a theme."""
+    base_slug = slugify(slug_value or name)
+    if not base_slug:
+        raise ValueError('A valid slug or name is required')
+
+    slug = base_slug
+    suffix = 2
+    queryset = Theme.objects.all()
+    if exclude_id is not None:
+        queryset = queryset.exclude(id=exclude_id)
+
+    while queryset.filter(slug=slug).exists():
+        slug = f'{base_slug}-{suffix}'
+        suffix += 1
+    return slug
+
+
+def _theme_studio_context(request, selected_theme=None):
+    """Build the theme studio context used by list and detail views."""
+    themes = Theme.objects.select_related('created_by').order_by('-is_active', '-created_at')
+    active_theme = Theme.objects.filter(is_active=True).first()
+    tokens = ThemeToken.objects.all().order_by('category', 'name')
+
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'active':
+        themes = themes.filter(is_active=True)
+    elif status_filter == 'public':
+        themes = themes.filter(is_public=True)
+    elif status_filter == 'draft':
+        themes = themes.filter(is_public=False)
+
+    search = request.GET.get('search', '').strip()
+    if search:
+        themes = themes.filter(name__icontains=search)
+
+    page = int(request.GET.get('page', 1))
+    per_page = 50
+    total = themes.count()
+    start = (page - 1) * per_page
+    end = start + per_page
+    themes_page = themes[start:end]
+    total_pages = (total + per_page - 1) // per_page
+
+    if selected_theme is None:
+        selected_theme = themes_page[0] if themes_page else active_theme
+
+    preview_theme = selected_theme or active_theme
+
+    context = {
+        'breadcrumbs': [
+            {'label': 'Theme Studio'},
+        ] if selected_theme is None else [
+            {'label': 'Theme Studio', 'url': '/admin/themes/'},
+            {'label': selected_theme.name or 'Theme Details'},
+        ],
+        'themes': themes_page,
+        'total': total,
+        'page': page,
+        'total_pages': total_pages,
+        'search': search,
+        'status': status_filter,
+        'active_theme': active_theme,
+        'tokens': tokens,
+        'selected_theme': selected_theme,
+        'theme_payload': _build_theme_payload(preview_theme),
+        'merged_tokens': preview_theme.get_merged_tokens() if preview_theme else {},
+        'preview_css': preview_theme.generate_css() if preview_theme else '',
+        'selected_theme_overrides_json': json.dumps(selected_theme.token_overrides if selected_theme and selected_theme.token_overrides else {}, indent=2),
+        'selected_theme_custom_css': selected_theme.custom_css if selected_theme else '',
+        'theme_presets': [
+            {'id': 'white', 'label': 'White', 'description': 'Bright, clean layout', 'icon': 'bi-sun'},
+            {'id': 'dark', 'label': 'Dark', 'description': 'Low-light modern mode', 'icon': 'bi-moon-stars'},
+            {'id': 'midnight', 'label': 'Midnight', 'description': 'High-contrast premium look', 'icon': 'bi-stars'},
+        ],
+        'available_theme_modes': ['white', 'dark', 'midnight'],
+        'preset_overrides': THEME_PRESETS,
+        'can_create': request.user.is_superuser or request.user.has_perm('app.add_theme'),
+    }
+    return context
 
 
 # ============================================================
@@ -1624,68 +1784,23 @@ def admin_tenant_delete_domain(request, tenant_id, domain_id):
 @permission_required(AdminPermission.MANAGE_THEMES)
 def admin_themes_list(request):
     """
-    Admin page: List all themes with preview and status.
-    Shows theme name, colors, creator, active status, published date.
+    Admin page: Theme studio landing page.
+    Shows theme cards, live previews, and the wizard entry point.
     """
-    themes = Theme.objects.select_related('created_by').order_by('-is_active', '-created_at')
-    
-    # Filter by status
-    status_filter = request.GET.get('status', '')
-    if status_filter == 'active':
-        themes = themes.filter(is_active=True)
-    elif status_filter == 'public':
-        themes = themes.filter(is_public=True)
-    elif status_filter == 'draft':
-        themes = themes.filter(is_public=False)
-    
-    # Search by name
-    search = request.GET.get('search', '').strip()
-    if search:
-        themes = themes.filter(name__icontains=search)
-    
-    # Pagination
-    page = int(request.GET.get('page', 1))
-    per_page = 50
-    total = themes.count()
-    start = (page - 1) * per_page
-    end = start + per_page
-    
-    themes_page = themes[start:end]
-    total_pages = (total + per_page - 1) // per_page
-    
-    context = {
-        'themes': themes_page,
-        'total': total,
-        'page': page,
-        'total_pages': total_pages,
-        'search': search,
-        'status': status_filter,
-    }
-    
-    return render(request, 'admin/themes_list.html', context)
+    context = _theme_studio_context(request)
+    return render(request, 'admin/theme_management.html', context)
 
 
 @login_required
 @permission_required(AdminPermission.MANAGE_THEMES)
 def admin_theme_detail(request, theme_id):
     """
-    Admin page: View and edit theme configuration.
-    Shows theme tokens, custom CSS, and preview.
+    Theme editor view for an individual theme.
     """
     theme = get_object_or_404(Theme, id=theme_id)
-    tokens = ThemeToken.objects.all().order_by('category', 'name')
-    
-    # Get merged tokens for this theme
-    merged_tokens = theme.get_merged_tokens()
-    
-    context = {
-        'theme': theme,
-        'tokens': tokens,
-        'merged_tokens': merged_tokens,
-        'can_edit': request.user.is_superuser or theme.created_by == request.user,
-    }
-    
-    return render(request, 'admin/theme_detail.html', context)
+    context = _theme_studio_context(request, selected_theme=theme)
+    context['can_edit'] = request.user.is_superuser or theme.created_by == request.user
+    return render(request, 'admin/theme_management.html', context)
 
 
 @login_required
@@ -1699,21 +1814,33 @@ def admin_theme_create(request):
         data = json.loads(request.body)
         name = data.get('name', '').strip()
         description = data.get('description', '')
+        theme_type = data.get('theme_type', 'global')
+        token_overrides = _coerce_token_overrides(data.get('token_overrides'))
+        custom_css = data.get('custom_css', '')
+        is_public = bool(data.get('is_public', False))
+        is_active = bool(data.get('is_active', False))
+        slug_value = data.get('slug', '')
+        preset = data.get('preset', '')
         
         if not name:
             return JsonResponse({'error': 'Theme name is required'}, status=400)
-        
-        # Check if name already exists
+
         if Theme.objects.filter(name=name).exists():
             return JsonResponse({'error': 'Theme with this name already exists'}, status=400)
         
-        # Create theme
+        if preset in THEME_PRESETS and not token_overrides:
+            token_overrides = THEME_PRESETS[preset]
+
         theme = Theme.objects.create(
             name=name,
+            slug=_resolve_slug(name, slug_value),
             description=description,
+            theme_type=theme_type,
+            token_overrides=token_overrides,
+            custom_css=custom_css,
             created_by=request.user,
-            is_active=False,
-            is_public=False,
+            is_active=is_active,
+            is_public=is_public,
         )
         
         # Log audit action
@@ -1735,11 +1862,8 @@ def admin_theme_create(request):
         return JsonResponse({
             'success': True,
             'message': f'Theme {name} created',
-            'theme': {
-                'id': theme.id,
-                'name': theme.name,
-                'url': f'/admin/theme/{theme.id}/',
-            }
+            'theme': _build_theme_payload(theme),
+            'url': f'/admin/theme/{theme.id}/',
         })
     
     except Exception as e:
@@ -1761,23 +1885,34 @@ def admin_theme_update(request, theme_id):
     
     try:
         data = json.loads(request.body)
+        preset = data.get('preset', '')
         
         old_values = {
             'name': theme.name,
             'description': theme.description,
             'token_overrides': dict(theme.token_overrides) if theme.token_overrides else {},
             'custom_css_length': len(theme.custom_css or ''),
+            'theme_type': theme.theme_type,
+            'slug': theme.slug,
+            'is_public': theme.is_public,
+            'is_active': theme.is_active,
         }
         
         # Update basic fields
         if 'name' in data:
             theme.name = data['name']
+        if 'slug' in data:
+            theme.slug = _resolve_slug(theme.name, data['slug'], exclude_id=theme.id)
         if 'description' in data:
             theme.description = data['description']
+        if 'theme_type' in data:
+            theme.theme_type = data['theme_type']
         
         # Update token overrides
         if 'token_overrides' in data:
-            theme.token_overrides = data['token_overrides']
+            theme.token_overrides = _coerce_token_overrides(data['token_overrides'])
+        elif preset in THEME_PRESETS:
+            theme.token_overrides = THEME_PRESETS[preset]
         
         # Update custom CSS
         if 'custom_css' in data:
@@ -1787,6 +1922,8 @@ def admin_theme_update(request, theme_id):
         if 'is_public' in data:
             old_public = theme.is_public
             theme.is_public = data['is_public']
+        if 'is_active' in data:
+            theme.is_active = data['is_active']
         
         theme.save()
         
@@ -1795,6 +1932,10 @@ def admin_theme_update(request, theme_id):
             'description': theme.description,
             'token_overrides': dict(theme.token_overrides) if theme.token_overrides else {},
             'custom_css_length': len(theme.custom_css or ''),
+            'theme_type': theme.theme_type,
+            'slug': theme.slug,
+            'is_public': theme.is_public,
+            'is_active': theme.is_active,
         }
         
         # Log audit action
@@ -1820,12 +1961,8 @@ def admin_theme_update(request, theme_id):
         return JsonResponse({
             'success': True,
             'message': 'Theme updated',
-            'theme': {
-                'id': theme.id,
-                'name': theme.name,
-                'is_public': theme.is_public,
-                'is_active': theme.is_active,
-            }
+            'theme': _build_theme_payload(theme),
+            'url': f'/admin/theme/{theme.id}/',
         })
     
     except Exception as e:
