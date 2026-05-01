@@ -198,6 +198,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'public', 'static')  # Directory for collec
 MEDIA_URL = '/media/'  # URL prefix for media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'public', 'media')  # Directory where media files are stored
 
+# Cache configuration for incomplete shops (72-hour TTL)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+        'TIMEOUT': 259200,  # 72 hours in seconds
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000
+        }
+    }
+}
+
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/javascript", ".js", True)  # Fix MIME type issues

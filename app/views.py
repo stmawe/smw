@@ -152,19 +152,25 @@ def locations_view(request):
     return render(request, 'locations.html')
 
 def create_shop_view(request):
-    """Shop creation wizard with multi-step form"""
+    """Shop creation wizard with multi-step form and incomplete shop caching"""
     # Check if user is authenticated
     if not request.user.is_authenticated:
-        messages.info(request, 'Please log in to create a shop.')
+        messages.info(request, 'Please log in or create an account to create a shop. You can save your progress for up to 72 hours.')
         return redirect('login')
     
-    # Check if user already has 2 shops (max limit)
     from mydak.models import Shop
+    from app.shop_cache import get_incomplete_shop, cache_incomplete_shop, get_shop_progress
+    
+    # Check if user already has 2 shops (max limit)
     shop_count = Shop.objects.filter(owner=request.user, is_active=False).count() + \
                  Shop.objects.filter(owner=request.user, is_active=True).count()
     if shop_count >= 2:
         messages.error(request, 'You have reached the maximum number of shops (2). Delete an existing shop to create a new one.')
         return redirect('explore')
+    
+    # Try to load incomplete shop data if user has one cached
+    incomplete_shop = get_incomplete_shop(request.user.id)
+    shop_progress = get_shop_progress(request.user.id)
     
     if request.method == 'POST':
         # Get form data from POST
@@ -175,36 +181,37 @@ def create_shop_view(request):
         terms_agreed = request.POST.get('terms')
         
         # Validation
+        errors = []
         if not shop_name:
-            messages.error(request, 'Shop name is required.')
-            return render(request, 'create_shop.html', {
-                'remaining_shops': 2 - shop_count,
-                'shop_count': shop_count,
-                'form_data': request.POST
-            })
+            errors.append('Shop name is required.')
         
         if not category:
-            messages.error(request, 'Please select a category.')
-            return render(request, 'create_shop.html', {
-                'remaining_shops': 2 - shop_count,
-                'shop_count': shop_count,
-                'form_data': request.POST
-            })
+            errors.append('Please select a category.')
         
         if not location:
-            messages.error(request, 'Please select a location.')
-            return render(request, 'create_shop.html', {
-                'remaining_shops': 2 - shop_count,
-                'shop_count': shop_count,
-                'form_data': request.POST
-            })
+            errors.append('Please select a location.')
         
         if not terms_agreed:
-            messages.error(request, 'You must agree to the terms and conditions.')
+            errors.append('You must agree to the terms and conditions.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            
+            # Cache incomplete data for recovery
+            incomplete_data = {
+                'shop_name': shop_name,
+                'description': description,
+                'category': category,
+                'location': location,
+            }
+            cache_incomplete_shop(request.user.id, incomplete_data)
+            
             return render(request, 'create_shop.html', {
                 'remaining_shops': 2 - shop_count,
                 'shop_count': shop_count,
-                'form_data': request.POST
+                'form_data': request.POST,
+                'incomplete_shop': incomplete_data
             })
         
         # Create the shop
@@ -221,19 +228,36 @@ def create_shop_view(request):
             
             shop.save()
             
+            # Clear cached incomplete shop
+            from app.shop_cache import clear_incomplete_shop
+            clear_incomplete_shop(request.user.id)
+            
             messages.success(request, f'🎉 Shop "{shop_name}" created successfully! Start adding items to your shop.')
             return redirect('explore')
         except Exception as e:
             messages.error(request, f'Error creating shop: {str(e)}')
+            
+            # Re-cache the incomplete data
+            incomplete_data = {
+                'shop_name': shop_name,
+                'description': description,
+                'category': category,
+                'location': location,
+            }
+            cache_incomplete_shop(request.user.id, incomplete_data)
+            
             return render(request, 'create_shop.html', {
                 'remaining_shops': 2 - shop_count,
                 'shop_count': shop_count,
-                'form_data': request.POST
+                'form_data': request.POST,
+                'incomplete_shop': incomplete_data
             })
     
     context = {
         'remaining_shops': 2 - shop_count,
-        'shop_count': shop_count
+        'shop_count': shop_count,
+        'incomplete_shop': incomplete_shop,
+        'shop_progress': shop_progress,
     }
     return render(request, 'create_shop.html', context)
 

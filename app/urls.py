@@ -18,6 +18,13 @@ from .views import (
     create_shop_view
 )
 
+# Import shop endpoints
+from .shop_endpoints import (
+    shop_url_api,
+    shop_sharing_page,
+    validate_shop_slug_api
+)
+
 urlpatterns = [
     path('', views.refs, name='index'),
     path('search/', views.search, name='search'),
@@ -46,6 +53,11 @@ urlpatterns = [
     # --- BLOG URLS ---
     path('blog/', BlogListView.as_view(), name='blog'),
     path('blog/<slug:slug>/', BlogDetailView.as_view(), name='blog_detail'),
+    
+    # --- SHOP URL & SHARING ENDPOINTS ---
+    path('api/shop/<int:shop_id>/url/', shop_url_api, name='shop_url_api'),
+    path('shop/<int:shop_id>/share/', shop_sharing_page, name='shop_sharing'),
+    path('api/validate-slug/', validate_shop_slug_api, name='validate_slug_api'),
 ]
 
 if settings.DEBUG:
