@@ -8,11 +8,25 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
+from django.urls import reverse
 from .models import User
 from mydak.models import Shop
 
 
-@login_required(login_url='login')
+def admin_login_required(function):
+    """
+    Custom login required decorator for admin subdomain.
+    Redirects to main domain login if not authenticated.
+    """
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return function(request, *args, **kwargs)
+        # Redirect to main domain login
+        return redirect(f'https://smw.pgwiz.cloud/login/?next={request.path}')
+    return wrapper
+
+
+@admin_login_required
 def admin_dashboard_view(request, username=None):
     """
     Admin dashboard main page.
@@ -53,7 +67,7 @@ def admin_dashboard_view(request, username=None):
     return render(request, 'admin/dashboard.html', context)
 
 
-@login_required(login_url='login')
+@admin_login_required
 def admin_shops_view(request, username=None):
     """
     Admin shops management page.
@@ -78,7 +92,7 @@ def admin_shops_view(request, username=None):
     return render(request, 'admin/shops.html', context)
 
 
-@login_required(login_url='login')
+@admin_login_required
 def admin_shop_detail_view(request, username=None, shop_id=None):
     """
     Admin shop detail page.

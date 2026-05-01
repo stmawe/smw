@@ -221,6 +221,11 @@ CACHES = {
     }
 }
 
+# SSL Certificate Configuration (Cloudflare DNS validation)
+CF_API_TOKEN = os.environ.get('CF_API_TOKEN', '')
+PRIMARY_DOMAIN = os.environ.get('PRIMARY_DOMAIN', 'smw.pgwiz.cloud')
+LETSENCRYPT_PATH = '/etc/letsencrypt/live'
+
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/javascript", ".js", True)  # Fix MIME type issues

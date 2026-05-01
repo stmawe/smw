@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console - Domains & SSL{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-globe"></i> Admin Console - Domains & SSL Management
+            </h1>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Shops</h5>
+                    <h2 class="text-primary">{{ total_shops }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">SSL Configured</h5>
+                    <h2 class="text-success">{{ ssl_configured }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Needs SSL</h5>
+                    <h2 class="text-warning">{{ total_shops|add:ssl_configured|stringformat:"d" }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Domains Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Shops & Domains</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if shops %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Shop Name</th>
+                                        <th>Domain</th>
+                                        <th>Owner</th>
+                                        <th>SSL Status</th>
+                                        <th>Expires</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in shops %}
+                                    <tr class="shop-row" data-shop-id="{{ item.shop.id }}">
+                                        <td>
+                                            <strong>{{ item.shop.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <code>{{ item.domain }}</code>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'admin_dashboard_user' item.shop.owner.username %}">
+                                                {{ item.shop.owner.get_full_name|default:item.shop.owner.username }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if item.ssl_status.has_ssl %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-lock"></i> Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-exclamation-triangle"></i> Missing
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.ssl_status.expires %}
+                                                <small class="text-muted">{{ item.ssl_status.expires }}</small>
+                                            {% else %}
+                                                <small class="text-muted">-</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.needs_ssl %}
+                                                <button class="btn btn-sm btn-primary btn-add-ssl" 
+                                                        data-shop-id="{{ item.shop.id }}"
+                                                        data-domain="{{ item.domain }}">
+                                                    <i class="fas fa-plus"></i> Add SSL
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-secondary btn-refresh-status"
+                                                        data-shop-id="{{ item.shop.id }}">
+                                                    <i class="fas fa-sync-alt"></i> Check Status
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info m-3">
+                            No shops found. Create a shop first to manage its SSL certificate.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">SSL Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="statusContent">
+                <p class="text-muted">Loading...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.shop-row {
+    transition: all 0.3s ease;
+}
+
+.shop-row:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-add-ssl:hover {
+    animation: pulse 0.6s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add SSL button
+    document.querySelectorAll('.btn-add-ssl').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const shopId = this.dataset.shopId;
+            const domain = this.dataset.domain;
+            
+            if (confirm(`Add SSL certificate for ${domain}?`)) {
+                addSSL(shopId, domain, this);
+            }
+        });
+    });
+    
+    // Check status button
+    document.querySelectorAll('.btn-refresh-status').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const shopId = this.dataset.shopId;
+            checkSSLStatus(shopId);
+        });
+    });
+    
+    function addSSL(shopId, domain, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        
+        fetch(`/console/domains/${shopId}/ssl/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✓ SSL certificate generated for ${domain}`);
+                location.reload();
+            } else {
+                alert(`✗ Failed: ${data.message}`);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Add SSL';
+            }
+        })
+        .catch(error => {
+            alert(`Error: ${error}`);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> Add SSL';
+        });
+    }
+    
+    function checkSSLStatus(shopId) {
+        fetch(`/console/domains/${shopId}/status/`)
+        .then(response => response.json())
+        .then(data => {
+            const content = `
+                <p><strong>Domain:</strong> ${data.domain}</p>
+                <p><strong>Status:</strong> ${data.has_ssl ? '✓ Active' : '✗ Not configured'}</p>
+                ${data.expires ? `<p><strong>Expires:</strong> ${data.expires}</p>` : ''}
+                ${data.issued ? `<p><strong>Issued:</strong> ${data.issued}</p>` : ''}
+            `;
+            document.getElementById('statusContent').innerHTML = content;
+            new bootstrap.Modal(document.getElementById('statusModal')).show();
+        })
+        .catch(error => {
+            alert(`Error: ${error}`);
+        });
+    }
+});
+</script>
+
+{% endblock %}

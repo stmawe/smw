@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from app.admin_urls import admin_subdomain_patterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,8 +25,7 @@ urlpatterns = [
     path('themes/', include('apps.themes.urls')),
     path('shops/', include('mydak.urls')),
     path('dashboard/', include('app.admin_urls')),
-    # Include admin subdomain patterns at root (middleware will route appropriately)
-    path('', include(admin_subdomain_patterns)),
+    path('console/', include('app.admin_urls')),
     path('', include('app.urls'))
 ]
 

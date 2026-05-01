@@ -35,6 +35,27 @@ class Shop(TimeStampedModel):
     description = models.TextField(blank=True, help_text='Shop description')
     logo = models.ImageField(upload_to='shop_logos/', null=True, blank=True)
     is_active = models.BooleanField(default=False, db_index=True)
+    
+    # SSL Certificate Fields
+    has_ssl = models.BooleanField(default=False, help_text='Whether SSL certificate is active')
+    ssl_subdomain = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='Subdomain with SSL certificate (e.g., shop-name.smw.pgwiz.cloud)'
+    )
+    ssl_cert_path = models.CharField(
+        max_length=512,
+        null=True,
+        blank=True,
+        help_text='Path to SSL certificate on server'
+    )
+    ssl_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='SSL certificate expiration date'
+    )
 
     class Meta:
         ordering = ['-created_at']

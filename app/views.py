@@ -228,11 +228,20 @@ def create_shop_view(request):
             
             shop.save()
             
+            # Generate SSL certificate for shop subdomain
+            from app.admin_console_views import _generate_ssl_for_domain
+            shop_domain = f'{shop.slug}.smw.pgwiz.cloud'
+            _generate_ssl_for_domain(shop_domain)
+            
+            # Also generate via async task for Django operations
+            from app.ssl_tasks import generate_ssl_async
+            generate_ssl_async(shop_name, shop_id=shop.id)
+            
             # Clear cached incomplete shop
             from app.shop_cache import clear_incomplete_shop
             clear_incomplete_shop(request.user.id)
             
-            messages.success(request, f'🎉 Shop "{shop_name}" created successfully! Start adding items to your shop.')
+            messages.success(request, f'🎉 Shop "{shop_name}" created successfully! SSL certificate is being generated. Start adding items to your shop.')
             return redirect('explore')
         except Exception as e:
             messages.error(request, f'Error creating shop: {str(e)}')

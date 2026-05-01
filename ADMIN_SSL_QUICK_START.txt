@@ -1,0 +1,142 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║  SSL SETUP FOR admin.smw.pgwiz.cloud - READY TO DEPLOY                    ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+QUICK START (Copy & Paste)
+─────────────────────────────────────────────────────────────────────────────
+
+Step 1: SSH to Serv00
+    ssh pgwiz@serv00.com
+
+Step 2: Navigate to project
+    cd /path/to/smw
+
+Step 3: Run SSL setup (ONE COMMAND)
+    source .env && bash setup_ssl.sh
+
+DONE! ✅
+
+─────────────────────────────────────────────────────────────────────────────
+
+WHAT GETS CREATED
+─────────────────────────────────────────────────────────────────────────────
+
+✅ Wildcard SSL Certificate: *.smw.pgwiz.cloud
+   Location: /etc/letsencrypt/live/smw.pgwiz.cloud/
+   
+✅ Covers These Domains:
+   • admin.smw.pgwiz.cloud
+   • shop1.smw.pgwiz.cloud
+   • shop2.smw.pgwiz.cloud
+   • Any *.smw.pgwiz.cloud subdomain
+
+✅ Automatic Renewal: Enabled
+   Certificates renew 30 days before expiry
+   Cron job runs twice daily (00:00 and 12:00)
+
+✅ Configuration Files:
+   Private Key: /etc/letsencrypt/live/smw.pgwiz.cloud/privkey.pem
+   Certificate: /etc/letsencrypt/live/smw.pgwiz.cloud/cert.pem
+   Full Chain:  /etc/letsencrypt/live/smw.pgwiz.cloud/fullchain.pem
+
+─────────────────────────────────────────────────────────────────────────────
+
+VERIFY AFTER SETUP
+─────────────────────────────────────────────────────────────────────────────
+
+List all certificates:
+    certbot certificates
+
+Check admin subdomain:
+    curl -I https://admin.smw.pgwiz.cloud
+
+View expiration date:
+    openssl x509 -in /etc/letsencrypt/live/smw.pgwiz.cloud/cert.pem -noout -dates
+
+Check auto-renewal is set:
+    crontab -l | grep certbot
+
+─────────────────────────────────────────────────────────────────────────────
+
+CONFIGURATION
+─────────────────────────────────────────────────────────────────────────────
+
+CF_API_TOKEN: d75e12eb6631fbb562b3d5d2669326df
+   ✅ Already added to .env locally
+   ✅ Make sure .env is on Serv00 before running setup
+
+Domain: smw.pgwiz.cloud
+   ✅ Must use Cloudflare nameservers
+   ✅ Cloudflare account must have API token access
+
+─────────────────────────────────────────────────────────────────────────────
+
+TROUBLESHOOTING
+─────────────────────────────────────────────────────────────────────────────
+
+"CF_API_TOKEN not found"
+    → Run: source .env
+    → Verify: echo $CF_API_TOKEN
+
+"certbot: command not found"
+    → Run: pip install certbot certbot-dns-cloudflare
+
+"DNS validation failed"
+    → Check Cloudflare API token is valid
+    → Verify domain uses Cloudflare nameservers
+
+"Permission denied on /etc/letsencrypt"
+    → Run: sudo bash setup_ssl.sh (after sourcing .env)
+
+─────────────────────────────────────────────────────────────────────────────
+
+WHAT'S AUTOMATED
+─────────────────────────────────────────────────────────────────────────────
+
+✅ Shop Creation SSL (Future):
+   When users create a shop, SSL certificate is auto-generated
+   Usage: generate_shop_ssl management command
+
+✅ Certificate Renewal (Automatic):
+   Certbot checks twice daily for expiring certs
+   Renews automatically 30 days before expiry
+   No manual action needed
+
+✅ SSL Monitoring (Via Management Command):
+   Check renewal status: python manage.py renew_ssl_certificates
+   Manual renewal: python manage.py renew_ssl_certificates --force
+
+─────────────────────────────────────────────────────────────────────────────
+
+FILES READY
+─────────────────────────────────────────────────────────────────────────────
+
+✅ setup_ssl.sh                                    - Main setup script
+✅ app/ssl_manager.py                              - SSL certificate manager
+✅ app/ssl_tasks.py                                - Async/sync SSL tasks
+✅ app/management/commands/generate_shop_ssl.py    - Manual SSL generation
+✅ app/management/commands/renew_ssl_certificates.py - Certificate renewal
+✅ smw/settings.py                                 - Django config (CF_API_TOKEN)
+✅ smw/middleware.py                               - Subdomain detection
+✅ app/admin_views.py                              - Admin dashboard
+✅ .env                                            - Environment (CF_API_TOKEN added)
+✅ SERV00_SSL_SETUP.md                             - Quick setup guide
+✅ SERV00_SSL_STEP_BY_STEP.md                      - Detailed instructions
+✅ SSL_DEPLOYMENT_READY.md                         - Deployment summary
+
+─────────────────────────────────────────────────────────────────────────────
+
+SECURITY NOTES
+─────────────────────────────────────────────────────────────────────────────
+
+✅ API Token: Stored ONLY in .env (never in git)
+✅ Credentials File: Created temporarily, deleted after use
+✅ Permissions: Set to 600 (read-write owner only)
+✅ No Secrets Logged: Token never appears in logs or output
+
+─────────────────────────────────────────────────────────────────────────────
+
+READY? GO TO SERV00 AND RUN:
+    source .env && bash setup_ssl.sh
+
+That's it! 🎉

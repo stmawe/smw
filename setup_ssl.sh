@@ -56,7 +56,16 @@ echo -e "${GREEN}✓ Cloudflare API token loaded from .env${NC}"
 # Step 1: Install certbot and cloudflare plugin
 echo ""
 echo -e "${YELLOW}Step 1: Installing Certbot and Cloudflare plugin...${NC}"
-pip install --quiet certbot certbot-dns-cloudflare
+
+# Try venv first (for shared hosting), then global pip
+if [ -f "venv/bin/pip" ]; then
+    venv/bin/pip install --quiet certbot certbot-dns-cloudflare
+    CERTBOT_CMD="venv/bin/certbot"
+else
+    pip install --quiet certbot certbot-dns-cloudflare
+    CERTBOT_CMD="certbot"
+fi
+
 echo -e "${GREEN}✓ Installation complete${NC}"
 
 # Step 2: Create secrets directory and credentials file
@@ -80,7 +89,7 @@ echo -e "${YELLOW}Step 3: Issuing wildcard SSL certificate...${NC}"
 echo "This may take a minute while Cloudflare validates DNS..."
 echo ""
 
-certbot certonly \
+$CERTBOT_CMD certonly \
   --non-interactive \
   --agree-tos \
   --register-unsafely-without-email \
@@ -126,8 +135,14 @@ fi
 echo ""
 echo -e "${YELLOW}Step 5: Setting up auto-renewal...${NC}"
 
-# Add renewal cron job (check twice daily for renewal)
-CRON_JOB="0 0,12 * * * certbot renew --quiet"
+# Use venv certbot if available
+if [ -f "venv/bin/certbot" ]; then
+    CRON_CERTBOT="venv/bin/certbot"
+else
+    CRON_CERTBOT="certbot"
+fi
+
+CRON_JOB="0 0,12 * * * cd $PWD && $CRON_CERTBOT renew --quiet"
 CRON_FILE="/tmp/certbot_cron.txt"
 
 # Check if cron job already exists
