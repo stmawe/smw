@@ -471,10 +471,17 @@ let currentStep = 1;
 const totalSteps = 3;
 
 function showStep(step) {
-  document.querySelectorAll('.wizard-step').forEach(el => {
+  // Hide all steps
+  const allSteps = document.querySelectorAll('.wizard-step');
+  allSteps.forEach(el => {
     el.classList.remove('active');
   });
-  document.querySelector(`[data-step="${step}"]`).classList.add('active');
+  
+  // Show current step
+  const currentStepEl = document.querySelector(`.wizard-step[data-step="${step}"]`);
+  if (currentStepEl) {
+    currentStepEl.classList.add('active');
+  }
 
   // Update progress bar
   for (let i = 1; i <= totalSteps; i++) {
@@ -482,13 +489,13 @@ function showStep(step) {
     const lineEl = document.querySelector(`.progress-line[data-line="${i}"]`);
     
     if (i < step) {
-      stepEl.classList.add('active');
+      if (stepEl) stepEl.classList.add('active');
       if (lineEl) lineEl.classList.add('active');
     } else if (i === step) {
-      stepEl.classList.add('active');
+      if (stepEl) stepEl.classList.add('active');
       if (lineEl) lineEl.classList.remove('active');
     } else {
-      stepEl.classList.remove('active');
+      if (stepEl) stepEl.classList.remove('active');
       if (lineEl) lineEl.classList.remove('active');
     }
   }
@@ -498,18 +505,25 @@ function showStep(step) {
   const nextBtn = document.querySelector('.btn-next');
   const submitBtn = document.querySelector('.btn-submit');
 
-  prevBtn.style.display = step > 1 ? 'block' : 'none';
-  nextBtn.style.display = step < totalSteps ? 'block' : 'none';
-  submitBtn.style.display = step === totalSteps ? 'block' : 'none';
+  if (prevBtn) prevBtn.style.display = step > 1 ? 'block' : 'none';
+  if (nextBtn) nextBtn.style.display = step < totalSteps ? 'block' : 'none';
+  if (submitBtn) submitBtn.style.display = step === totalSteps ? 'block' : 'none';
 
   // Update review section
   if (step === 3) {
-    document.getElementById('review-name').textContent = 
-      document.querySelector('input[name="shop_name"]').value || '-';
-    document.getElementById('review-category').textContent = 
-      document.querySelector('select[name="category"]').value || '-';
-    document.getElementById('review-location').textContent = 
-      document.querySelector('select[name="location"]').value || '-';
+    const nameInput = document.querySelector('input[name="shop_name"]');
+    const categoryInput = document.querySelector('select[name="category"]');
+    const locationInput = document.querySelector('select[name="location"]');
+    
+    if (document.getElementById('review-name') && nameInput) {
+      document.getElementById('review-name').textContent = nameInput.value || '-';
+    }
+    if (document.getElementById('review-category') && categoryInput) {
+      document.getElementById('review-category').textContent = categoryInput.value || '-';
+    }
+    if (document.getElementById('review-location') && locationInput) {
+      document.getElementById('review-location').textContent = locationInput.value || '-';
+    }
   }
 }
 
@@ -529,6 +543,7 @@ function prevStep() {
   }
 }
 
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   showStep(1);
 });
