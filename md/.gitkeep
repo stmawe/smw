@@ -1,0 +1,11 @@
+# This folder contains archived documentation and markdown files
+# These files are NOT committed to version control
+# See PROJECT_STRUCTURE.md for guidelines
+
+# Contains:
+# - ADMIN_SSL_QUICK_START.txt
+# - DEPLOYMENT_CHECKLIST.md
+# - PROGRESS.md
+# - And other historical documentation
+# 
+# Developers can access these locally but they're not needed in the main repo

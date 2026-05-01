@@ -1,0 +1,10 @@
+# This folder contains debug and test scripts
+# These files are NOT committed to version control
+# See PROJECT_STRUCTURE.md for guidelines
+
+# Examples:
+# - test_*.py
+# - verify_*.py
+# - debug_*.py
+# - diagnostic_*.py
+# - Any temporary test/debugging files

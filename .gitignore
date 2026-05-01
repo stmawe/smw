@@ -29,6 +29,9 @@ server.env
 # Debug scripts and temporary setup files
 debug/
 
+# Documentation folder (archived docs not needed in repo)
+md/
+
 # Backups and logs
 .backups/
 logs/
