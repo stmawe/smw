@@ -6,6 +6,18 @@ import xml.etree.ElementTree as ET
 import json
 
 
+THEME_SECTIONS = (
+    'colors',
+    'typography',
+    'spacing',
+    'borders',
+    'shadows',
+    'animations',
+)
+
+CUSTOM_PROPERTY_SECTION = 'custom-properties'
+
+
 class Theme(TimeStampedModel):
     """
     Stores theme definitions (either XML or JSON).
@@ -98,22 +110,30 @@ class Theme(TimeStampedModel):
     def get_all_properties(self):
         """Get all theme properties as CSS custom properties."""
         properties = {}
-        
-        # Colors
-        colors = self.get_colors()
-        for key, value in colors.items():
-            properties[f'--theme-colors-{key}'] = value
-        
-        # Typography
-        typography = self.get_typography()
-        for key, value in typography.items():
-            properties[f'--theme-typography-{key}'] = value
-        
-        # Spacing
-        spacing = self.get_spacing()
-        for key, value in spacing.items():
-            properties[f'--theme-spacing-{key}'] = value
-        
+
+        try:
+            root = self.parse_xml()
+        except ValueError:
+            return properties
+
+        for section_name in THEME_SECTIONS:
+            section = root.find(section_name)
+            if section is None:
+                continue
+
+            for child in section:
+                value = (child.text or '').strip()
+                if value:
+                    properties[f'--theme-{section_name}-{child.tag}'] = value
+
+        custom_properties = root.find(CUSTOM_PROPERTY_SECTION)
+        if custom_properties is not None:
+            for prop in custom_properties.findall('property'):
+                name = (prop.get('name') or '').strip()
+                value = (prop.text or '').strip()
+                if name and value:
+                    properties[f'--theme-custom-{name}'] = value
+
         return properties
 
 

@@ -37,25 +37,19 @@ LIGHT_THEME = """<?xml version="1.0" encoding="UTF-8"?>
         <gap-xlarge>24px</gap-xlarge>
     </spacing>
     <borders>
-        <radius-small>4px</radius-small>
-        <radius-medium>8px</radius-medium>
-        <radius-large>12px</radius-large>
-        <width>1px</width>
-        <width-thick>2px</width-thick>
+        <radius-small>6px</radius-small>
+        <radius-medium>10px</radius-medium>
+        <radius-large>16px</radius-large>
+        <radius-pill>9999px</radius-pill>
     </borders>
     <shadows>
-        <shadow-sm>0 1px 2px rgba(0, 0, 0, 0.05)</shadow-sm>
-        <shadow-md>0 2px 10px rgba(0, 0, 0, 0.1)</shadow-md>
-        <shadow-lg>0 10px 25px rgba(0, 0, 0, 0.2)</shadow-lg>
+        <shadow-card>0 4px 24px rgba(2, 10, 26, 0.10)</shadow-card>
+        <shadow-md>0 8px 32px rgba(2, 10, 26, 0.16)</shadow-md>
     </shadows>
     <animations>
         <duration-fast>100ms</duration-fast>
-        <duration-normal>300ms</duration-normal>
-        <duration-slow>500ms</duration-slow>
-        <easing-ease>ease</easing-ease>
-        <easing-ease-in>ease-in</easing-ease-in>
-        <easing-ease-out>ease-out</easing-ease-out>
-        <easing-ease-in-out>ease-in-out</easing-ease-in-out>
+        <duration-normal>240ms</duration-normal>
+        <duration-slow>420ms</duration-slow>
     </animations>
     <custom-properties>
         <property name="navbar-height">60px</property>
@@ -100,25 +94,19 @@ DARK_THEME = """<?xml version="1.0" encoding="UTF-8"?>
         <gap-xlarge>24px</gap-xlarge>
     </spacing>
     <borders>
-        <radius-small>4px</radius-small>
-        <radius-medium>8px</radius-medium>
-        <radius-large>12px</radius-large>
-        <width>1px</width>
-        <width-thick>2px</width-thick>
+        <radius-small>6px</radius-small>
+        <radius-medium>10px</radius-medium>
+        <radius-large>16px</radius-large>
+        <radius-pill>9999px</radius-pill>
     </borders>
     <shadows>
-        <shadow-sm>0 1px 2px rgba(0, 0, 0, 0.3)</shadow-sm>
-        <shadow-md>0 2px 10px rgba(0, 0, 0, 0.5)</shadow-md>
-        <shadow-lg>0 10px 25px rgba(0, 0, 0, 0.7)</shadow-lg>
+        <shadow-card>0 4px 24px rgba(0, 0, 0, 0.38)</shadow-card>
+        <shadow-md>0 8px 32px rgba(0, 0, 0, 0.52)</shadow-md>
     </shadows>
     <animations>
         <duration-fast>100ms</duration-fast>
-        <duration-normal>300ms</duration-normal>
-        <duration-slow>500ms</duration-slow>
-        <easing-ease>ease</easing-ease>
-        <easing-ease-in>ease-in</easing-ease-in>
-        <easing-ease-out>ease-out</easing-ease-out>
-        <easing-ease-in-out>ease-in-out</easing-ease-in-out>
+        <duration-normal>240ms</duration-normal>
+        <duration-slow>420ms</duration-slow>
     </animations>
     <custom-properties>
         <property name="navbar-height">60px</property>

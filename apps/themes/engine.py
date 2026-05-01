@@ -1,6 +1,5 @@
 """Theme Engine - Core theme processing and rendering."""
 
-import xml.etree.ElementTree as ET
 from django.core.cache import cache
 from .models import Theme, ShopTheme
 
@@ -28,7 +27,11 @@ class ThemeEngine:
             self.shop_theme = ShopTheme.objects.select_related('theme').get(
                 shop=self.shop
             )
-            self.theme = self.shop_theme.theme
+            if self.shop_theme.enabled:
+                self.theme = self.shop_theme.theme
+            else:
+                self.theme = self._get_default_theme()
+                self.shop_theme = None
         except ShopTheme.DoesNotExist:
             # Use default theme if not configured
             self.theme = self._get_default_theme()
@@ -91,31 +94,7 @@ class ThemeEngine:
         """
         if not self.theme:
             return ""
-        
-        try:
-            root = self.theme.parse_xml()
-        except ValueError:
-            return ""
-        
-        properties = {}
-        
-        # Extract all theme sections
-        for section in root:
-            if section.tag == 'custom-properties':
-                # Handle custom properties
-                for prop in section.findall('property'):
-                    name = prop.get('name')
-                    value = prop.text
-                    if name and value:
-                        properties[f'--theme-custom-{name}'] = value
-            else:
-                # Handle standard sections (colors, typography, etc)
-                for child in section:
-                    if child.text:
-                        key = f'--theme-{section.tag}-{child.tag}'
-                        properties[key] = child.text
-        
-        return self._properties_to_css(properties)
+        return self._properties_to_css(self.theme.get_all_properties())
     
     def get_color(self, color_name):
         """Get a specific color from theme."""

@@ -314,6 +314,14 @@ class AdminPermissions:
     def can_manage_settings(self):
         """Shortcut: check if user can manage site settings"""
         return self.has(AdminPermission.MANAGE_SETTINGS)
+
+    def can_manage_themes(self):
+        """Shortcut: check if user can manage themes"""
+        return self.has(AdminPermission.MANAGE_THEMES)
+
+    def can_manage_design_tokens(self):
+        """Shortcut: check if user can manage design tokens"""
+        return self.has(AdminPermission.MANAGE_DESIGN_TOKENS)
     
     def can_view_analytics(self):
         """Shortcut: check if user can view analytics"""

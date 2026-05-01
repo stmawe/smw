@@ -354,6 +354,10 @@ class ThemeChangeLog(models.Model):
         ('css-update', 'Custom CSS Updated'),
         ('theme-created', 'Theme Created'),
         ('theme-activated', 'Theme Activated'),
+        ('theme-updated', 'Theme Updated'),
+        ('theme-published', 'Theme Published'),
+        ('theme-unpublished', 'Theme Unpublished'),
+        ('theme-deleted', 'Theme Deleted'),
         ('component-mock', 'Component Mocked'),
         ('component-published', 'Component Published'),
     ]

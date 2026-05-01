@@ -16,7 +16,7 @@ from datetime import timedelta
 import json
 
 from .models import (
-    User, Category, Theme, ThemeToken, PageThemeAssignment,
+    User, Category, Theme, ThemeToken, ThemeChangeLog, PageThemeAssignment,
     AdminAuditLog, AdminActivityFeed, Client, ClientDomain
 )
 from mydak.models import Shop, Listing, Transaction
@@ -210,6 +210,12 @@ def _theme_studio_context(request, selected_theme=None):
     selected_theme_type_display = selected_theme.get_theme_type_display() if selected_theme else 'Theme'
     selected_theme_is_public = bool(selected_theme.is_public) if selected_theme else False
     selected_theme_is_active = bool(selected_theme.is_active) if selected_theme else False
+    theme_form_name = selected_theme.name if selected_theme else ''
+    theme_form_slug = selected_theme.slug if selected_theme else ''
+    theme_form_description = selected_theme.description if selected_theme else ''
+    theme_form_type = selected_theme.theme_type if selected_theme else 'global'
+    theme_form_is_public = bool(selected_theme.is_public) if selected_theme else False
+    theme_form_is_active = bool(selected_theme.is_active) if selected_theme else False
     active_theme_name = active_theme.name if active_theme else 'No active theme'
     active_theme_type_display = active_theme.get_theme_type_display() if active_theme else 'Preview'
 
@@ -238,6 +244,12 @@ def _theme_studio_context(request, selected_theme=None):
         'selected_theme_type_display': selected_theme_type_display,
         'selected_theme_is_public': selected_theme_is_public,
         'selected_theme_is_active': selected_theme_is_active,
+        'theme_form_name': theme_form_name,
+        'theme_form_slug': theme_form_slug,
+        'theme_form_description': theme_form_description,
+        'theme_form_type': theme_form_type,
+        'theme_form_is_public': theme_form_is_public,
+        'theme_form_is_active': theme_form_is_active,
         'theme_payload': _build_theme_payload(preview_theme),
         'merged_tokens': preview_theme.get_merged_tokens() if preview_theme else {},
         'preview_css': preview_theme.generate_css() if preview_theme else '',
@@ -251,8 +263,23 @@ def _theme_studio_context(request, selected_theme=None):
         'available_theme_modes': ['white', 'dark', 'midnight'],
         'preset_overrides': THEME_PRESETS,
         'can_create': request.user.is_superuser or request.user.has_perm('app.add_theme'),
+        'can_manage_themes': request.admin_perms.can_manage_themes() if hasattr(request, 'admin_perms') else request.user.is_superuser,
+        'can_manage_design_tokens': request.admin_perms.can_manage_design_tokens() if hasattr(request, 'admin_perms') else request.user.is_superuser,
     }
     return context
+
+
+def _log_theme_change(theme, request, change_type, field='', old_value=None, new_value=None, reason=''):
+    """Create a ThemeChangeLog entry."""
+    ThemeChangeLog.objects.create(
+        theme=theme,
+        change_type=change_type,
+        changed_field=field,
+        old_value=old_value,
+        new_value=new_value,
+        changed_by=request.user,
+        reason=reason,
+    )
 
 
 # ============================================================
@@ -1839,6 +1866,9 @@ def admin_theme_create(request):
         is_active = bool(data.get('is_active', False))
         slug_value = data.get('slug', '')
         preset = data.get('preset', '')
+
+        if (token_overrides or custom_css or preset) and not request.admin_perms.can_manage_design_tokens():
+            return JsonResponse({'error': 'Design token permission required'}, status=403)
         
         if not name:
             return JsonResponse({'error': 'Theme name is required'}, status=400)
@@ -1860,6 +1890,41 @@ def admin_theme_create(request):
             is_active=is_active,
             is_public=is_public,
         )
+
+        _log_theme_change(
+            theme,
+            request,
+            'theme-created',
+            field='theme',
+            new_value={
+                'name': theme.name,
+                'slug': theme.slug,
+                'theme_type': theme.theme_type,
+                'is_public': theme.is_public,
+                'is_active': theme.is_active,
+            },
+            reason='New theme created via admin panel',
+        )
+        if theme.token_overrides:
+            _log_theme_change(
+                theme,
+                request,
+                'token-update',
+                field='token_overrides',
+                old_value={},
+                new_value=dict(theme.token_overrides),
+                reason='Initial token overrides applied',
+            )
+        if theme.custom_css:
+            _log_theme_change(
+                theme,
+                request,
+                'css-update',
+                field='custom_css',
+                old_value='',
+                new_value=theme.custom_css,
+                reason='Initial custom CSS applied',
+            )
         
         # Log audit action
         log_admin_action(
@@ -1904,6 +1969,8 @@ def admin_theme_update(request, theme_id):
     try:
         data = json.loads(request.body)
         preset = data.get('preset', '')
+        if ('token_overrides' in data or 'custom_css' in data or preset) and not request.admin_perms.can_manage_design_tokens():
+            return JsonResponse({'error': 'Design token permission required'}, status=403)
         
         old_values = {
             'name': theme.name,
@@ -1944,7 +2011,7 @@ def admin_theme_update(request, theme_id):
             theme.is_active = data['is_active']
         
         theme.save()
-        
+
         new_values = {
             'name': theme.name,
             'description': theme.description,
@@ -1963,6 +2030,36 @@ def admin_theme_update(request, theme_id):
             reason='Theme configuration updated via admin panel',
             status='success'
         )
+
+        _log_theme_change(
+            theme,
+            request,
+            'theme-updated',
+            field='config',
+            old_value=old_values,
+            new_value=new_values,
+            reason='Theme configuration updated via admin panel',
+        )
+        if 'token_overrides' in data or preset in THEME_PRESETS:
+            _log_theme_change(
+                theme,
+                request,
+                'token-update',
+                field='token_overrides',
+                old_value=old_values['token_overrides'],
+                new_value=dict(theme.token_overrides) if theme.token_overrides else {},
+                reason='Theme token overrides updated',
+            )
+        if 'custom_css' in data:
+            _log_theme_change(
+                theme,
+                request,
+                'css-update',
+                field='custom_css',
+                old_value=old_values['custom_css_length'],
+                new_value=len(theme.custom_css or ''),
+                reason='Theme custom CSS updated',
+            )
         
         # Log activity feed
         log_activity_feed(
@@ -2013,6 +2110,16 @@ def admin_theme_activate(request, theme_id):
         # Activate this theme (save() will deactivate others)
         theme.is_active = True
         theme.save()
+
+        _log_theme_change(
+            theme,
+            request,
+            'theme-activated',
+            field='is_active',
+            old_value=False,
+            new_value=True,
+            reason='Theme activated via admin panel',
+        )
         
         # Log audit action
         old_active = previous_active.name if previous_active else None
@@ -2256,6 +2363,16 @@ def admin_theme_publish(request, theme_id):
         old_public = theme.is_public
         theme.is_public = True
         theme.save()
+
+        _log_theme_change(
+            theme,
+            request,
+            'theme-published',
+            field='is_public',
+            old_value=old_public,
+            new_value=True,
+            reason='Theme published via admin panel',
+        )
         
         # Log audit action
         log_admin_action(
@@ -2298,6 +2415,16 @@ def admin_theme_unpublish(request, theme_id):
         old_public = theme.is_public
         theme.is_public = False
         theme.save()
+
+        _log_theme_change(
+            theme,
+            request,
+            'theme-unpublished',
+            field='is_public',
+            old_value=old_public,
+            new_value=False,
+            reason='Theme unpublished via admin panel',
+        )
         
         # Log audit action
         log_admin_action(

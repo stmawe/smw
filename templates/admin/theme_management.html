@@ -123,24 +123,24 @@
                 <h6 class="mb-3">Identity</h6>
                 <div class="mb-3">
                   <label class="form-label">Theme name</label>
-                  <input id="themeName" type="text" class="form-control" value="{{ selected_theme_name|default:'' }}" placeholder="White Aurora">
+                  <input id="themeName" type="text" class="form-control" value="{{ theme_form_name }}" placeholder="White Aurora">
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Slug</label>
-                  <input id="themeSlug" type="text" class="form-control" value="{{ selected_theme_slug }}" placeholder="white-aurora">
+                  <input id="themeSlug" type="text" class="form-control" value="{{ theme_form_slug }}" placeholder="white-aurora">
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Theme type</label>
                   <select id="themeType" class="form-select">
-                    <option value="global" {% if selected_theme_type == "global" %}selected{% endif %}>Global site theme</option>
-                    <option value="variant" {% if selected_theme_type == "variant" %}selected{% endif %}>Variant</option>
-                    <option value="page-specific" {% if selected_theme_type == "page-specific" %}selected{% endif %}>Page-specific override</option>
-                    <option value="accessibility" {% if selected_theme_type == "accessibility" %}selected{% endif %}>Accessibility mode</option>
+                    <option value="global" {% if theme_form_type == "global" %}selected{% endif %}>Global site theme</option>
+                    <option value="variant" {% if theme_form_type == "variant" %}selected{% endif %}>Variant</option>
+                    <option value="page-specific" {% if theme_form_type == "page-specific" %}selected{% endif %}>Page-specific override</option>
+                    <option value="accessibility" {% if theme_form_type == "accessibility" %}selected{% endif %}>Accessibility mode</option>
                   </select>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Description</label>
-                  <textarea id="themeDescription" class="form-control" rows="3" placeholder="Explain what this theme changes.">{{ selected_theme_description }}</textarea>
+                  <textarea id="themeDescription" class="form-control" rows="3" placeholder="Explain what this theme changes.">{{ theme_form_description }}</textarea>
                 </div>
               </div>
             </div>
@@ -178,7 +178,7 @@
                   <h6 class="mb-0">Token overrides</h6>
                   <span class="badge bg-light text-dark">JSON</span>
                 </div>
-                <textarea id="tokenOverrides" class="form-control font-monospace" rows="10" spellcheck="false">{{ selected_theme_overrides_json|escape }}</textarea>
+                <textarea id="tokenOverrides" class="form-control font-monospace" rows="10" spellcheck="false" {% if not can_manage_design_tokens %}readonly{% endif %}>{{ selected_theme_overrides_json|escape }}</textarea>
                 <small class="text-muted">Keep keys as token names. The wizard will translate them into theme overrides on save.</small>
               </div>
             </div>
@@ -189,7 +189,7 @@
                   <h6 class="mb-0">Custom CSS override</h6>
                   <span class="badge bg-light text-dark">Optional</span>
                 </div>
-                <textarea id="customCss" class="form-control font-monospace" rows="8" spellcheck="false">{{ selected_theme_custom_css|escape }}</textarea>
+                <textarea id="customCss" class="form-control font-monospace" rows="8" spellcheck="false" {% if not can_manage_design_tokens %}readonly{% endif %}>{{ selected_theme_custom_css|escape }}</textarea>
               </div>
             </div>
 
@@ -197,11 +197,11 @@
               <div class="theme-section h-100">
                 <h6 class="mb-3">Availability</h6>
                 <div class="form-check form-switch mb-3">
-                  <input id="isPublic" class="form-check-input" type="checkbox" {% if selected_theme_is_public %}checked{% endif %}>
+                  <input id="isPublic" class="form-check-input" type="checkbox" {% if theme_form_is_public %}checked{% endif %}>
                   <label class="form-check-label" for="isPublic">Available to tenants</label>
                 </div>
                 <div class="form-check form-switch mb-3">
-                  <input id="isActive" class="form-check-input" type="checkbox" {% if selected_theme_is_active %}checked{% endif %}>
+                  <input id="isActive" class="form-check-input" type="checkbox" {% if theme_form_is_active %}checked{% endif %}>
                   <label class="form-check-label" for="isActive">Set as active theme</label>
                 </div>
                 <div class="form-text">Use these controls to expose or activate the theme without breaking tenant-specific overrides.</div>
