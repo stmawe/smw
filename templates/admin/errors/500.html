@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger shadow">
+                <div class="card-body text-center p-5">
+                    <div class="display-1 text-danger mb-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h1 class="card-title h3 mb-3">{{ title }}</h1>
+                    <p class="card-text text-muted mb-4">
+                        {{ message }}
+                    </p>
+                    
+                    {% if exception %}
+                    <div class="alert alert-danger" role="alert">
+                        <small class="text-muted d-block mb-2">Error ID:</small>
+                        <code class="small">{{ exception }}</code>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home"></i> Go to Dashboard
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Go Back
+                        </a>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <div class="alert alert-info" role="alert">
+                        <strong>What happened?</strong>
+                        <p class="mb-0 small">An unexpected error occurred on the server. Our technical team has been automatically notified and is working to fix it.</p>
+                    </div>
+                    
+                    <small class="text-muted">
+                        <p>Reference ID: <code>{{ error_code }}-{{ request.user.id }}-{{ request.META.REQUEST_TIME }}</code></p>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
