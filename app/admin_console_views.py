@@ -4,11 +4,12 @@ Accessible at: https://admin.smw.pgwiz.cloud/console/domains/
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from mydak.models import Shop
+from .admin_views import admin_login_required
 import subprocess
 import json
 
@@ -18,7 +19,7 @@ def is_staff(user):
     return user.is_staff or user.is_superuser
 
 
-@login_required(login_url='login')
+@admin_login_required
 @user_passes_test(is_staff)
 def domains_console_view(request):
     """
@@ -49,7 +50,7 @@ def domains_console_view(request):
     return render(request, 'admin/console_domains.html', context)
 
 
-@login_required(login_url='login')
+@admin_login_required
 @user_passes_test(is_staff)
 @require_http_methods(['POST'])
 def add_ssl_for_shop_view(request, shop_id):
@@ -86,7 +87,7 @@ def add_ssl_for_shop_view(request, shop_id):
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
-@login_required(login_url='login')
+@admin_login_required
 @user_passes_test(is_staff)
 def ssl_status_view(request, shop_id):
     """
