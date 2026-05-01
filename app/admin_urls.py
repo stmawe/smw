@@ -51,6 +51,9 @@ admin_core_patterns = [
     path('admin/analytics/', admin_advanced_views.admin_analytics_dashboard, name='admin_analytics_dashboard'),
     path('admin/settings/general/', admin_crud_views.admin_settings_view, name='admin_settings'),
     path('admin/settings/save/', admin_advanced_views.admin_save_settings, name='admin_save_settings'),
+    
+    # Audit Logs
+    path('admin/audit-logs/', admin_crud_views.admin_audit_logs, name='admin_audit_logs'),
 ]
 
 # University admin URLs

@@ -661,28 +661,28 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Management</div>
                     {% if request.admin_perms.can_manage_users %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    <a href="{% url 'admin_users_list' %}" class="nav-link {% if 'users' in request.path %}active{% endif %}">
                         <i class="bi bi-people"></i>
                         <span class="nav-link-text">Users</span>
                     </a>
                     {% endif %}
                     
                     {% if request.admin_perms.can_manage_shops %}
-                    <a href="{% url 'admin_shops' request.user.username %}" class="nav-link">
+                    <a href="{% url 'admin_shops_list' %}" class="nav-link {% if 'shops' in request.path %}active{% endif %}">
                         <i class="bi bi-shop"></i>
                         <span class="nav-link-text">Shops</span>
                     </a>
                     {% endif %}
                     
                     {% if request.admin_perms.can_manage_listings %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    <a href="{% url 'admin_listings_list' %}" class="nav-link {% if 'listings' in request.path %}active{% endif %}">
                         <i class="bi bi-collection"></i>
                         <span class="nav-link-text">Listings</span>
                     </a>
                     {% endif %}
                     
                     {% if request.admin_perms.can_manage_transactions %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    <a href="{% url 'admin_transactions_list' %}" class="nav-link {% if 'transactions' in request.path %}active{% endif %}">
                         <i class="bi bi-cash-coin"></i>
                         <span class="nav-link-text">Transactions</span>
                     </a>
@@ -693,9 +693,9 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Moderation</div>
                     {% if request.admin_perms.can_moderate %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    <a href="{% url 'admin_moderation_center' %}" class="nav-link {% if 'moderation' in request.path %}active{% endif %}">
                         <i class="bi bi-flag"></i>
-                        <span class="nav-link-text">Flags & Reports</span>
+                        <span class="nav-link-text">Moderation Center</span>
                     </a>
                     {% endif %}
                 </div>
@@ -704,21 +704,21 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Settings</div>
                     {% if request.admin_perms.can_manage_shops %}
-                    <a href="{% url 'admin_console_domains' %}" class="nav-link">
+                    <a href="{% url 'admin_console_domains' %}" class="nav-link {% if 'console' in request.path %}active{% endif %}">
                         <i class="bi bi-globe"></i>
                         <span class="nav-link-text">Domains & SSL</span>
                     </a>
                     {% endif %}
                     
                     {% if request.admin_perms.can_manage_settings %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    <a href="{% url 'admin_settings' %}" class="nav-link {% if 'settings' in request.path %}active{% endif %}">
                         <i class="bi bi-gear"></i>
                         <span class="nav-link-text">Site Settings</span>
                     </a>
                     {% endif %}
                     
                     {% if request.admin_perms.can_view_analytics %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    <a href="{% url 'admin_analytics_dashboard' %}" class="nav-link {% if 'analytics' in request.path %}active{% endif %}">
                         <i class="bi bi-graph-up"></i>
                         <span class="nav-link-text">Analytics</span>
                     </a>
@@ -728,8 +728,8 @@
                 <!-- Logs -->
                 <div class="nav-section">
                     <div class="nav-section-title">Logs</div>
-                    {% if request.admin_perms.has %}
-                    <a href="{% url 'admin_dashboard_full' %}" class="nav-link">
+                    {% if request.admin_perms.can_view_audit_logs or request.user.is_superuser %}
+                    <a href="{% url 'admin_audit_logs' %}" class="nav-link {% if 'audit-logs' in request.path %}active{% endif %}">
                         <i class="bi bi-clock-history"></i>
                         <span class="nav-link-text">Audit Logs</span>
                     </a>
