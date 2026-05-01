@@ -1,0 +1,274 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}{% if user_obj %}Edit User - Admin{% else %}Add User - Admin{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div>
+    <h1 class="mb-1">{% if user_obj %}Edit User{% else %}Add New User{% endif %}</h1>
+    <p class="text-muted mb-4">Manage user account and permissions.</p>
+  </div>
+
+  <div class="row">
+    <!-- Main Content (Left) -->
+    <div class="col-lg-8">
+      {% include "admin/components/card.html" with title="User Information" icon="bi-person" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <!-- Username -->
+          <div class="col-md-6">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" value="{{ user_obj.username }}" required>
+            <small class="text-muted">Unique identifier for login</small>
+          </div>
+
+          <!-- Email -->
+          <div class="col-md-6">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ user_obj.email }}" required>
+          </div>
+
+          <!-- First Name -->
+          <div class="col-md-6">
+            <label for="firstName" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="firstName" name="first_name" value="{{ user_obj.first_name }}">
+          </div>
+
+          <!-- Last Name -->
+          <div class="col-md-6">
+            <label for="lastName" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="lastName" name="last_name" value="{{ user_obj.last_name }}">
+          </div>
+
+          <!-- Password (only on create or if changing) -->
+          <div class="col-md-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="changePassword" name="change_password">
+              <label class="form-check-label" for="changePassword">
+                {% if user_obj %}Change Password{% else %}Set Password{% endif %}
+              </label>
+            </div>
+          </div>
+
+          <div class="col-md-6" id="passwordField" style="display: none;">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••">
+            <small class="text-muted">At least 8 characters</small>
+          </div>
+
+          <div class="col-md-6" id="passwordConfirmField" style="display: none;">
+            <label for="passwordConfirm" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="passwordConfirm" name="password_confirm" placeholder="••••••••">
+          </div>
+
+          <!-- Account Status -->
+          <div class="col-md-6">
+            <label for="isActive" class="form-label">Account Status</label>
+            <select class="form-select" id="isActive" name="is_active">
+              <option value="true" {% if user_obj.is_active %}selected{% endif %}>Active</option>
+              <option value="false" {% if not user_obj.is_active %}selected{% endif %}>Inactive</option>
+            </select>
+          </div>
+
+          <!-- Role -->
+          <div class="col-md-6">
+            <label for="role" class="form-label">Role</label>
+            <select class="form-select" id="role" name="role">
+              <option value="viewer" {% if user_obj.role == "viewer" %}selected{% endif %}>Viewer (Read-only)</option>
+              <option value="support" {% if user_obj.role == "support" %}selected{% endif %}>Support Agent</option>
+              <option value="moderator" {% if user_obj.role == "moderator" %}selected{% endif %}>Moderator</option>
+              <option value="admin" {% if user_obj.role == "admin" %}selected{% endif %}>Admin</option>
+              <option value="superuser" {% if user_obj.role == "superuser" %}selected{% endif %}>Superuser</option>
+            </select>
+          </div>
+
+          <!-- Bio -->
+          <div class="col-12">
+            <label for="bio" class="form-label">Bio / Notes</label>
+            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Internal notes about this user...">{{ user_obj.bio }}</textarea>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="col-12">
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check"></i> {% if user_obj %}Save Changes{% else %}Create User{% endif %}
+              </button>
+              <a href="{% url 'admin:users' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x"></i> Cancel
+              </a>
+            </div>
+          </div>
+        </form>
+      {% endinclude %}
+
+      <!-- Danger Zone (Edit Only) -->
+      {% if user_obj %}
+        {% include "admin/components/card.html" with title="Danger Zone" icon="bi-exclamation-triangle" header_class="bg-danger text-white" %}
+          <p class="text-muted mb-3">Irreversible actions. Proceed with caution.</p>
+          <div class="d-flex gap-2">
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#suspendModal">
+              <i class="bi bi-pause"></i> Suspend User
+            </button>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+              <i class="bi bi-trash"></i> Delete User
+            </button>
+          </div>
+        {% endinclude %}
+      {% endif %}
+    </div>
+
+    <!-- Sidebar (Right) -->
+    {% if user_obj %}
+      <div class="col-lg-4">
+        <!-- Account Stats -->
+        {% include "admin/components/card.html" with title="Account Info" icon="bi-info-circle" %}
+          <div class="mb-3">
+            <small class="text-muted">Member Since</small>
+            <p class="mb-2">{{ user_obj.date_joined|date:"F j, Y" }}</p>
+          </div>
+          <div class="mb-3">
+            <small class="text-muted">Last Login</small>
+            <p class="mb-2">{{ user_obj.last_login|default:"Never" }}</p>
+          </div>
+          <div class="mb-3">
+            <small class="text-muted">Current Role</small>
+            <p class="mb-0">
+              {% if user_obj.is_superuser %}
+                <span class="badge bg-danger">Superuser</span>
+              {% elif user_obj.is_staff %}
+                <span class="badge bg-warning">Admin</span>
+              {% else %}
+                <span class="badge bg-secondary">User</span>
+              {% endif %}
+            </p>
+          </div>
+        {% endinclude %}
+
+        <!-- User Activity -->
+        {% include "admin/components/card.html" with title="Recent Activity" icon="bi-clock-history" %}
+          <div class="list-group list-group-sm">
+            <div class="list-group-item">
+              <small class="text-muted">Shops Created</small>
+              <h6 class="mb-0">{{ user_obj.shops_count|default:0 }}</h6>
+            </div>
+            <div class="list-group-item">
+              <small class="text-muted">Listings Posted</small>
+              <h6 class="mb-0">{{ user_obj.listings_count|default:0 }}</h6>
+            </div>
+            <div class="list-group-item">
+              <small class="text-muted">Total Sales</small>
+              <h6 class="mb-0">{{ user_obj.total_sales|format_currency|default:"$0.00" }}</h6>
+            </div>
+          </div>
+        {% endinclude %}
+
+        <!-- Permissions Summary -->
+        {% include "admin/components/card.html" with title="Permissions" icon="bi-shield-check" %}
+          <div class="permissions-list">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="perm1" disabled {% if user_obj.can_manage_users %}checked{% endif %}>
+              <label class="form-check-label" for="perm1">
+                <small>Manage Users</small>
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="perm2" disabled {% if user_obj.can_manage_shops %}checked{% endif %}>
+              <label class="form-check-label" for="perm2">
+                <small>Manage Shops</small>
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="perm3" disabled {% if user_obj.can_approve_listings %}checked{% endif %}>
+              <label class="form-check-label" for="perm3">
+                <small>Approve Listings</small>
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="perm4" disabled {% if user_obj.can_manage_transactions %}checked{% endif %}>
+              <label class="form-check-label" for="perm4">
+                <small>Manage Transactions</small>
+              </label>
+            </div>
+          </div>
+        {% endinclude %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Suspend Modal -->
+{% include "admin/components/modal.html" with modal_id="suspendModal" title="Suspend User" size="lg" %}
+  <form id="suspendForm">
+    <div class="alert alert-warning mb-3">
+      <strong>This user will be unable to log in or access their account.</strong>
+    </div>
+    <div class="mb-3">
+      <label for="suspensionReason" class="form-label">Reason for Suspension</label>
+      <textarea class="form-control" id="suspensionReason" rows="3" placeholder="Enter reason..." required></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="suspensionDuration" class="form-label">Duration</label>
+      <select class="form-select" id="suspensionDuration" required>
+        <option value="">Select...</option>
+        <option value="24h">24 Hours</option>
+        <option value="7d">7 Days</option>
+        <option value="30d">30 Days</option>
+        <option value="permanent">Permanent</option>
+      </select>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="notifyUser" checked>
+      <label class="form-check-label" for="notifyUser">
+        Send notification email to user
+      </label>
+    </div>
+  </form>
+{% endinclude %}
+
+<!-- Delete Modal -->
+{% include "admin/components/modal.html" with modal_id="deleteModal" title="Delete User" size="lg" %}
+  <form id="deleteForm">
+    <div class="alert alert-danger mb-3">
+      <strong>This action cannot be undone.</strong> All associated data will be permanently deleted.
+    </div>
+    <div class="mb-3">
+      <label for="confirmUsername" class="form-label">Type the username to confirm</label>
+      <input type="text" class="form-control" id="confirmUsername" placeholder="{{ user_obj.username }}" required>
+      <small class="text-muted">This user will be completely removed from the system.</small>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+      <label class="form-check-label" for="confirmDelete">
+        I understand this is permanent
+      </label>
+    </div>
+  </form>
+{% endinclude %}
+
+<script>
+document.getElementById('changePassword').addEventListener('change', function() {
+  const passwordField = document.getElementById('passwordField');
+  const passwordConfirmField = document.getElementById('passwordConfirmField');
+  
+  if (this.checked) {
+    passwordField.style.display = 'block';
+    passwordConfirmField.style.display = 'block';
+    document.getElementById('password').required = true;
+    document.getElementById('passwordConfirm').required = true;
+  } else {
+    passwordField.style.display = 'none';
+    passwordConfirmField.style.display = 'none';
+    document.getElementById('password').required = false;
+    document.getElementById('passwordConfirm').required = false;
+  }
+});
+</script>
+{% endblock %}

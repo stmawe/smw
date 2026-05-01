@@ -82,6 +82,9 @@ MIDDLEWARE = [
     
     # Custom subdomain detection middleware
     'smw.middleware.SubdomainMiddleware',
+    
+    # Admin RBAC middleware (attach permissions to request)
+    'app.admin_roles_middleware.AdminRolesMiddleware',
 ]
 
 ROOT_URLCONF = 'smw.urls'

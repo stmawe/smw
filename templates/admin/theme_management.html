@@ -1,0 +1,284 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Theme Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Theme Management</h1>
+      <p class="text-muted mb-0">Customize platform appearance and design.</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="colors-tab" data-bs-toggle="tab" data-bs-target="#colors" type="button" role="tab">
+        <i class="bi bi-palette"></i> Colors
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="fonts-tab" data-bs-toggle="tab" data-bs-target="#fonts" type="button" role="tab">
+        <i class="bi bi-fonts"></i> Fonts
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="branding-tab" data-bs-toggle="tab" data-bs-target="#branding" type="button" role="tab">
+        <i class="bi bi-image"></i> Branding
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="presets-tab" data-bs-toggle="tab" data-bs-target="#presets" type="button" role="tab">
+        <i class="bi bi-boxes"></i> Presets
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Colors Tab -->
+    <div class="tab-pane fade show active" id="colors" role="tabpanel">
+      {% include "admin/components/card.html" with title="Brand Colors" icon="bi-palette" %}
+        <form method="post" class="row g-4">
+          {% csrf_token %}
+          
+          <div class="col-md-6">
+            <label for="primaryColor" class="form-label">Primary Color</label>
+            <div class="input-group">
+              <input type="color" class="form-control form-control-color" id="primaryColor" name="primary_color" value="{{ theme.primary_color }}" style="width: 80px;">
+              <input type="text" class="form-control" value="{{ theme.primary_color }}" disabled>
+            </div>
+            <small class="text-muted">Main brand color (buttons, links, headers)</small>
+          </div>
+
+          <div class="col-md-6">
+            <label for="secondaryColor" class="form-label">Secondary Color</label>
+            <div class="input-group">
+              <input type="color" class="form-control form-control-color" id="secondaryColor" name="secondary_color" value="{{ theme.secondary_color }}" style="width: 80px;">
+              <input type="text" class="form-control" value="{{ theme.secondary_color }}" disabled>
+            </div>
+            <small class="text-muted">Accent color</small>
+          </div>
+
+          <div class="col-md-6">
+            <label for="successColor" class="form-label">Success Color</label>
+            <div class="input-group">
+              <input type="color" class="form-control form-control-color" id="successColor" name="success_color" value="{{ theme.success_color }}" style="width: 80px;">
+              <input type="text" class="form-control" value="{{ theme.success_color }}" disabled>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="dangerColor" class="form-label">Danger Color</label>
+            <div class="input-group">
+              <input type="color" class="form-control form-control-color" id="dangerColor" name="danger_color" value="{{ theme.danger_color }}" style="width: 80px;">
+              <input type="text" class="form-control" value="{{ theme.danger_color }}" disabled>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="warningColor" class="form-label">Warning Color</label>
+            <div class="input-group">
+              <input type="color" class="form-control form-control-color" id="warningColor" name="warning_color" value="{{ theme.warning_color }}" style="width: 80px;">
+              <input type="text" class="form-control" value="{{ theme.warning_color }}" disabled>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="infoColor" class="form-label">Info Color</label>
+            <div class="input-group">
+              <input type="color" class="form-control form-control-color" id="infoColor" name="info_color" value="{{ theme.info_color }}" style="width: 80px;">
+              <input type="text" class="form-control" value="{{ theme.info_color }}" disabled>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Colors
+            </button>
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i> Reset
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Fonts Tab -->
+    <div class="tab-pane fade" id="fonts" role="tabpanel">
+      {% include "admin/components/card.html" with title="Font Settings" icon="bi-fonts" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-md-6">
+            <label for="headingFont" class="form-label">Heading Font</label>
+            <select class="form-select" id="headingFont" name="heading_font">
+              <option value="system" {% if theme.heading_font == "system" %}selected{% endif %}>System Font</option>
+              <option value="georgia" {% if theme.heading_font == "georgia" %}selected{% endif %}>Georgia</option>
+              <option value="playfair" {% if theme.heading_font == "playfair" %}selected{% endif %}>Playfair Display</option>
+              <option value="montserrat" {% if theme.heading_font == "montserrat" %}selected{% endif %}>Montserrat</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="bodyFont" class="form-label">Body Font</label>
+            <select class="form-select" id="bodyFont" name="body_font">
+              <option value="system" {% if theme.body_font == "system" %}selected{% endif %}>System Font</option>
+              <option value="opensans" {% if theme.body_font == "opensans" %}selected{% endif %}>Open Sans</option>
+              <option value="lato" {% if theme.body_font == "lato" %}selected{% endif %}>Lato</option>
+              <option value="roboto" {% if theme.body_font == "roboto" %}selected{% endif %}>Roboto</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="baseFontSize" class="form-label">Base Font Size</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="baseFontSize" name="base_font_size" value="{{ theme.base_font_size }}" min="12" max="20" step="1">
+              <span class="input-group-text">px</span>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="lineHeight" class="form-label">Line Height</label>
+            <input type="number" class="form-control" id="lineHeight" name="line_height" value="{{ theme.line_height }}" min="1.2" max="2" step="0.1">
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Font Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Branding Tab -->
+    <div class="tab-pane fade" id="branding" role="tabpanel">
+      {% include "admin/components/card.html" with title="Branding Assets" icon="bi-image" %}
+        <form method="post" enctype="multipart/form-data" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-md-6">
+            <label for="logoUpload" class="form-label">Logo</label>
+            <input type="file" class="form-control" id="logoUpload" name="logo" accept="image/*">
+            <small class="text-muted">PNG, JPG, or SVG (max 2MB)</small>
+            {% if theme.logo %}
+              <div class="mt-2">
+                <img src="{{ theme.logo }}" alt="Logo" style="max-width: 150px; height: auto;">
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="faviconUpload" class="form-label">Favicon</label>
+            <input type="file" class="form-control" id="faviconUpload" name="favicon" accept="image/x-icon,image/png">
+            <small class="text-muted">ICO or PNG (max 100KB)</small>
+          </div>
+
+          <div class="col-12">
+            <label for="siteTagline" class="form-label">Site Tagline</label>
+            <input type="text" class="form-control" id="siteTagline" name="tagline" value="{{ theme.tagline }}" placeholder="Your site tagline here">
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Branding
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Presets Tab -->
+    <div class="tab-pane fade" id="presets" role="tabpanel">
+      {% include "admin/components/card.html" with title="Theme Presets" icon="bi-boxes" %}
+        <p class="text-muted mb-4">Choose a preset or customize your own:</p>
+        
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card border-2 cursor-pointer" onclick="applyPreset('modern')">
+              <div style="height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+              <div class="card-body">
+                <h6 class="card-title">Modern</h6>
+                <p class="card-text small text-muted">Purple gradient with clean fonts</p>
+                <button class="btn btn-sm btn-outline-primary">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card border-2">
+              <div style="height: 60px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+              <div class="card-body">
+                <h6 class="card-title">Vibrant</h6>
+                <p class="card-text small text-muted">Pink and coral with modern feel</p>
+                <button class="btn btn-sm btn-outline-primary">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card border-2">
+              <div style="height: 60px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+              <div class="card-body">
+                <h6 class="card-title">Ocean</h6>
+                <p class="card-text small text-muted">Cool blues and cyans</p>
+                <button class="btn btn-sm btn-outline-primary">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card border-2">
+              <div style="height: 60px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+              <div class="card-body">
+                <h6 class="card-title">Warm</h6>
+                <p class="card-text small text-muted">Sunset oranges and yellows</p>
+                <button class="btn btn-sm btn-outline-primary">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card border-2">
+              <div style="height: 60px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+              <div class="card-body">
+                <h6 class="card-title">Pastel</h6>
+                <p class="card-text small text-muted">Soft, gentle colors</p>
+                <button class="btn btn-sm btn-outline-primary">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card border-2">
+              <div style="height: 60px; background: linear-gradient(135deg, #434343 0%, #000000 100%);"></div>
+              <div class="card-body">
+                <h6 class="card-title">Dark</h6>
+                <p class="card-text small text-muted">Professional dark theme</p>
+                <button class="btn btn-sm btn-outline-primary">Apply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endinclude %}
+    </div>
+  </div>
+</div>
+
+<script>
+function applyPreset(presetName) {
+  if (confirm(`Apply "${presetName}" theme preset?`)) {
+    console.log('Applying preset:', presetName);
+    // Submit form to apply preset
+  }
+}
+</script>
+{% endblock %}

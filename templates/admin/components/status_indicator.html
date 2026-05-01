@@ -1,0 +1,47 @@
+{% comment %}
+Status indicator component
+Usage:
+  {% include "admin/components/status_indicator.html" with status="active" %}
+
+Parameters:
+  - status: Status type (active, inactive, pending, warning, error, success)
+{% endcomment %}
+
+{% spaceless %}
+  {% if status == "active" %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-success me-2"></span>
+      <span>Active</span>
+    </span>
+  {% elif status == "inactive" %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-secondary me-2"></span>
+      <span>Inactive</span>
+    </span>
+  {% elif status == "pending" %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-warning me-2"></span>
+      <span>Pending</span>
+    </span>
+  {% elif status == "warning" %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-warning me-2"></span>
+      <span>Warning</span>
+    </span>
+  {% elif status == "error" or status == "danger" %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-danger me-2"></span>
+      <span>Error</span>
+    </span>
+  {% elif status == "success" %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-success me-2"></span>
+      <span>Success</span>
+    </span>
+  {% else %}
+    <span class="d-inline-flex align-items-center">
+      <span class="badge bg-primary me-2"></span>
+      <span>{{ status|title }}</span>
+    </span>
+  {% endif %}
+{% endspaceless %}

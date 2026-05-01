@@ -376,3 +376,230 @@ class ThemeChangeLog(models.Model):
     
     def __str__(self):
         return f"{self.theme.name}: {self.change_type} @ {self.created_at}"
+
+
+# ============================================================
+# ADMIN AUDIT & ACTIVITY LOGGING MODELS
+# ============================================================
+# Comprehensive tracking of all admin actions for security,
+# compliance, and activity monitoring.
+# ============================================================
+
+class AdminAuditLog(models.Model):
+    """
+    Detailed audit trail of all admin actions.
+    Tracks WHO did WHAT to WHICH object and WHEN with before/after values.
+    """
+    
+    ACTION_TYPES = [
+        ('create', 'Create'),
+        ('update', 'Update'),
+        ('delete', 'Delete'),
+        ('restore', 'Restore'),
+        ('export', 'Export'),
+        ('bulk_action', 'Bulk Action'),
+        ('permission_grant', 'Permission Granted'),
+        ('permission_revoke', 'Permission Revoked'),
+        ('login', 'Admin Login'),
+        ('logout', 'Admin Logout'),
+        ('failed_auth', 'Failed Auth Attempt'),
+        ('setting_change', 'Settings Changed'),
+        ('ban_user', 'User Banned'),
+        ('unban_user', 'User Unbanned'),
+        ('approve_listing', 'Listing Approved'),
+        ('reject_listing', 'Listing Rejected'),
+        ('feature_listing', 'Listing Featured'),
+        ('unfeature_listing', 'Listing Unfeatured'),
+        ('process_refund', 'Refund Processed'),
+        ('other', 'Other'),
+    ]
+    
+    # Who performed the action
+    admin_user = models.ForeignKey(
+        'app.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_audit_logs'
+    )
+    admin_username = models.CharField(max_length=150, help_text="Snapshot of username at time of action")
+    
+    # What action
+    action = models.CharField(max_length=30, choices=ACTION_TYPES)
+    action_label = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Human-readable action description (e.g., 'Approved listing #123')"
+    )
+    
+    # What object was affected
+    content_type = models.CharField(
+        max_length=100,
+        help_text="Model name (e.g., 'User', 'Shop', 'Listing')"
+    )
+    object_id = models.CharField(max_length=255, help_text="ID of affected object")
+    object_str = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="String representation of object at time of action"
+    )
+    
+    # Changes made
+    changes = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Dict of {field: {old: value, new: value}}"
+    )
+    old_values = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Complete snapshot of object before change"
+    )
+    new_values = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Complete snapshot of object after change"
+    )
+    
+    # Context
+    reason = models.TextField(blank=True, help_text="Why the action was taken (from form or comment)")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, help_text="Browser/client info")
+    
+    # Relationships (for bulk actions)
+    related_objects = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of related object IDs affected (for bulk ops)"
+    )
+    
+    # Metadata
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('success', 'Success'),
+            ('partial_success', 'Partial Success'),
+            ('error', 'Error'),
+            ('pending', 'Pending'),
+        ],
+        default='success'
+    )
+    error_message = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['admin_user', '-created_at']),
+            models.Index(fields=['action', '-created_at']),
+            models.Index(fields=['content_type', 'object_id']),
+            models.Index(fields=['-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.admin_username} {self.action} {self.content_type}#{self.object_id}"
+    
+    def get_change_summary(self):
+        """Returns human-readable summary of what changed"""
+        if not self.changes:
+            return f"{self.get_action_display()} {self.object_str}"
+        
+        changed_fields = list(self.changes.keys())
+        if len(changed_fields) == 1:
+            field = changed_fields[0]
+            change = self.changes[field]
+            return f"Changed {field} from '{change.get('old')}' to '{change.get('new')}'"
+        else:
+            return f"Modified {len(changed_fields)} fields"
+
+
+class AdminActivityFeed(models.Model):
+    """
+    High-level activity feed for admin dashboard.
+    Simpler than AdminAuditLog - for displaying activity timeline.
+    """
+    
+    ACTIVITY_TYPES = [
+        ('login', 'Admin Logged In'),
+        ('logout', 'Admin Logged Out'),
+        ('created', 'Created'),
+        ('updated', 'Updated'),
+        ('deleted', 'Deleted'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('banned', 'User Banned'),
+        ('feature', 'Featured'),
+        ('unfeature', 'Unfeatured'),
+        ('refund', 'Refund Processed'),
+        ('system', 'System Event'),
+    ]
+    
+    # Who and what
+    admin_user = models.ForeignKey(
+        'app.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activity_feed'
+    )
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    
+    # What was affected
+    content_type = models.CharField(max_length=100, help_text="e.g., User, Shop, Listing")
+    object_id = models.CharField(max_length=255)
+    object_title = models.CharField(max_length=500, blank=True, help_text="e.g., user email, shop name, listing title")
+    
+    # Display
+    description = models.CharField(
+        max_length=500,
+        help_text="Short summary for dashboard (e.g., 'Admin approved listing #123')"
+    )
+    
+    # Icon & color for UI
+    icon = models.CharField(
+        max_length=50,
+        blank=True,
+        default='activity',
+        help_text="Bootstrap icon name (bi-*)"
+    )
+    severity = models.CharField(
+        max_length=20,
+        choices=[
+            ('info', 'Info'),
+            ('success', 'Success'),
+            ('warning', 'Warning'),
+            ('danger', 'Danger'),
+        ],
+        default='info'
+    )
+    
+    # Link back to related object
+    link_url = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Admin URL to the affected object"
+    )
+    
+    # For grouping related activities
+    batch_id = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text="ID for grouping related bulk actions"
+    )
+    
+    # Metadata
+    is_visible = models.BooleanField(default=True, help_text="Show in activity feed?")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['admin_user', '-created_at']),
+            models.Index(fields=['activity_type', '-created_at']),
+            models.Index(fields=['content_type', 'object_id']),
+        ]
+    
+    def __str__(self):
+        return f"{self.admin_user.username if self.admin_user else 'System'} - {self.description}"

@@ -1,0 +1,80 @@
+{% comment %}
+Table component for admin list views
+Usage:
+  {% include "admin/components/table.html" with headers=headers rows=rows %}
+
+Parameters:
+  - headers: List of column headers
+  - rows: List of rows (each row is dict with column data)
+  - sortable (optional): Boolean to enable sorting
+  - selectable (optional): Boolean to enable checkboxes
+  - actions (optional): List of action buttons
+{% endcomment %}
+
+<div class="table-responsive">
+  <table class="table table-hover table-sm">
+    <thead class="table-light">
+      <tr>
+        {% if selectable %}
+          <th style="width: 40px;">
+            <input type="checkbox" class="form-check-input select-all" aria-label="Select all">
+          </th>
+        {% endif %}
+        {% for header in headers %}
+          <th>
+            {% if sortable %}
+              <a href="?sort={{ header.key }}" class="text-decoration-none text-dark">
+                {{ header.label }}
+                <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.8em;"></i>
+              </a>
+            {% else %}
+              {{ header.label }}
+            {% endif %}
+          </th>
+        {% endfor %}
+        {% if actions %}
+          <th style="width: 150px;">Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% if selectable %}
+            <td>
+              <input type="checkbox" class="form-check-input row-select" value="{{ row.id }}" aria-label="Select row">
+            </td>
+          {% endif %}
+          {% for header in headers %}
+            <td>
+              {% if header.type == "badge" %}
+                {% include "admin/components/badge.html" with status=row|dict_lookup:header.key text=row|dict_lookup:header.key|title %}
+              {% elif header.type == "link" %}
+                <a href="{{ row|dict_lookup:header.link_key }}">{{ row|dict_lookup:header.key }}</a>
+              {% else %}
+                {{ row|dict_lookup:header.key }}
+              {% endif %}
+            </td>
+          {% endfor %}
+          {% if actions %}
+            <td>
+              <div class="btn-group btn-group-sm" role="group">
+                {% for action in actions %}
+                  <a href="{{ action.url }}?id={{ row.id }}" class="btn btn-outline-primary" title="{{ action.label }}">
+                    <i class="bi {{ action.icon }}"></i>
+                  </a>
+                {% endfor %}
+              </div>
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="{% if selectable %}{{ headers|length|add:2 }}{% else %}{{ headers|length|add:1 }}{% endif %}" class="text-center text-muted py-4">
+            No results found
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

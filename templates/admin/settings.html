@@ -1,0 +1,204 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Site Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div>
+    <h1 class="mb-1">Site Settings</h1>
+    <p class="text-muted mb-4">Manage platform configuration and settings.</p>
+  </div>
+
+  <!-- Settings Navigation Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
+        <i class="bi bi-gear"></i> General
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab">
+        <i class="bi bi-credit-card"></i> Payment
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab">
+        <i class="bi bi-envelope"></i> Email
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+        <i class="bi bi-shield-lock"></i> Security
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="theme-tab" data-bs-toggle="tab" data-bs-target="#theme" type="button" role="tab">
+        <i class="bi bi-palette"></i> Theme
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- General Settings -->
+    <div class="tab-pane fade show active" id="general" role="tabpanel">
+      {% include "admin/components/card.html" with title="General Settings" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label for="siteName" class="form-label">Site Name</label>
+            <input type="text" class="form-control" id="siteName" name="site_name" value="{{ settings.site_name }}">
+          </div>
+          <div class="col-md-6">
+            <label for="siteUrl" class="form-label">Site URL</label>
+            <input type="url" class="form-control" id="siteUrl" name="site_url" value="{{ settings.site_url }}">
+          </div>
+          <div class="col-12">
+            <label for="siteDescription" class="form-label">Site Description</label>
+            <textarea class="form-control" id="siteDescription" name="site_description" rows="3">{{ settings.site_description }}</textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Payment Settings -->
+    <div class="tab-pane fade" id="payment" role="tabpanel">
+      {% include "admin/components/card.html" with title="Payment Gateway Configuration" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label for="paymentProvider" class="form-label">Payment Provider</label>
+            <select class="form-select" id="paymentProvider" name="payment_provider">
+              <option value="stripe">Stripe</option>
+              <option value="paypal">PayPal</option>
+              <option value="square">Square</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="publicKey" class="form-label">Public Key</label>
+            <input type="text" class="form-control" id="publicKey" name="public_key" placeholder="Enter public key">
+          </div>
+          <div class="col-md-6">
+            <label for="secretKey" class="form-label">Secret Key</label>
+            <input type="password" class="form-control" id="secretKey" name="secret_key" placeholder="Enter secret key">
+          </div>
+          <div class="col-md-6">
+            <label for="platformFee" class="form-label">Platform Fee (%)</label>
+            <input type="number" class="form-control" id="platformFee" name="platform_fee" value="{{ settings.platform_fee }}" min="0" max="100" step="0.1">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Payment Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Email Settings -->
+    <div class="tab-pane fade" id="email" role="tabpanel">
+      {% include "admin/components/card.html" with title="Email Configuration" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label for="smtpHost" class="form-label">SMTP Host</label>
+            <input type="text" class="form-control" id="smtpHost" name="smtp_host" placeholder="smtp.example.com">
+          </div>
+          <div class="col-md-6">
+            <label for="smtpPort" class="form-label">SMTP Port</label>
+            <input type="number" class="form-control" id="smtpPort" name="smtp_port" placeholder="587">
+          </div>
+          <div class="col-md-6">
+            <label for="smtpUser" class="form-label">Username</label>
+            <input type="text" class="form-control" id="smtpUser" name="smtp_user">
+          </div>
+          <div class="col-md-6">
+            <label for="smtpPass" class="form-label">Password</label>
+            <input type="password" class="form-control" id="smtpPass" name="smtp_password">
+          </div>
+          <div class="col-12">
+            <label for="fromEmail" class="form-label">From Email Address</label>
+            <input type="email" class="form-control" id="fromEmail" name="from_email" placeholder="noreply@example.com">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Email Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Security Settings -->
+    <div class="tab-pane fade" id="security" role="tabpanel">
+      {% include "admin/components/card.html" with title="Security Settings" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="enable2fa" name="enable_2fa" {% if settings.enable_2fa %}checked{% endif %}>
+              <label class="form-check-label" for="enable2fa">
+                Require 2FA for Admin Users
+              </label>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="enforceHttps" name="enforce_https" {% if settings.enforce_https %}checked{% endif %}>
+              <label class="form-check-label" for="enforceHttps">
+                Enforce HTTPS
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+            <input type="number" class="form-control" id="sessionTimeout" name="session_timeout" value="{{ settings.session_timeout }}">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Security Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+
+    <!-- Theme Settings -->
+    <div class="tab-pane fade" id="theme" role="tabpanel">
+      {% include "admin/components/card.html" with title="Theme Configuration" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label for="primaryColor" class="form-label">Primary Color</label>
+            <input type="color" class="form-control" id="primaryColor" name="primary_color" value="{{ settings.primary_color }}">
+          </div>
+          <div class="col-md-6">
+            <label for="accentColor" class="form-label">Accent Color</label>
+            <input type="color" class="form-control" id="accentColor" name="accent_color" value="{{ settings.accent_color }}">
+          </div>
+          <div class="col-12">
+            <label for="logo" class="form-label">Logo URL</label>
+            <input type="url" class="form-control" id="logo" name="logo_url" placeholder="https://example.com/logo.png">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Theme Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% comment %}
+Breadcrumbs component for navigation
+Usage:
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+
+Parameters:
+  - items: List of breadcrumb items with label and url (last item typically has no url)
+{% endcomment %}
+
+{% if items %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-4 mt-2">
+      <li class="breadcrumb-item">
+        <a href="/admin/" class="text-decoration-none">
+          <i class="bi bi-house-door"></i> Admin
+        </a>
+      </li>
+      {% for item in items %}
+        <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
+          {% if item.url and not forloop.last %}
+            <a href="{{ item.url }}" class="text-decoration-none">{{ item.label }}</a>
+          {% else %}
+            {{ item.label }}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

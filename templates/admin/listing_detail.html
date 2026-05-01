@@ -1,0 +1,213 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Listing Details - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">{{ listing.title }}</h1>
+      <p class="text-muted mb-0">Review and manage listing details.</p>
+    </div>
+    <a href="{{ listing.get_absolute_url }}" class="btn btn-outline-info" target="_blank">
+      <i class="bi bi-box-arrow-up-right"></i> View Live
+    </a>
+  </div>
+
+  <div class="row">
+    <!-- Main Content (Left) -->
+    <div class="col-lg-8">
+      <!-- Listing Info -->
+      {% include "admin/components/card.html" with title="Listing Information" icon="bi-tag" %}
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Title</h6>
+            <p>{{ listing.title }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6>Category</h6>
+            <p>{{ listing.category.name }}</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Price</h6>
+            <p><strong>{{ listing.price|format_currency }}</strong></p>
+          </div>
+          <div class="col-md-6">
+            <h6>Seller</h6>
+            <p>
+              <a href="{% url 'admin:user-detail' listing.seller.id %}">
+                {{ listing.seller.username }}
+              </a>
+            </p>
+          </div>
+        </div>
+        <div>
+          <h6>Description</h6>
+          <p>{{ listing.description|truncatewords:50 }}</p>
+        </div>
+      {% endinclude %}
+
+      <!-- Status & Actions -->
+      {% include "admin/components/card.html" with title="Status & Actions" icon="bi-sliders" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-md-4">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="pending" {% if listing.status == "pending" %}selected{% endif %}>Pending</option>
+              <option value="approved" {% if listing.status == "approved" %}selected{% endif %}>Approved</option>
+              <option value="rejected" {% if listing.status == "rejected" %}selected{% endif %}>Rejected</option>
+              <option value="expired" {% if listing.status == "expired" %}selected{% endif %}>Expired</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="featured" class="form-label">Featured</label>
+            <select class="form-select" id="featured" name="featured">
+              <option value="false" {% if not listing.is_featured %}selected{% endif %}>Not Featured</option>
+              <option value="true" {% if listing.is_featured %}selected{% endif %}>Featured</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="visibility" class="form-label">Visibility</label>
+            <select class="form-select" id="visibility" name="visibility">
+              <option value="public" {% if listing.visibility == "public" %}selected{% endif %}>Public</option>
+              <option value="private" {% if listing.visibility == "private" %}selected{% endif %}>Private</option>
+              <option value="draft" {% if listing.visibility == "draft" %}selected{% endif %}>Draft</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+
+      <!-- Flags & Reports -->
+      {% if listing.flags or listing.reports %}
+        {% include "admin/components/card.html" with title="Flags & Reports" icon="bi-exclamation-circle" header_class="bg-warning text-white" %}
+          {% if listing.flags %}
+            <h6 class="mb-2">Content Flags</h6>
+            {% for flag in listing.flags %}
+              <div class="alert alert-warning mb-2">
+                <small>
+                  <strong>{{ flag.reason }}</strong><br>
+                  Flagged by {{ flag.flagged_by }} on {{ flag.created_at|date:"M d, Y" }}
+                </small>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if listing.reports %}
+            <h6 class="mb-2">User Reports</h6>
+            {% for report in listing.reports %}
+              <div class="alert alert-danger mb-2">
+                <small>
+                  <strong>{{ report.reason }}</strong><br>
+                  Reported by {{ report.reported_by.username }} on {{ report.created_at|date:"M d, Y" }}
+                </small>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endinclude %}
+      {% endif %}
+
+      <!-- Danger Zone -->
+      {% include "admin/components/card.html" with title="Danger Zone" icon="bi-exclamation-triangle" header_class="bg-danger text-white" %}
+        <p class="text-muted mb-3">Irreversible actions.</p>
+        <div class="d-flex gap-2">
+          <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteListingModal">
+            <i class="bi bi-trash"></i> Delete Listing
+          </button>
+        </div>
+      {% endinclude %}
+    </div>
+
+    <!-- Sidebar (Right) -->
+    <div class="col-lg-4">
+      <!-- Listing Stats -->
+      {% include "admin/components/card.html" with title="Listing Stats" icon="bi-bar-chart" %}
+        <div class="list-group list-group-sm">
+          <div class="list-group-item">
+            <small class="text-muted">Views</small>
+            <h6 class="mb-0">{{ listing.views|default:0 }}</h6>
+          </div>
+          <div class="list-group-item">
+            <small class="text-muted">Favorites</small>
+            <h6 class="mb-0">{{ listing.favorites_count|default:0 }}</h6>
+          </div>
+          <div class="list-group-item">
+            <small class="text-muted">Inquiries</small>
+            <h6 class="mb-0">{{ listing.inquiries_count|default:0 }}</h6>
+          </div>
+          <div class="list-group-item">
+            <small class="text-muted">Posted</small>
+            <h6 class="mb-0">{{ listing.created_at|date:"M d, Y" }}</h6>
+          </div>
+        </div>
+      {% endinclude %}
+
+      <!-- Current Status -->
+      {% include "admin/components/card.html" with title="Current Status" icon="bi-info-circle" %}
+        <dl class="row">
+          <dt class="col-sm-6">Status:</dt>
+          <dd class="col-sm-6">
+            {% include "admin/components/badge.html" with status=listing.status text=listing.status|title %}
+          </dd>
+          <dt class="col-sm-6">Featured:</dt>
+          <dd class="col-sm-6">
+            {% if listing.is_featured %}
+              <span class="badge bg-success">Yes</span>
+            {% else %}
+              <span class="badge bg-secondary">No</span>
+            {% endif %}
+          </dd>
+          <dt class="col-sm-6">Condition:</dt>
+          <dd class="col-sm-6">{{ listing.condition|default:"Used" }}</dd>
+          <dt class="col-sm-6">Quantity:</dt>
+          <dd class="col-sm-6">{{ listing.quantity|default:1 }}</dd>
+        </dl>
+      {% endinclude %}
+
+      <!-- Shop Info -->
+      {% include "admin/components/card.html" with title="Shop Information" icon="bi-shop" %}
+        <h6>{{ listing.shop.name }}</h6>
+        <a href="{% url 'admin:shop-detail' listing.shop.id %}">View Shop →</a>
+        <hr>
+        <small class="text-muted">{{ listing.shop.listings_count }} listings</small>
+      {% endinclude %}
+    </div>
+  </div>
+</div>
+
+<!-- Delete Listing Modal -->
+{% include "admin/components/modal.html" with modal_id="deleteListingModal" title="Delete Listing" size="lg" %}
+  <form id="deleteListingForm">
+    <div class="alert alert-danger mb-3">
+      <strong>This action cannot be undone.</strong>
+    </div>
+    <div class="mb-3">
+      <label for="confirmListingTitle" class="form-label">Type the listing title to confirm</label>
+      <input type="text" class="form-control" id="confirmListingTitle" placeholder="{{ listing.title }}" required>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+      <label class="form-check-label" for="confirmDelete">
+        I understand this is permanent
+      </label>
+    </div>
+  </form>
+{% endinclude %}
+{% endblock %}

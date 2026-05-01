@@ -1,0 +1,210 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Moderation - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Moderation Center</h1>
+      <p class="text-muted mb-0">Review and resolve content flags and user reports.</p>
+    </div>
+  </div>
+
+  <!-- Alert Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="flagged-tab" data-bs-toggle="tab" data-bs-target="#flagged" type="button" role="tab">
+        <span class="badge bg-warning">{{ flagged_count }}</span> Flagged Content
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="reported-tab" data-bs-toggle="tab" data-bs-target="#reported" type="button" role="tab">
+        <span class="badge bg-danger">{{ reported_count }}</span> User Reports
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="banned-tab" data-bs-toggle="tab" data-bs-target="#banned" type="button" role="tab">
+        <span class="badge bg-secondary">{{ banned_users_count }}</span> Banned Users
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Flagged Content Tab -->
+    <div class="tab-pane fade show active" id="flagged" role="tabpanel">
+      {% include "admin/components/card.html" with title="Flagged Content" icon="bi-exclamation-circle" %}
+        {% if flagged_items %}
+          {% for item in flagged_items %}
+            <div class="card mb-3 border-warning">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <h5 class="card-title">{{ item.title }}</h5>
+                    <p class="text-muted mb-1">
+                      <i class="bi bi-exclamation-triangle text-warning"></i>
+                      Flagged by: <strong>{{ item.flagged_by }}</strong>
+                    </p>
+                    <p class="text-muted small mb-1">Reason: {{ item.reason }}</p>
+                    <p class="text-muted small">{{ item.flagged_date|date:"M d, Y H:i" }}</p>
+                  </div>
+                  <div>
+                    {% include "admin/components/badge.html" with status="warning" text="Review Needed" %}
+                  </div>
+                </div>
+                <div class="btn-group" role="group">
+                  <button class="btn btn-sm btn-outline-success" onclick="resolveFlag({{ item.id }})">
+                    <i class="bi bi-check-circle"></i> Approve
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="removeContent({{ item.id }})">
+                    <i class="bi bi-trash"></i> Remove Content
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning" onclick="banUser({{ item.reported_user_id }})">
+                    <i class="bi bi-ban"></i> Ban User
+                  </button>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-check-circle" style="font-size: 2rem; color: var(--success-color);"></i>
+            <p class="mt-3">No flagged content</p>
+          </div>
+        {% endif %}
+      {% endinclude %}
+    </div>
+
+    <!-- User Reports Tab -->
+    <div class="tab-pane fade" id="reported" role="tabpanel">
+      {% include "admin/components/card.html" with title="User Reports" icon="bi-flag" %}
+        {% if reported_items %}
+          <div class="table-responsive">
+            <table class="table table-hover table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Reported User</th>
+                  <th>Report Type</th>
+                  <th>Reason</th>
+                  <th>Reported By</th>
+                  <th>Date</th>
+                  <th style="width: 150px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in reported_items %}
+                  <tr>
+                    <td><strong>{{ item.reported_user.username }}</strong></td>
+                    <td>
+                      {% include "admin/components/badge.html" with status="danger" text=item.report_type|title %}
+                    </td>
+                    <td>{{ item.reason|truncatewords:10 }}</td>
+                    <td>{{ item.reported_by.username }}</td>
+                    <td><small>{{ item.created_at|date:"M d, Y" }}</small></td>
+                    <td>
+                      <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-info" title="View Details">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" title="Dismiss">
+                          <i class="bi bi-x"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+            <p class="mt-3">No user reports</p>
+          </div>
+        {% endif %}
+      {% endinclude %}
+    </div>
+
+    <!-- Banned Users Tab -->
+    <div class="tab-pane fade" id="banned" role="tabpanel">
+      {% include "admin/components/card.html" with title="Banned & Suspended Users" icon="bi-ban" %}
+        {% if banned_users %}
+          <div class="table-responsive">
+            <table class="table table-hover table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>User</th>
+                  <th>Ban Reason</th>
+                  <th>Banned On</th>
+                  <th>Ban Expires</th>
+                  <th>Banned By</th>
+                  <th style="width: 100px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user in banned_users %}
+                  <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.ban_reason|default:"—" }}</td>
+                    <td><small>{{ user.banned_date|date:"M d, Y" }}</small></td>
+                    <td>
+                      {% if user.ban_expires %}
+                        <small>{{ user.ban_expires|date:"M d, Y" }}</small>
+                      {% else %}
+                        <span class="badge bg-danger">Permanent</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ user.banned_by|default:"System" }}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-success" onclick="unbanUser({{ user.id }})">
+                        <i class="bi bi-check"></i> Unban
+                      </button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-smile" style="font-size: 2rem;"></i>
+            <p class="mt-3">No banned users</p>
+          </div>
+        {% endif %}
+      {% endinclude %}
+    </div>
+  </div>
+</div>
+
+<script>
+function resolveFlag(flagId) {
+  if (confirm('Mark this flag as resolved?')) {
+    console.log('Resolving flag:', flagId);
+  }
+}
+
+function removeContent(contentId) {
+  if (confirm('Remove this content? This action cannot be undone.')) {
+    console.log('Removing content:', contentId);
+  }
+}
+
+function banUser(userId) {
+  const modal = new bootstrap.Modal(document.getElementById('banUserModal'));
+  modal.show();
+}
+
+function unbanUser(userId) {
+  if (confirm('Unban this user?')) {
+    console.log('Unbanning user:', userId);
+  }
+}
+</script>
+{% endblock %}

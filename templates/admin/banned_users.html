@@ -1,0 +1,268 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Banned & Suspended Users - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Banned & Suspended Users</h1>
+      <p class="text-muted mb-0">View and manage user bans and suspensions.</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-danger">{{ total_banned }}</h5>
+        <small class="text-muted">Total Banned</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-warning">{{ temporary_bans }}</h5>
+        <small class="text-muted">Temporary Bans</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-danger">{{ permanent_bans }}</h5>
+        <small class="text-muted">Permanent Bans</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  {% include "admin/components/filter_bar.html" with 
+    search_placeholder="Search banned user..." 
+    filters=filters 
+    show_reset=True 
+  %}
+
+  <!-- Banned Users Table -->
+  {% include "admin/components/card.html" with title="Banned Users" icon="bi-ban" %}
+    {% if banned_users %}
+      <div class="table-responsive">
+        <table class="table table-hover table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Ban Reason</th>
+              <th>Banned On</th>
+              <th>Ban Expires</th>
+              <th>Banned By</th>
+              <th style="width: 120px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in banned_users %}
+              <tr>
+                <td>
+                  <strong>{{ user.username }}</strong>
+                  <br><small class="text-muted">{{ user.email }}</small>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <small>{{ user.ban_reason|default:"—" }}</small>
+                </td>
+                <td>
+                  <small>{{ user.banned_date|date:"M d, Y" }}</small>
+                </td>
+                <td>
+                  {% if user.ban_expires %}
+                    <small>{{ user.ban_expires|date:"M d, Y" }}</small>
+                    {% if user.ban_expires_soon %}
+                      <br><span class="badge bg-warning">Expires soon</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge bg-danger">Permanent</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <small>{{ user.banned_by|default:"System" }}</small>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#banDetailModal" onclick="loadBanDetail({{ user.id }})">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-success" onclick="unbanUser({{ user.id }})">
+                      <i class="bi bi-check"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% include "admin/components/pagination.html" with page_obj=page_obj %}
+    {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-smile" style="font-size: 2rem;"></i>
+        <p class="mt-3">No banned users</p>
+      </div>
+    {% endif %}
+  {% endinclude %}
+
+  <!-- Recent Unbans -->
+  {% if recent_unbans %}
+    {% include "admin/components/card.html" with title="Recently Unbanned" icon="bi-calendar-check" %}
+      <table class="table table-sm">
+        <thead class="table-light">
+          <tr>
+            <th>User</th>
+            <th>Original Ban</th>
+            <th>Unbanned</th>
+            <th>Unbanned By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in recent_unbans %}
+            <tr>
+              <td><strong>{{ record.user.username }}</strong></td>
+              <td><small>{{ record.ban_reason }}</small></td>
+              <td><small>{{ record.unbanned_date|date:"M d, Y" }}</small></td>
+              <td><small>{{ record.unbanned_by.username }}</small></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endinclude %}
+  {% endif %}
+</div>
+
+<!-- Ban Detail Modal -->
+{% include "admin/components/modal.html" with modal_id="banDetailModal" title="Ban Details" size="lg" %}
+  <div id="banDetailContent">
+    <p class="text-muted">Loading...</p>
+  </div>
+{% endinclude %}
+
+<!-- Extend Ban Modal -->
+{% include "admin/components/modal.html" with modal_id="extendBanModal" title="Extend Ban" size="lg" %}
+  <form id="extendBanForm">
+    <input type="hidden" id="extendUserId">
+    <div class="mb-3">
+      <label for="extendDuration" class="form-label">Extend Ban For</label>
+      <select class="form-select" id="extendDuration" required>
+        <option value="">Select duration...</option>
+        <option value="7d">7 Days</option>
+        <option value="30d">30 Days</option>
+        <option value="90d">90 Days</option>
+        <option value="permanent">Make Permanent</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="extendReason" class="form-label">Reason for Extension</label>
+      <textarea class="form-control" id="extendReason" rows="3" placeholder="Optional reason..."></textarea>
+    </div>
+  </form>
+{% endinclude %}
+
+<!-- Unban Confirmation Modal -->
+{% include "admin/components/modal.html" with modal_id="unbanConfirmModal" title="Unban User" size="lg" %}
+  <form id="unbanForm">
+    <input type="hidden" id="unbanUserId">
+    <div class="alert alert-warning mb-3">
+      <strong>Are you sure you want to unban this user?</strong><br>
+      They will be able to log in and use their account again.
+    </div>
+    <div class="mb-3">
+      <label for="unbanReason" class="form-label">Reason for Unbanning</label>
+      <textarea class="form-control" id="unbanReason" rows="3" placeholder="Why are you lifting the ban?" required></textarea>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="notifyUnban" checked>
+      <label class="form-check-label" for="notifyUnban">
+        Send notification email to user
+      </label>
+    </div>
+  </form>
+{% endinclude %}
+
+<script>
+function loadBanDetail(userId) {
+  // Fetch ban details
+  const detailContent = document.getElementById('banDetailContent');
+  
+  // Simulate fetching ban details
+  fetch(`/admin/api/bans/${userId}/`)
+    .then(response => response.json())
+    .then(data => {
+      let html = `
+        <div class="row">
+          <div class="col-md-6">
+            <h6>User Information</h6>
+            <p>
+              <strong>Username:</strong> ${data.username}<br>
+              <strong>Email:</strong> ${data.email}<br>
+              <strong>Member Since:</strong> ${data.joined_date}
+            </p>
+            
+            <h6>Ban Details</h6>
+            <p>
+              <strong>Reason:</strong> ${data.reason}<br>
+              <strong>Banned On:</strong> ${data.banned_date}<br>
+              <strong>Banned By:</strong> ${data.banned_by}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <h6>Ban Duration</h6>
+            <p>
+              <strong>Status:</strong> ${data.is_permanent ? '<span class="badge bg-danger">Permanent</span>' : '<span class="badge bg-warning">Temporary</span>'}<br>
+              ${data.expires_at ? `<strong>Expires:</strong> ${data.expires_at}` : ''}
+            </p>
+            
+            <h6>Account Stats</h6>
+            <p>
+              <strong>Shops:</strong> ${data.shops_count}<br>
+              <strong>Listings:</strong> ${data.listings_count}<br>
+              <strong>Transactions:</strong> ${data.transactions_count}
+            </p>
+          </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+          <button class="btn btn-warning" onclick="showExtendBanModal(${data.id})">
+            <i class="bi bi-clock-history"></i> Extend Ban
+          </button>
+          <button class="btn btn-success" onclick="showUnbanModal(${data.id})">
+            <i class="bi bi-check"></i> Unban User
+          </button>
+        </div>
+      `;
+      detailContent.innerHTML = html;
+    })
+    .catch(error => {
+      detailContent.innerHTML = `<div class="alert alert-danger">Error loading ban details</div>`;
+    });
+}
+
+function showExtendBanModal(userId) {
+  document.getElementById('extendUserId').value = userId;
+  bootstrap.Modal.getInstance(document.getElementById('banDetailModal')).hide();
+  new bootstrap.Modal(document.getElementById('extendBanModal')).show();
+}
+
+function showUnbanModal(userId) {
+  document.getElementById('unbanUserId').value = userId;
+  bootstrap.Modal.getInstance(document.getElementById('banDetailModal')).hide();
+  new bootstrap.Modal(document.getElementById('unbanConfirmModal')).show();
+}
+
+function unbanUser(userId) {
+  document.getElementById('unbanUserId').value = userId;
+  new bootstrap.Modal(document.getElementById('unbanConfirmModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,270 +1,282 @@
-{% extends 'admin/base.html' %}
+{% extends "admin/base.html" %}
+{% load admin_filters %}
 {% load static %}
 
-{% block title %}Admin Dashboard - {{ target_user.get_full_name|default:target_user.username }}{% endblock %}
+{% block title %}Dashboard - Admin{% endblock %}
 
 {% block content %}
-<div class="admin-dashboard-wrapper">
-  <div class="admin-sidebar">
-    <div class="admin-user-info">
-      <h3>{{ target_user.get_full_name|default:target_user.username }}</h3>
-      <p class="admin-role">Administrator</p>
-    </div>
-    
-    <nav class="admin-nav">
-      <a href="{% url 'admin_dashboard_full' %}" class="admin-nav-link active">Dashboard</a>
-      <a href="{% url 'admin_shops' target_user.username %}" class="admin-nav-link">My Shops</a>
-      <a href="/" class="admin-nav-link">Back to Site</a>
-    </nav>
-  </div>
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
   
-  <main class="admin-content">
-    <div class="dashboard-header">
-      <h1>Welcome Back, {{ target_user.first_name|default:target_user.username }}! 👋</h1>
-      <p>Here's your shop overview</p>
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Dashboard</h1>
+      <p class="text-muted mb-0">Welcome back! Here's your platform overview.</p>
     </div>
-    
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <h3>{{ shop_count }}</h3>
-        <p>Shops</p>
-      </div>
-      <div class="stat-card">
-        <h3>{{ active_shops }}</h3>
-        <p>Active</p>
-      </div>
-      <div class="stat-card">
-        <h3>{{ total_listings }}</h3>
-        <p>Listings</p>
-      </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-repeat"></i> Refresh
+      </button>
+      <button type="button" class="btn btn-outline-secondary">
+        <i class="bi bi-download"></i> Export
+      </button>
     </div>
-    
-    <div class="dashboard-section">
-      <h2>Your Shops</h2>
-      {% if shops %}
-        <div class="shops-list">
-          {% for shop in shops %}
-            <div class="shop-card">
-              <h3>{{ shop.name }}</h3>
-              <p class="shop-description">{{ shop.description|truncatewords:20 }}</p>
-              <div class="shop-status">
-                <span class="status-badge {% if shop.is_active %}active{% else %}inactive{% endif %}">
-                  {% if shop.is_active %}Active{% else %}Inactive{% endif %}
-                </span>
-              </div>
-              <a href="{% url 'admin_shop_detail' target_user.username shop.id %}" class="btn-manage">Manage Shop</a>
-            </div>
-          {% endfor %}
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row mb-4">
+    {% include "admin/components/stat_card.html" with title="Total Users" value=total_users icon="bi-people" color="primary" trend=user_trend trend_period="vs. last month" %}
+    {% include "admin/components/stat_card.html" with title="Active Shops" value=active_shops icon="bi-shop" color="success" trend=shops_trend trend_period="vs. last month" %}
+    {% include "admin/components/stat_card.html" with title="Total Listings" value=total_listings icon="bi-list" color="info" trend=listings_trend trend_period="vs. last month" %}
+    {% include "admin/components/stat_card.html" with title="Revenue" value=total_revenue icon="bi-cash-coin" color="warning" trend=revenue_trend trend_period="vs. last month" %}
+  </div>
+
+  <!-- Alerts & Notices Section -->
+  {% if alerts %}
+    <div class="mb-4">
+      {% for alert in alerts %}
+        <div class="alert alert-{{ alert.type }} alert-dismissible fade show" role="alert">
+          <strong>{{ alert.title }}:</strong> {{ alert.message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-      {% else %}
-        <p class="no-data">You don't have any shops yet.</p>
-      {% endif %}
+      {% endfor %}
     </div>
-  </main>
+  {% endif %}
+
+  <!-- Main Content Grid -->
+  <div class="row">
+    <!-- Left Column: Activity Feed -->
+    <div class="col-lg-8">
+      {% include "admin/components/card.html" with title="Recent Activity" icon="bi-clock-history" %}
+        {% if recent_activities %}
+          <div class="activity-feed">
+            {% for activity in recent_activities %}
+              <div class="activity-item d-flex pb-3 mb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                <div class="activity-avatar me-3">
+                  <div class="avatar-circle" style="width: 40px; height: 40px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                    <i class="bi {{ activity.icon }} text-primary"></i>
+                  </div>
+                </div>
+                <div class="activity-content flex-grow-1">
+                  <p class="mb-1">
+                    <strong>{{ activity.title }}</strong>
+                    {% if activity.link %}
+                      <a href="{{ activity.link }}" class="ms-2 text-decoration-none small">View</a>
+                    {% endif %}
+                  </p>
+                  <small class="text-muted">{{ activity.description }}</small>
+                  <br>
+                  <small class="text-muted">{{ activity.timestamp }}</small>
+                </div>
+                <div class="activity-status">
+                  {% include "admin/components/badge.html" with status=activity.status text=activity.status|title %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+            <p class="mt-2">No recent activity</p>
+          </div>
+        {% endif %}
+      {% endinclude %}
+
+      <!-- Revenue Chart Card -->
+      {% include "admin/components/card.html" with title="Revenue Trend" icon="bi-graph-up" %}
+        <div id="revenueChart" style="height: 300px; display: flex; align-items: flex-end; justify-content: space-around;">
+          <!-- Chart will be rendered here by JavaScript or backend template -->
+          <div style="text-align: center; color: var(--text-muted);">
+            <p>Chart placeholder</p>
+            <p style="font-size: 0.9rem;">Integration with Chart.js recommended</p>
+          </div>
+        </div>
+      {% endinclude %}
+    </div>
+
+    <!-- Right Column: Widgets -->
+    <div class="col-lg-4">
+      <!-- Quick Actions -->
+      {% include "admin/components/card.html" with title="Quick Actions" icon="bi-lightning" %}
+        <div class="quick-actions d-grid gap-2">
+          {% if perms.admin.manage_users %}
+            <a href="{% url 'admin:users' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+              <span>
+                <i class="bi bi-person-plus me-2"></i>
+                Add User
+              </span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          {% endif %}
+          {% if perms.admin.manage_shops %}
+            <a href="{% url 'admin:shops' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+              <span>
+                <i class="bi bi-shop me-2"></i>
+                Manage Shops
+              </span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          {% endif %}
+          {% if perms.admin.manage_listings %}
+            <a href="{% url 'admin:listings' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+              <span>
+                <i class="bi bi-list-check me-2"></i>
+                Review Listings
+              </span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          {% endif %}
+          {% if perms.admin.view_analytics %}
+            <a href="{% url 'admin:analytics' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+              <span>
+                <i class="bi bi-bar-chart me-2"></i>
+                Analytics
+              </span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          {% endif %}
+          {% if perms.admin.manage_settings %}
+            <a href="{% url 'admin:settings' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+              <span>
+                <i class="bi bi-gear me-2"></i>
+                Settings
+              </span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          {% endif %}
+        </div>
+      {% endinclude %}
+
+      <!-- Top Shops Widget -->
+      {% include "admin/components/card.html" with title="Top Shops" icon="bi-award" %}
+        {% if top_shops %}
+          <div class="list-group list-group-flush">
+            {% for shop in top_shops %}
+              <a href="{% url 'admin:shop-detail' shop.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                <div>
+                  <h6 class="mb-0">{{ shop.name }}</h6>
+                  <small class="text-muted">{{ shop.listings_count }} listings</small>
+                </div>
+                <span class="badge bg-primary">{{ shop.revenue|format_currency }}</span>
+              </a>
+            {% empty %}
+              <div class="text-center text-muted py-3">
+                <small>No shops yet</small>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endinclude %}
+
+      <!-- System Status Widget -->
+      {% include "admin/components/card.html" with title="System Status" icon="bi-heart-pulse" %}
+        <div class="system-status">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span>Database</span>
+            {% include "admin/components/status_indicator.html" with status="active" %}
+          </div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span>Cache</span>
+            {% include "admin/components/status_indicator.html" with status="active" %}
+          </div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span>API</span>
+            {% include "admin/components/status_indicator.html" with status="active" %}
+          </div>
+          <div class="d-flex align-items-center justify-content-between">
+            <span>Email</span>
+            {% include "admin/components/status_indicator.html" with status="active" %}
+          </div>
+        </div>
+      {% endinclude %}
+    </div>
+  </div>
+
+  <!-- Bottom Section: Pending Tasks -->
+  <div class="row mt-4">
+    <div class="col-md-6">
+      {% include "admin/components/card.html" with title="Pending Approvals" icon="bi-hourglass" %}
+        {% if pending_items %}
+          <div class="pending-items">
+            {% for item in pending_items %}
+              <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <div>
+                  <p class="mb-0">{{ item.title }}</p>
+                  <small class="text-muted">{{ item.submitted_by }} - {{ item.date }}</small>
+                </div>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-sm btn-outline-success" title="Approve">
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" title="Reject">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-center text-muted py-3">
+                <small>No pending items</small>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endinclude %}
+    </div>
+
+    <div class="col-md-6">
+      {% include "admin/components/card.html" with title="Recent Flags & Reports" icon="bi-flag" %}
+        {% if recent_flags %}
+          <div class="flags-list">
+            {% for flag in recent_flags %}
+              <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <div>
+                  <p class="mb-0">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    {{ flag.title }}
+                  </p>
+                  <small class="text-muted">By {{ flag.reported_by }} - {{ flag.date }}</small>
+                </div>
+                <a href="{% url 'admin:moderation' %}?flag_id={{ flag.id }}" class="btn btn-sm btn-outline-warning">
+                  Review
+                </a>
+              </div>
+            {% empty %}
+              <div class="text-center text-muted py-3">
+                <small>No recent flags</small>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endinclude %}
+    </div>
+  </div>
 </div>
 
 <style>
-.admin-dashboard-wrapper {
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: var(--space-6);
-  min-height: 100vh;
-  background: var(--surface-0);
-  padding: var(--space-6);
-}
-
-.admin-sidebar {
-  background: var(--surface-1);
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  height: fit-content;
-  position: sticky;
-  top: var(--space-6);
-}
-
-.admin-user-info {
-  margin-bottom: var(--space-6);
-  border-bottom: 1px solid var(--border-dim);
-  padding-bottom: var(--space-4);
-}
-
-.admin-user-info h3 {
-  font: 600 16px var(--font-body);
-  color: var(--text-1);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.admin-role {
-  font: 500 12px var(--font-body);
-  color: var(--text-3);
-  margin: 0;
-}
-
-.admin-nav {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.admin-nav-link {
-  display: block;
-  padding: var(--space-3);
-  background: transparent;
-  color: var(--text-2);
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  font: 500 14px var(--font-body);
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
-}
-
-.admin-nav-link:hover,
-.admin-nav-link.active {
-  background: rgba(26, 114, 232, 0.1);
-  color: var(--color-primary);
-  border-left-color: var(--color-primary);
-}
-
-.admin-content {
-  background: var(--surface-1);
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-}
-
-.dashboard-header h1 {
-  font: 700 32px var(--font-display);
-  color: var(--text-1);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.dashboard-header p {
-  font: 500 16px var(--font-body);
-  color: var(--text-2);
-  margin: 0 0 var(--space-6) 0;
-}
-
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-8);
-}
-
-.stat-card {
-  background: var(--surface-2);
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  text-align: center;
-}
-
-.stat-card h3 {
-  font: 700 32px var(--font-display);
-  color: var(--color-primary);
-  margin: 0;
-}
-
-.stat-card p {
-  font: 500 14px var(--font-body);
-  color: var(--text-2);
-  margin: var(--space-1) 0 0 0;
-}
-
-.dashboard-section h2 {
-  font: 600 20px var(--font-display);
-  color: var(--text-1);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.shops-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-4);
-}
-
-.shop-card {
-  background: var(--surface-2);
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-}
-
-.shop-card h3 {
-  font: 600 18px var(--font-body);
-  color: var(--text-1);
-  margin: 0 0 var(--space-2) 0;
-}
-
-.shop-description {
-  font: 500 13px var(--font-body);
-  color: var(--text-2);
-  margin: 0 0 var(--space-3) 0;
-}
-
-.shop-status {
-  margin-bottom: var(--space-3);
-}
-
-.status-badge {
-  display: inline-block;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  font: 600 12px var(--font-body);
-  text-transform: uppercase;
-}
-
-.status-badge.active {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16A34A;
-}
-
-.status-badge.inactive {
-  background: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
-}
-
-.btn-manage {
-  display: block;
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font: 600 13px var(--font-body);
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-manage:hover {
-  background: var(--color-primary-hover);
-}
-
-.no-data {
-  font: 500 14px var(--font-body);
-  color: var(--text-2);
-  text-align: center;
-  padding: var(--space-6);
-}
-
-.no-data a {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .admin-dashboard-wrapper {
-    grid-template-columns: 1fr;
+  .activity-item {
+    transition: background 0.2s;
   }
   
-  .admin-sidebar {
-    position: static;
+  .activity-item:hover {
+    background: var(--light-gray);
+    padding: 0.5rem;
+    margin: -0.5rem;
+    border-radius: 0.25rem;
   }
-}
+  
+  .avatar-circle {
+    flex-shrink: 0;
+  }
+  
+  .quick-actions .btn {
+    justify-content: flex-start;
+    text-align: left;
+  }
+  
+  .border-start-4 {
+    border-left: 4px solid !important;
+  }
 </style>
 {% endblock %}

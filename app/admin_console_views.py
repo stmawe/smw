@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from mydak.models import Shop
 from .admin_views import admin_login_required
+from .admin_permissions import permission_required, AdminPermission
 import subprocess
 import json
 
@@ -20,11 +21,12 @@ def is_staff(user):
 
 
 @admin_login_required
-@user_passes_test(is_staff)
+@permission_required(AdminPermission.MANAGE_SHOP_DOMAINS)
 def domains_console_view(request):
     """
     Admin console for managing domains and SSL certificates.
     Shows all shops with their domains and SSL status.
+    Requires: admin:manage_shop_domains permission
     """
     shops = Shop.objects.select_related('owner').all().order_by('-created_at')
     
@@ -51,13 +53,14 @@ def domains_console_view(request):
 
 
 @admin_login_required
-@user_passes_test(is_staff)
+@permission_required(AdminPermission.MANAGE_SHOP_DOMAINS)
 @require_http_methods(['POST'])
 def add_ssl_for_shop_view(request, shop_id):
     """
     AJAX endpoint to add SSL certificate for a shop
     POST: shop_id
     Returns: JSON with status
+    Requires: admin:manage_shop_domains permission
     """
     try:
         shop = get_object_or_404(Shop, id=shop_id)
@@ -88,12 +91,13 @@ def add_ssl_for_shop_view(request, shop_id):
 
 
 @admin_login_required
-@user_passes_test(is_staff)
+@permission_required(AdminPermission.MANAGE_SHOP_DOMAINS)
 def ssl_status_view(request, shop_id):
     """
     AJAX endpoint to check SSL status for a shop
     GET: shop_id
     Returns: JSON with SSL status
+    Requires: admin:manage_shop_domains permission
     """
     try:
         shop = get_object_or_404(Shop, id=shop_id)
@@ -169,3 +173,4 @@ def _get_ssl_status(domain):
     
     except Exception as e:
         return {'has_ssl': False, 'domain': domain, 'error': str(e)}
+

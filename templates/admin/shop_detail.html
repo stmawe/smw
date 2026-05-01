@@ -1,253 +1,287 @@
-{% extends 'admin/base.html' %}
+{% extends "admin/base.html" %}
+{% load admin_filters %}
 {% load static %}
 
-{% block title %}{{ shop.name }} - Admin Dashboard{% endblock %}
+{% block title %}{% if shop %}Edit Shop - Admin{% else %}Add Shop - Admin{% endif %}{% endblock %}
 
 {% block content %}
-<div class="admin-wrapper">
-  <div class="admin-header">
-    <div>
-      <h1>{{ shop.name }}</h1>
-      <p class="shop-meta">
-        <span class="status-badge {% if shop.is_active %}active{% else %}inactive{% endif %}">
-          {{ shop.is_active|yesno:"Active,Inactive" }}
-        </span>
-        <span class="listing-count">{{ listing_count }} listings</span>
-      </p>
-    </div>
-    <a href="{% url 'admin_shops' %}" class="btn-back">← Back to Shops</a>
-  </div>
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
   
-  <div class="shop-detail-container">
-    <div class="shop-info-section">
-      <h2>Shop Information</h2>
-      
-      <div class="info-group">
-        <label>Shop Name</label>
-        <p>{{ shop.name }}</p>
-      </div>
-      
-      <div class="info-group">
-        <label>Description</label>
-        <p>{{ shop.description|default:"No description" }}</p>
-      </div>
-      
-      <div class="info-group">
-        <label>Status</label>
-        <p>
-          <span class="status-badge {% if shop.is_active %}active{% else %}inactive{% endif %}">
-            {{ shop.is_active|yesno:"Active,Inactive" }}
-          </span>
-        </p>
-      </div>
-      
-      <div class="info-group">
-        <label>Created</label>
-        <p>{{ shop.created_at|date:"M d, Y" }}</p>
-      </div>
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">{% if shop %}{{ shop.name }}{% else %}Create New Shop{% endif %}</h1>
+      <p class="text-muted mb-0">Manage shop details, domain, and settings.</p>
     </div>
-    
-    <div class="shop-listings-section">
-      <h2>Listings</h2>
-      
-      {% if listings %}
-        <div class="listings-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for listing in listings %}
-                <tr>
-                  <td>{{ listing.name|truncatewords:5 }}</td>
-                  <td>${{ listing.price }}</td>
-                  <td>
-                    <span class="status-badge active">Active</span>
-                  </td>
-                  <td>
-                    <a href="#" class="btn-small">Edit</a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+    {% if shop %}
+      <div class="btn-group">
+        <a href="{{ shop.get_absolute_url }}" class="btn btn-outline-info" target="_blank">
+          <i class="bi bi-box-arrow-up-right"></i> View Shop
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="row">
+    <!-- Main Content (Left) -->
+    <div class="col-lg-8">
+      <!-- Basic Information -->
+      {% include "admin/components/card.html" with title="Shop Information" icon="bi-shop" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-md-6">
+            <label for="shopName" class="form-label">Shop Name</label>
+            <input type="text" class="form-control" id="shopName" name="name" value="{{ shop.name }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="shopOwner" class="form-label">Owner</label>
+            <input type="text" class="form-control" id="shopOwner" value="{{ shop.owner.username }}" disabled>
+            <small class="text-muted">Shop owner cannot be changed</small>
+          </div>
+
+          <div class="col-12">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Shop description...">{{ shop.description }}</textarea>
+          </div>
+
+          <div class="col-md-4">
+            <label for="category" class="form-label">Primary Category</label>
+            <select class="form-select" id="category" name="category">
+              <option value="">Select category...</option>
+              <option value="electronics" {% if shop.category == "electronics" %}selected{% endif %}>Electronics</option>
+              <option value="fashion" {% if shop.category == "fashion" %}selected{% endif %}>Fashion</option>
+              <option value="home" {% if shop.category == "home" %}selected{% endif %}>Home & Garden</option>
+              <option value="sports" {% if shop.category == "sports" %}selected{% endif %}>Sports</option>
+              <option value="other" {% if shop.category == "other" %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="active" {% if shop.is_active %}selected{% endif %}>Active</option>
+              <option value="inactive" {% if not shop.is_active %}selected{% endif %}>Inactive</option>
+              <option value="suspended" {% if shop.is_suspended %}selected{% endif %}>Suspended</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="visibility" class="form-label">Visibility</label>
+            <select class="form-select" id="visibility" name="visibility">
+              <option value="public" {% if shop.visibility == "public" %}selected{% endif %}>Public</option>
+              <option value="private" {% if shop.visibility == "private" %}selected{% endif %}>Private</option>
+              <option value="unlisted" {% if shop.visibility == "unlisted" %}selected{% endif %}>Unlisted</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Changes
+            </button>
+            <a href="{% url 'admin:shops' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-x"></i> Cancel
+            </a>
+          </div>
+        </form>
+      {% endinclude %}
+
+      <!-- Domain & SSL -->
+      {% include "admin/components/card.html" with title="Domain & SSL" icon="bi-lock" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-md-6">
+            <label for="customDomain" class="form-label">Custom Domain</label>
+            <input type="text" class="form-control" id="customDomain" name="domain" placeholder="shop.example.com" value="{{ shop.domain }}">
+            <small class="text-muted">Leave blank to use subdomain</small>
+          </div>
+
+          <div class="col-md-6">
+            <label for="sslStatus" class="form-label">SSL Certificate</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="sslStatus" value="{{ shop.ssl_status|default:'Not installed' }}" disabled>
+              <a href="{% url 'admin:shop-ssl' shop.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-gear"></i> Manage
+              </a>
+            </div>
+          </div>
+
+          <div class="col-12">
+            {% if shop.ssl_certificate %}
+              <div class="alert alert-info">
+                <strong>SSL Certificate Active</strong><br>
+                Expires: {{ shop.ssl_expires|date:"F j, Y" }}
+              </div>
+            {% else %}
+              <div class="alert alert-warning">
+                <strong>No SSL Certificate</strong><br>
+                <a href="{% url 'admin:shop-ssl' shop.id %}">Generate certificate</a>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Domain Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+
+      <!-- Payment Settings -->
+      {% include "admin/components/card.html" with title="Payment Settings" icon="bi-credit-card" %}
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="paymentsEnabled" name="payments_enabled" {% if shop.payments_enabled %}checked{% endif %}>
+              <label class="form-check-label" for="paymentsEnabled">
+                Enable payments on this shop
+              </label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="paymentProvider" class="form-label">Payment Provider</label>
+            <select class="form-select" id="paymentProvider" name="payment_provider">
+              <option value="stripe" {% if shop.payment_provider == "stripe" %}selected{% endif %}>Stripe</option>
+              <option value="paypal" {% if shop.payment_provider == "paypal" %}selected{% endif %}>PayPal</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="commissionRate" class="form-label">Commission Rate (%)</label>
+            <input type="number" class="form-control" id="commissionRate" name="commission_rate" value="{{ shop.commission_rate }}" min="0" max="100" step="0.1">
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check"></i> Save Payment Settings
+            </button>
+          </div>
+        </form>
+      {% endinclude %}
+
+      <!-- Danger Zone -->
+      {% include "admin/components/card.html" with title="Danger Zone" icon="bi-exclamation-triangle" header_class="bg-danger text-white" %}
+        <p class="text-muted mb-3">Irreversible actions. Proceed with caution.</p>
+        <div class="d-flex gap-2">
+          <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#suspendShopModal">
+            <i class="bi bi-pause"></i> Suspend Shop
+          </button>
+          <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteShopModal">
+            <i class="bi bi-trash"></i> Delete Shop
+          </button>
         </div>
-      {% else %}
-        <p class="empty">No listings yet</p>
-      {% endif %}
+      {% endinclude %}
+    </div>
+
+    <!-- Sidebar (Right) -->
+    <div class="col-lg-4">
+      <!-- Shop Stats -->
+      {% include "admin/components/card.html" with title="Shop Stats" icon="bi-graph-up" %}
+        <div class="list-group list-group-sm">
+          <div class="list-group-item">
+            <small class="text-muted">Total Listings</small>
+            <h6 class="mb-0">{{ shop.listings_count|default:0 }}</h6>
+          </div>
+          <div class="list-group-item">
+            <small class="text-muted">Active Listings</small>
+            <h6 class="mb-0">{{ shop.active_listings_count|default:0 }}</h6>
+          </div>
+          <div class="list-group-item">
+            <small class="text-muted">Total Sales</small>
+            <h6 class="mb-0">{{ shop.total_sales|format_currency|default:"$0.00" }}</h6>
+          </div>
+          <div class="list-group-item">
+            <small class="text-muted">Revenue</small>
+            <h6 class="mb-0">{{ shop.revenue|format_currency|default:"$0.00" }}</h6>
+          </div>
+        </div>
+      {% endinclude %}
+
+      <!-- Shop Status -->
+      {% include "admin/components/card.html" with title="Shop Status" icon="bi-info-circle" %}
+        <div class="mb-3">
+          <small class="text-muted">Created</small>
+          <p class="mb-2">{{ shop.created_at|date:"F j, Y" }}</p>
+        </div>
+        <div class="mb-3">
+          <small class="text-muted">Last Updated</small>
+          <p class="mb-2">{{ shop.updated_at|date:"F j, Y H:i" }}</p>
+        </div>
+        <div class="mb-0">
+          <small class="text-muted">Status</small>
+          <p class="mb-0">
+            {% if shop.is_active %}
+              {% include "admin/components/badge.html" with status="success" text="Active" %}
+            {% elif shop.is_suspended %}
+              {% include "admin/components/badge.html" with status="warning" text="Suspended" %}
+            {% else %}
+              {% include "admin/components/badge.html" with status="secondary" text="Inactive" %}
+            {% endif %}
+          </p>
+        </div>
+      {% endinclude %}
+
+      <!-- Quick Actions -->
+      {% include "admin/components/card.html" with title="Quick Actions" icon="bi-lightning" %}
+        <div class="d-grid gap-2">
+          <a href="{% url 'admin:shop-listings' shop.id %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-list-check"></i> View Listings
+          </a>
+          <a href="{% url 'admin:shop-analytics' shop.id %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-bar-chart"></i> Analytics
+          </a>
+          <a href="{% url 'admin:shop-ssl' shop.id %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-lock"></i> SSL & Domain
+          </a>
+        </div>
+      {% endinclude %}
     </div>
   </div>
 </div>
 
-<style>
-.admin-wrapper {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: var(--space-6);
-}
+<!-- Suspend Shop Modal -->
+{% include "admin/components/modal.html" with modal_id="suspendShopModal" title="Suspend Shop" size="lg" %}
+  <form id="suspendShopForm">
+    <div class="alert alert-warning mb-3">
+      <strong>This shop will be disabled and inaccessible to customers.</strong>
+    </div>
+    <div class="mb-3">
+      <label for="suspensionReason" class="form-label">Reason for Suspension</label>
+      <textarea class="form-control" id="suspensionReason" rows="3" placeholder="Enter reason..." required></textarea>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="notifyOwner" checked>
+      <label class="form-check-label" for="notifyOwner">
+        Send notification email to shop owner
+      </label>
+    </div>
+  </form>
+{% endinclude %}
 
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-6);
-}
-
-.admin-header h1 {
-  font: 700 32px var(--font-display);
-  color: var(--text-1);
-  margin: 0 0 var(--space-2) 0;
-}
-
-.shop-meta {
-  font: 500 14px var(--font-body);
-  color: var(--text-2);
-  margin: 0;
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  font: 600 12px var(--font-body);
-  text-transform: uppercase;
-}
-
-.status-badge.active {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16A34A;
-}
-
-.status-badge.inactive {
-  background: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
-}
-
-.listing-count {
-  font: 600 14px var(--font-body);
-  color: var(--color-primary);
-}
-
-.btn-back {
-  padding: var(--space-2) var(--space-4);
-  background: var(--surface-1);
-  color: var(--text-1);
-  border: 1px solid var(--border-mid);
-  border-radius: var(--radius-lg);
-  font: 600 14px var(--font-body);
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.btn-back:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.shop-detail-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: var(--space-6);
-}
-
-.shop-info-section,
-.shop-listings-section {
-  background: var(--surface-1);
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-}
-
-.shop-info-section h2,
-.shop-listings-section h2 {
-  font: 600 20px var(--font-display);
-  color: var(--text-1);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.info-group {
-  margin-bottom: var(--space-4);
-}
-
-.info-group label {
-  display: block;
-  font: 600 12px var(--font-body);
-  color: var(--text-2);
-  text-transform: uppercase;
-  margin-bottom: var(--space-1);
-}
-
-.info-group p {
-  font: 500 14px var(--font-body);
-  color: var(--text-1);
-  margin: 0;
-}
-
-.listings-table {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table th {
-  font: 600 12px var(--font-body);
-  color: var(--text-2);
-  text-align: left;
-  padding: var(--space-3);
-  border-bottom: 2px solid var(--border-dim);
-  text-transform: uppercase;
-}
-
-table td {
-  font: 500 14px var(--font-body);
-  color: var(--text-1);
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--border-dim);
-}
-
-.btn-small {
-  padding: var(--space-1) var(--space-2);
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font: 600 12px var(--font-body);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.btn-small:hover {
-  background: var(--color-primary-hover);
-}
-
-.empty {
-  font: 500 14px var(--font-body);
-  color: var(--text-2);
-  text-align: center;
-  padding: var(--space-6);
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .admin-header {
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-  
-  .shop-detail-container {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
+<!-- Delete Shop Modal -->
+{% include "admin/components/modal.html" with modal_id="deleteShopModal" title="Delete Shop" size="lg" %}
+  <form id="deleteShopForm">
+    <div class="alert alert-danger mb-3">
+      <strong>This action cannot be undone.</strong> The shop and all associated listings will be permanently deleted.
+    </div>
+    <div class="mb-3">
+      <label for="confirmShopName" class="form-label">Type the shop name to confirm</label>
+      <input type="text" class="form-control" id="confirmShopName" placeholder="{{ shop.name }}" required>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="confirmShopDelete" required>
+      <label class="form-check-label" for="confirmShopDelete">
+        I understand this is permanent and cannot be reversed
+      </label>
+    </div>
+  </form>
+{% endinclude %}
 {% endblock %}

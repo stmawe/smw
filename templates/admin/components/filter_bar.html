@@ -1,0 +1,61 @@
+{% comment %}
+Filter bar component for list pages
+Usage:
+  {% include "admin/components/filter_bar.html" with search_placeholder="Search users..." filters=filters %}
+
+Parameters:
+  - search_placeholder: Placeholder text for search input
+  - filters: List of filter objects with key, label, options, current
+  - show_reset (optional): Show reset filters button
+{% endcomment %}
+
+<div class="card card-sm mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <!-- Search -->
+      <div class="col-md-4">
+        <label for="searchInput" class="form-label">Search</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+          </span>
+          <input 
+            type="text" 
+            class="form-control border-start-0" 
+            id="searchInput" 
+            name="search" 
+            placeholder="{{ search_placeholder }}"
+            value="{{ request.GET.search }}"
+          >
+        </div>
+      </div>
+
+      <!-- Filters -->
+      {% for filter in filters %}
+        <div class="col-md">
+          <label for="filter_{{ filter.key }}" class="form-label">{{ filter.label }}</label>
+          <select class="form-select form-select-sm" id="filter_{{ filter.key }}" name="{{ filter.key }}">
+            <option value="">All</option>
+            {% for option in filter.options %}
+              <option value="{{ option.value }}" {% if option.value == request.GET|dict_lookup:filter.key %}selected{% endif %}>
+                {{ option.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endfor %}
+
+      <!-- Buttons -->
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="bi bi-funnel me-1"></i>Filter
+        </button>
+        {% if show_reset %}
+          <a href="?" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>

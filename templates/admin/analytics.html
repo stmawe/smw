@@ -1,0 +1,128 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Analytics & Reports - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Analytics & Reports</h1>
+      <p class="text-muted mb-0">Platform performance metrics and insights.</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline-secondary">
+        <i class="bi bi-calendar"></i> Date Range
+      </button>
+      <button class="btn btn-outline-secondary">
+        <i class="bi bi-download"></i> Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="row mb-4">
+    {% include "admin/components/stat_card.html" with title="Total Users" value=total_users icon="bi-people" color="primary" trend=user_growth trend_period="this month" %}
+    {% include "admin/components/stat_card.html" with title="Active Listings" value=active_listings icon="bi-list" color="success" trend=listings_growth trend_period="this month" %}
+    {% include "admin/components/stat_card.html" with title="Revenue" value=monthly_revenue icon="bi-cash-coin" color="info" trend=revenue_growth trend_period="this month" %}
+    {% include "admin/components/stat_card.html" with title="Transactions" value=monthly_transactions icon="bi-arrow-left-right" color="warning" trend=transaction_growth trend_period="this month" %}
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row mb-4">
+    <!-- Revenue Trend -->
+    <div class="col-lg-6">
+      {% include "admin/components/card.html" with title="Revenue Trend (Last 12 Months)" icon="bi-graph-up" %}
+        <div style="height: 300px; background: var(--light-gray); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+          <div class="text-center text-muted">
+            <p>Chart.js Integration Required</p>
+            <small>Line chart showing revenue over time</small>
+          </div>
+        </div>
+      {% endinclude %}
+    </div>
+
+    <!-- User Growth -->
+    <div class="col-lg-6">
+      {% include "admin/components/card.html" with title="User Growth (Last 12 Months)" icon="bi-person-plus" %}
+        <div style="height: 300px; background: var(--light-gray); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+          <div class="text-center text-muted">
+            <p>Chart.js Integration Required</p>
+            <small>Bar chart showing user signups</small>
+          </div>
+        </div>
+      {% endinclude %}
+    </div>
+  </div>
+
+  <!-- Detailed Reports -->
+  <div class="row">
+    <!-- Top Sellers Report -->
+    <div class="col-lg-6">
+      {% include "admin/components/card.html" with title="Top Sellers" icon="bi-award" %}
+        {% if top_sellers %}
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Rank</th>
+                  <th>Seller</th>
+                  <th>Sales</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for seller in top_sellers %}
+                  <tr>
+                    <td><strong>{{ forloop.counter }}</strong></td>
+                    <td>{{ seller.username }}</td>
+                    <td><span class="badge bg-info">{{ seller.sales_count }}</span></td>
+                    <td>{{ seller.revenue|format_currency }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted text-center py-3">No data</p>
+        {% endif %}
+      {% endinclude %}
+    </div>
+
+    <!-- Popular Categories Report -->
+    <div class="col-lg-6">
+      {% include "admin/components/card.html" with title="Popular Categories" icon="bi-tag" %}
+        {% if popular_categories %}
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Category</th>
+                  <th>Listings</th>
+                  <th>Sales</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for category in popular_categories %}
+                  <tr>
+                    <td>{{ category.name }}</td>
+                    <td><span class="badge bg-secondary">{{ category.listings_count }}</span></td>
+                    <td>{{ category.sales_count }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted text-center py-3">No data</p>
+        {% endif %}
+      {% endinclude %}
+    </div>
+  </div>
+</div>
+{% endblock %}

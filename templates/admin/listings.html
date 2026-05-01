@@ -1,0 +1,226 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Listings Moderation - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Listings Management</h1>
+      <p class="text-muted mb-0">Review, approve, reject, or feature listings.</p>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-warning">{{ pending_count }}</h5>
+        <small class="text-muted">Pending Review</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-success">{{ approved_count }}</h5>
+        <small class="text-muted">Approved</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-danger">{{ rejected_count }}</h5>
+        <small class="text-muted">Rejected</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center py-3">
+        <h5 class="mb-0 text-info">{{ flagged_count }}</h5>
+        <small class="text-muted">Flagged</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Bar -->
+  {% include "admin/components/filter_bar.html" with 
+    search_placeholder="Search listing title, seller..." 
+    filters=filters 
+    show_reset=True 
+  %}
+
+  <!-- Bulk Actions -->
+  {% include "admin/components/bulk_actions.html" with actions=bulk_actions %}
+
+  <!-- Listings Card -->
+  {% include "admin/components/card.html" with title="Listings Queue" icon="bi-list-check" %}
+    {% if listings %}
+      <div class="table-responsive">
+        <table class="table table-hover table-sm">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;">
+                <input type="checkbox" class="form-check-input select-all" aria-label="Select all">
+              </th>
+              <th>Title</th>
+              <th>Seller</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th style="width: 200px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for listing in listings %}
+              <tr>
+                <td>
+                  <input type="checkbox" class="form-check-input row-select" value="{{ listing.id }}" aria-label="Select row">
+                </td>
+                <td>
+                  <strong>{{ listing.title|truncatewords:8 }}</strong>
+                  {% if listing.is_flagged %}
+                    <br><span class="badge bg-danger">Flagged</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'admin:user-detail' listing.seller.id %}">
+                    {{ listing.seller.username }}
+                  </a>
+                </td>
+                <td>
+                  <span class="badge bg-secondary">{{ listing.category.name|truncatewords:3 }}</span>
+                </td>
+                <td>
+                  <strong>${{ listing.price|floatformat:2 }}</strong>
+                </td>
+                <td>
+                  {% if listing.status == "pending" %}
+                    {% include "admin/components/badge.html" with status="warning" text="Pending" %}
+                  {% elif listing.status == "approved" %}
+                    {% include "admin/components/badge.html" with status="success" text="Approved" %}
+                  {% elif listing.status == "rejected" %}
+                    {% include "admin/components/badge.html" with status="danger" text="Rejected" %}
+                  {% else %}
+                    {% include "admin/components/badge.html" with status="secondary" text=listing.status|title %}
+                  {% endif %}
+                </td>
+                <td>
+                  <small>{{ listing.created_at|date:"M d, Y" }}</small>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a href="{% url 'admin:listing-detail' listing.id %}" class="btn btn-outline-primary" title="View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    {% if perms.admin.approve_listings %}
+                      <button class="btn btn-outline-success" onclick="approveListing({{ listing.id }})" title="Approve">
+                        <i class="bi bi-check-circle"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" onclick="rejectListing({{ listing.id }})" title="Reject">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                    {% endif %}
+                    {% if perms.admin.feature_listings %}
+                      <button class="btn btn-outline-warning" onclick="featureListing({{ listing.id }})" title="Feature">
+                        <i class="bi bi-star"></i>
+                      </button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% include "admin/components/pagination.html" with page_obj=page_obj %}
+    {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+        <p class="mt-3">No listings to review</p>
+      </div>
+    {% endif %}
+  {% endinclude %}
+</div>
+
+<!-- Rejection Reason Modal -->
+{% include "admin/components/modal.html" with modal_id="rejectModal" title="Reject Listing" size="lg" %}
+  <form id="rejectForm">
+    <div class="mb-3">
+      <label for="rejectReason" class="form-label">Rejection Reason</label>
+      <textarea class="form-control" id="rejectReason" rows="4" placeholder="Enter reason for rejection..." required></textarea>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="notifyUser" checked>
+      <label class="form-check-label" for="notifyUser">
+        Notify seller of rejection
+      </label>
+    </div>
+  </form>
+{% endinclude %}
+
+<script>
+function approveListing(listingId) {
+  if (confirm('Approve this listing?')) {
+    // Submit approval
+    console.log('Approving listing:', listingId);
+  }
+}
+
+function rejectListing(listingId) {
+  const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+  modal.show();
+  
+  document.getElementById('rejectForm').onsubmit = function(e) {
+    e.preventDefault();
+    const reason = document.getElementById('rejectReason').value;
+    const notify = document.getElementById('notifyUser').checked;
+    console.log('Rejecting listing:', listingId, 'Reason:', reason, 'Notify:', notify);
+    modal.hide();
+  };
+}
+
+function featureListing(listingId) {
+  if (confirm('Feature this listing?')) {
+    console.log('Featuring listing:', listingId);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAll = document.querySelector('.select-all');
+  const rowSelects = document.querySelectorAll('.row-select');
+  const selectedCount = document.getElementById('selectedCount');
+  const bulkActionBar = document.getElementById('bulkActionBar');
+  
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      rowSelects.forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+      updateBulkActionBar();
+    });
+  }
+  
+  rowSelects.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActionBar);
+  });
+  
+  function updateBulkActionBar() {
+    const selected = document.querySelectorAll('.row-select:checked').length;
+    if (selectedCount) selectedCount.textContent = selected;
+    if (bulkActionBar) {
+      if (selected > 0) {
+        bulkActionBar.classList.remove('d-none');
+      } else {
+        bulkActionBar.classList.add('d-none');
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

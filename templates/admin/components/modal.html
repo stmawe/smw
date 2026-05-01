@@ -1,0 +1,43 @@
+{% comment %}
+Modal component for dialogs
+Usage:
+  {% include "admin/components/modal.html" with modal_id="deleteModal" title="Confirm Delete" size="lg" %}
+    <p>Are you sure you want to delete this item?</p>
+  {% endinclude %}
+
+Parameters:
+  - modal_id: Unique ID for the modal
+  - title: Modal title
+  - size (optional): "sm", "lg", "xl" (default: normal)
+  - actions (optional): List of action buttons (label, class, onclick/href)
+{% endcomment %}
+
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}Label" aria-hidden="true">
+  <div class="modal-dialog {% if size == 'lg' %}modal-lg{% elif size == 'xl' %}modal-xl{% elif size == 'sm' %}modal-sm{% endif %}">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h1 class="modal-title fs-5" id="{{ modal_id }}Label">{{ title }}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{ content }}
+      </div>
+      <div class="modal-footer border-top bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        {% if actions %}
+          {% for action in actions %}
+            {% if action.type == "form_submit" %}
+              <button type="submit" class="btn {{ action.class|default:'btn-primary' }}">
+                {{ action.label }}
+              </button>
+            {% else %}
+              <button type="button" class="btn {{ action.class|default:'btn-primary' }}" {% if action.onclick %}onclick="{{ action.onclick }}"{% endif %}>
+                {{ action.label }}
+              </button>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

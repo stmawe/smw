@@ -1,0 +1,49 @@
+{% comment %}
+Badge component for status indicators
+Usage:
+  {% include "admin/components/badge.html" with status="active" text="Active" %}
+
+Parameters:
+  - status: Status type (active, inactive, pending, warning, error, success)
+  - text: Badge text
+  - icon (optional): Bootstrap icon class
+{% endcomment %}
+
+{% spaceless %}
+  {% if status == "active" %}
+    <span class="badge bg-success">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% elif status == "inactive" %}
+    <span class="badge bg-secondary">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% elif status == "pending" %}
+    <span class="badge bg-warning text-dark">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% elif status == "warning" %}
+    <span class="badge bg-warning text-dark">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% elif status == "error" or status == "danger" %}
+    <span class="badge bg-danger">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% elif status == "success" %}
+    <span class="badge bg-success">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% else %}
+    <span class="badge bg-primary">
+      {% if icon %}<i class="bi {{ icon }} me-1"></i>{% endif %}
+      {{ text }}
+    </span>
+  {% endif %}
+{% endspaceless %}

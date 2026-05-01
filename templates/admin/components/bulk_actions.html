@@ -1,0 +1,71 @@
+{% comment %}
+Bulk actions toolbar
+Usage:
+  {% include "admin/components/bulk_actions.html" with actions=bulk_actions %}
+
+Parameters:
+  - actions: List of action objects with label, icon, url/onclick, confirm (optional)
+  - item_count: Number of selected items (for display)
+{% endcomment %}
+
+<div class="alert alert-info alert-dismissible fade show d-none" id="bulkActionBar" role="alert">
+  <div class="d-flex align-items-center justify-content-between">
+    <span>
+      <strong><span id="selectedCount">0</span> item(s) selected</strong>
+    </span>
+    <div class="btn-group btn-group-sm">
+      {% for action in actions %}
+        <button type="button" class="btn btn-outline-primary bulk-action-btn" data-action="{{ action.key }}" {% if action.confirm %}data-confirm="{{ action.confirm }}"{% endif %}>
+          <i class="bi {{ action.icon }}"></i>
+          {{ action.label }}
+        </button>
+      {% endfor %}
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="alert">Clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const bulkActionBar = document.getElementById('bulkActionBar');
+  const selectAllCheckbox = document.querySelector('.select-all');
+  const rowCheckboxes = document.querySelectorAll('.row-select');
+  const selectedCount = document.getElementById('selectedCount');
+  
+  function updateBulkActionBar() {
+    const selected = document.querySelectorAll('.row-select:checked').length;
+    selectedCount.textContent = selected;
+    if (selected > 0) {
+      bulkActionBar.classList.remove('d-none');
+    } else {
+      bulkActionBar.classList.add('d-none');
+    }
+  }
+  
+  selectAllCheckbox?.addEventListener('change', function() {
+    rowCheckboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+    updateBulkActionBar();
+  });
+  
+  rowCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActionBar);
+  });
+  
+  document.querySelectorAll('.bulk-action-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const action = this.dataset.action;
+      const confirm_msg = this.dataset.confirm;
+      const selected = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
+      
+      if (confirm_msg && !confirm(confirm_msg)) {
+        return;
+      }
+      
+      // Submit bulk action (implement based on your backend)
+      console.log('Bulk action:', action, 'Selected:', selected);
+    });
+  });
+});
+</script>

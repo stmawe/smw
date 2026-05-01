@@ -12,17 +12,25 @@ from django.http import JsonResponse
 from django.urls import reverse
 from .models import User
 from mydak.models import Shop
+from .admin_permissions import (
+    admin_access_required,
+    permission_required,
+    AdminPermission
+)
 
 
 def admin_login_required(function):
     """
     Custom login required decorator for admin subdomain.
     Redirects to admin login if not authenticated.
+    Now cascades to new RBAC system.
     """
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated:
-            # Verify user is staff/admin
+            # Check if user has admin access (is_staff or has RBAC admin role)
             if request.user.is_staff or request.user.is_superuser:
+                return function(request, *args, **kwargs)
+            elif hasattr(request, 'admin_perms') and request.admin_perms.has(AdminPermission.ACCESS_ADMIN_PANEL):
                 return function(request, *args, **kwargs)
             else:
                 messages.error(request, 'Only admin users can access this area.')

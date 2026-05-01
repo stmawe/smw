@@ -1,0 +1,35 @@
+{% comment %}
+Stat card for dashboard
+Usage:
+  {% include "admin/components/stat_card.html" with title="Total Users" value="1,234" icon="bi-people" color="primary" %}
+
+Parameters:
+  - title: Card title
+  - value: Large value/metric
+  - icon: Bootstrap icon class
+  - color: "primary", "success", "warning", "danger", "info"
+  - trend (optional): Percentage change (positive = green, negative = red)
+  - trend_period (optional): Time period for trend (e.g., "vs. last month")
+{% endcomment %}
+
+<div class="col-md-6 col-lg-3">
+  <div class="card border-start border-4 border-{{ color }} shadow-sm">
+    <div class="card-body">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <h6 class="card-title text-muted mb-1">{{ title }}</h6>
+          <h3 class="card-text mb-0">{{ value }}</h3>
+          {% if trend %}
+            <small class="{% if trend >= 0 %}text-success{% else %}text-danger{% endif %}">
+              <i class="bi {% if trend >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
+              {{ trend|abs }}% {% if trend_period %}{{ trend_period }}{% endif %}
+            </small>
+          {% endif %}
+        </div>
+        <div class="text-{{ color }} opacity-75" style="font-size: 2.5rem;">
+          <i class="bi {{ icon }}"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

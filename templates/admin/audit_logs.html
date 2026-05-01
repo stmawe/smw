@@ -1,0 +1,187 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Audit Logs - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Audit Logs</h1>
+      <p class="text-muted mb-0">Track all administrative actions and system events.</p>
+    </div>
+    <button class="btn btn-outline-secondary">
+      <i class="bi bi-download"></i> Export
+    </button>
+  </div>
+
+  <!-- Filter Bar -->
+  {% include "admin/components/filter_bar.html" with 
+    search_placeholder="Search by admin, action, resource..." 
+    filters=filters 
+    show_reset=True 
+  %}
+
+  <!-- Audit Logs Table -->
+  {% include "admin/components/card.html" with title="Activity Log" icon="bi-clock-history" %}
+    {% if logs %}
+      <div class="table-responsive">
+        <table class="table table-hover table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Timestamp</th>
+              <th>Admin</th>
+              <th>Action</th>
+              <th>Resource</th>
+              <th>Resource ID</th>
+              <th>Status</th>
+              <th style="width: 100px;">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+              <tr>
+                <td>
+                  <small>{{ log.created_at|date:"M d, Y H:i:s" }}</small>
+                </td>
+                <td>
+                  <a href="{% url 'admin:user-detail' log.admin.id %}">
+                    <strong>{{ log.admin.username }}</strong>
+                  </a>
+                </td>
+                <td>
+                  {% if log.action == "create" %}
+                    <span class="badge bg-success">CREATE</span>
+                  {% elif log.action == "update" %}
+                    <span class="badge bg-info">UPDATE</span>
+                  {% elif log.action == "delete" %}
+                    <span class="badge bg-danger">DELETE</span>
+                  {% elif log.action == "approve" %}
+                    <span class="badge bg-success">APPROVE</span>
+                  {% elif log.action == "reject" %}
+                    <span class="badge bg-warning">REJECT</span>
+                  {% elif log.action == "ban" %}
+                    <span class="badge bg-danger">BAN</span>
+                  {% elif log.action == "unban" %}
+                    <span class="badge bg-info">UNBAN</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ log.action|upper }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ log.resource_type|title }}</strong>
+                </td>
+                <td>
+                  <code style="font-size: 0.85rem;">{{ log.resource_id }}</code>
+                </td>
+                <td>
+                  {% if log.success %}
+                    {% include "admin/components/badge.html" with status="success" text="Success" %}
+                  {% else %}
+                    {% include "admin/components/badge.html" with status="danger" text="Failed" %}
+                  {% endif %}
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#detailModal" onclick="showLogDetail({{ log.id }})">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% include "admin/components/pagination.html" with page_obj=page_obj %}
+    {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+        <p class="mt-3">No audit logs found</p>
+      </div>
+    {% endif %}
+  {% endinclude %}
+</div>
+
+<!-- Log Detail Modal -->
+{% include "admin/components/modal.html" with modal_id="detailModal" title="Log Details" size="lg" %}
+  <div id="logDetailContent">
+    <p class="text-muted">Loading...</p>
+  </div>
+{% endinclude %}
+
+<script>
+function showLogDetail(logId) {
+  // Fetch and display log details
+  const detailContent = document.getElementById('logDetailContent');
+  
+  // Simulate fetching log details
+  fetch(`/admin/api/audit-logs/${logId}/`)
+    .then(response => response.json())
+    .then(data => {
+      let html = `
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Admin User</h6>
+            <p><a href="/admin/users/${data.admin_id}/">${data.admin_name}</a></p>
+            
+            <h6>Resource</h6>
+            <p><strong>${data.resource_type}</strong></p>
+            <code>${data.resource_id}</code>
+            
+            <h6>Action</h6>
+            <p><span class="badge bg-primary">${data.action.toUpperCase()}</span></p>
+          </div>
+          <div class="col-md-6">
+            <h6>Timestamp</h6>
+            <p>${data.timestamp}</p>
+            
+            <h6>IP Address</h6>
+            <code>${data.ip_address}</code>
+            
+            <h6>Status</h6>
+            <p>${data.success ? '<span class="badge bg-success">Success</span>' : '<span class="badge bg-danger">Failed</span>'}</p>
+          </div>
+        </div>
+      `;
+      
+      if (data.old_values || data.new_values) {
+        html += `
+          <div class="mt-3">
+            <h6>Changes</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="small">Old Values</h6>
+                <pre style="font-size: 0.85rem; background: var(--light-gray); padding: 8px; border-radius: 4px;">${JSON.stringify(data.old_values, null, 2)}</pre>
+              </div>
+              <div class="col-md-6">
+                <h6 class="small">New Values</h6>
+                <pre style="font-size: 0.85rem; background: var(--light-gray); padding: 8px; border-radius: 4px;">${JSON.stringify(data.new_values, null, 2)}</pre>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      if (data.error_message) {
+        html += `
+          <div class="mt-3 alert alert-danger">
+            <h6>Error Message</h6>
+            <p>${data.error_message}</p>
+          </div>
+        `;
+      }
+      
+      detailContent.innerHTML = html;
+    })
+    .catch(error => {
+      detailContent.innerHTML = `<div class="alert alert-danger">Error loading log details: ${error.message}</div>`;
+    });
+}
+</script>
+{% endblock %}

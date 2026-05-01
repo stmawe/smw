@@ -1,0 +1,48 @@
+{% comment %}
+Reusable card component for admin pages.
+Usage:
+  {% include "admin/components/card.html" with title="Card Title" icon="bi-chart-bar" %}
+    Card content goes here
+  {% endinclude %}
+
+Parameters:
+  - title (optional): Card title
+  - icon (optional): Bootstrap icon class (e.g., "bi-chart-bar")
+  - header_class (optional): CSS class for header (e.g., "bg-primary text-white")
+  - footer (optional): Include footer with actions
+  - loading (optional): Show loading spinner
+{% endcomment %}
+
+<div class="card shadow-sm mb-4">
+  {% if title or icon %}
+    <div class="card-header {% if header_class %}{{ header_class }}{% else %}bg-light border-bottom{% endif %}">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          {% if icon %}
+            <i class="bi {{ icon }} me-2"></i>
+          {% endif %}
+          <h5 class="mb-0">{{ title }}</h5>
+        </div>
+        {% block card_header_actions %}{% endblock %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card-body">
+    {% if loading %}
+      <div class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    {% else %}
+      {{ content }}
+    {% endif %}
+  </div>
+
+  {% if footer %}
+    <div class="card-footer bg-light border-top">
+      {% block card_footer %}{% endblock %}
+    </div>
+  {% endif %}
+</div>
