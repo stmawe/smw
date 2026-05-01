@@ -1,6 +1,7 @@
 """Admin URL configuration."""
 
 from django.urls import path
+from django.views.generic import RedirectView
 from . import university_admin_views, deployment_views, admin_views, admin_console_views, admin_crud_views, admin_advanced_views, admin_api
 from mydak import seller_views
 
@@ -10,6 +11,8 @@ admin_subdomain_base = [
     # Admin login (root path - shows login page for unauthenticated users)
     path('', admin_views.admin_login_view, name='admin_login'),
     path('login/', admin_views.admin_login_view, name='admin_login_explicit'),
+    # Redirect for allauth login URL (used by @login_required decorator)
+    path('accounts/login/', RedirectView.as_view(url='/login/', permanent=False), name='accounts_login'),
     
     # Admin console URLs (requires authentication)
     path('console/domains/', admin_console_views.domains_console_view, name='admin_console_domains'),
