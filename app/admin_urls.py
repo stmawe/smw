@@ -25,6 +25,26 @@ admin_subdomain_base = [
     path('<str:username>/', admin_views.admin_dashboard_view, name='admin_dashboard_user'),
 ]
 
+# Minimal working admin CRUD patterns - only includes fully implemented views
+admin_core_patterns = [
+    # User Management
+    path('admin/users/', admin_crud_views.admin_users_list, name='admin_users_list'),
+    path('admin/user/<int:user_id>/', admin_crud_views.admin_user_detail, name='admin_user_detail'),
+    
+    # Shop Management  
+    path('admin/shops/', admin_crud_views.admin_shops_list, name='admin_shops_list'),
+    path('admin/shop/<int:shop_id>/', admin_crud_views.admin_shop_detail, name='admin_shop_detail'),
+    
+    # Listings Management
+    path('admin/listings/', admin_crud_views.admin_listings_moderation, name='admin_listings_list'),
+    
+    # Transactions
+    path('admin/transactions/', admin_crud_views.admin_transactions_list, name='admin_transactions_list'),
+    
+    # Moderation (from admin_advanced_views)
+    path('admin/moderation/', admin_advanced_views.admin_moderation_center, name='admin_moderation_center'),
+]
+
 # University admin URLs
 admin_patterns = [
     path('university/dashboard/', university_admin_views.university_dashboard_view, name='university_dashboard'),
@@ -182,9 +202,9 @@ admin_crud_patterns = [
     path('admin/api/activity-feed/', admin_api.api_activity_feed, name='api_activity_feed'),
 ]
 
-# Combine admin subdomain patterns with CRUD patterns for the admin subdomain
-admin_subdomain_patterns = admin_subdomain_base
-# admin_subdomain_patterns = admin_subdomain_base + admin_crud_patterns  # TODO: Re-enable once all view functions are implemented
+# Combine admin subdomain patterns with core CRUD patterns for the admin subdomain
+admin_subdomain_patterns = admin_subdomain_base + admin_core_patterns
+# Full admin_crud_patterns disabled as most view functions are not yet implemented (see admin_crud_patterns above)
 
 # Main urlpatterns - exclude admin_crud_patterns as most view functions are not yet implemented
 urlpatterns = admin_patterns + seller_patterns + deployment_patterns
