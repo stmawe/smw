@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'app.admin_middleware.AdminSubdomainMiddleware',  # Admin subdomain routing
 ]
 
 ROOT_URLCONF = 'smw.urls'

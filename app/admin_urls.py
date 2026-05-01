@@ -24,6 +24,11 @@ admin_subdomain_patterns = [
     path('<str:username>/', admin_views.admin_dashboard_view, name='admin_dashboard_user'),
 ]
 
+# URLconf for admin subdomain routing
+admin_subdomain_urlconf = type('URLConf', (), {
+    'urlpatterns': admin_subdomain_patterns
+})
+
 # University admin URLs
 admin_patterns = [
     path('university/dashboard/', university_admin_views.university_dashboard_view, name='university_dashboard'),
