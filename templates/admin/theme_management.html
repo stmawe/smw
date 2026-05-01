@@ -39,7 +39,7 @@
               <h5 class="mb-1">Theme library</h5>
               <p class="text-muted mb-0">{{ total }} saved theme{{ total|pluralize }}</p>
             </div>
-            <span class="badge bg-primary">{{ active_theme.name|default:"No active theme" }}</span>
+            <span class="badge bg-primary">{{ active_theme_name }}</span>
           </div>
 
           <div class="row g-3">
@@ -97,7 +97,7 @@
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
             <div>
               <p class="text-uppercase text-muted small mb-1">Wizard</p>
-              <h4 class="mb-1">{{ selected_theme.name|default:"Build a new theme" }}</h4>
+              <h4 class="mb-1">{{ selected_theme_name }}</h4>
               <p class="text-muted mb-0">Step through identity, presets, overrides, and publish controls.</p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
@@ -123,24 +123,24 @@
                 <h6 class="mb-3">Identity</h6>
                 <div class="mb-3">
                   <label class="form-label">Theme name</label>
-                  <input id="themeName" type="text" class="form-control" value="{{ selected_theme.name|default:'' }}" placeholder="White Aurora">
+                  <input id="themeName" type="text" class="form-control" value="{{ selected_theme_name|default:'' }}" placeholder="White Aurora">
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Slug</label>
-                  <input id="themeSlug" type="text" class="form-control" value="{{ selected_theme.slug|default:'' }}" placeholder="white-aurora">
+                  <input id="themeSlug" type="text" class="form-control" value="{{ selected_theme_slug }}" placeholder="white-aurora">
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Theme type</label>
                   <select id="themeType" class="form-select">
-                    <option value="global" {% if selected_theme.theme_type == "global" %}selected{% endif %}>Global site theme</option>
-                    <option value="variant" {% if selected_theme.theme_type == "variant" %}selected{% endif %}>Variant</option>
-                    <option value="page-specific" {% if selected_theme.theme_type == "page-specific" %}selected{% endif %}>Page-specific override</option>
-                    <option value="accessibility" {% if selected_theme.theme_type == "accessibility" %}selected{% endif %}>Accessibility mode</option>
+                    <option value="global" {% if selected_theme_type == "global" %}selected{% endif %}>Global site theme</option>
+                    <option value="variant" {% if selected_theme_type == "variant" %}selected{% endif %}>Variant</option>
+                    <option value="page-specific" {% if selected_theme_type == "page-specific" %}selected{% endif %}>Page-specific override</option>
+                    <option value="accessibility" {% if selected_theme_type == "accessibility" %}selected{% endif %}>Accessibility mode</option>
                   </select>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Description</label>
-                  <textarea id="themeDescription" class="form-control" rows="3" placeholder="Explain what this theme changes.">{{ selected_theme.description|default:'' }}</textarea>
+                  <textarea id="themeDescription" class="form-control" rows="3" placeholder="Explain what this theme changes.">{{ selected_theme_description }}</textarea>
                 </div>
               </div>
             </div>
@@ -197,11 +197,11 @@
               <div class="theme-section h-100">
                 <h6 class="mb-3">Availability</h6>
                 <div class="form-check form-switch mb-3">
-                  <input id="isPublic" class="form-check-input" type="checkbox" {% if selected_theme.is_public %}checked{% endif %}>
+                  <input id="isPublic" class="form-check-input" type="checkbox" {% if selected_theme_is_public %}checked{% endif %}>
                   <label class="form-check-label" for="isPublic">Available to tenants</label>
                 </div>
                 <div class="form-check form-switch mb-3">
-                  <input id="isActive" class="form-check-input" type="checkbox" {% if selected_theme.is_active %}checked{% endif %}>
+                  <input id="isActive" class="form-check-input" type="checkbox" {% if selected_theme_is_active %}checked{% endif %}>
                   <label class="form-check-label" for="isActive">Set as active theme</label>
                 </div>
                 <div class="form-text">Use these controls to expose or activate the theme without breaking tenant-specific overrides.</div>
@@ -252,8 +252,8 @@
                 <span class="theme-dot bg-warning"></span>
                 <span class="theme-dot bg-success"></span>
               </div>
-              <div class="theme-preview-title">{{ selected_theme.name|default:active_theme.name|default:"Theme preview" }}</div>
-              <span class="badge bg-light text-dark">{{ selected_theme.get_theme_type_display|default:active_theme.get_theme_type_display|default:"Preview" }}</span>
+              <div class="theme-preview-title">{{ selected_theme_name|default:active_theme_name|default:"Theme preview" }}</div>
+              <span class="badge bg-light text-dark">{{ selected_theme_type_display|default:active_theme_type_display|default:"Preview" }}</span>
             </div>
 
             <div class="theme-preview-body">
@@ -268,7 +268,7 @@
               <section class="theme-preview-main">
                 <div class="row g-3 mb-3">
                   <div class="col-md-4"><div class="theme-preview-card"><small>Users</small><h3>{{ total|default:0 }}</h3></div></div>
-                  <div class="col-md-4"><div class="theme-preview-card"><small>Active</small><h3>{{ active_theme.name|default:"White" }}</h3></div></div>
+                  <div class="col-md-4"><div class="theme-preview-card"><small>Active</small><h3>{{ active_theme_name|default:"White" }}</h3></div></div>
                   <div class="col-md-4"><div class="theme-preview-card"><small>Mode</small><h3 id="previewModeLabel">Desktop</h3></div></div>
                 </div>
 

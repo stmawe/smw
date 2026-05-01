@@ -203,6 +203,15 @@ def _theme_studio_context(request, selected_theme=None):
         selected_theme = themes_page[0] if themes_page else active_theme
 
     preview_theme = selected_theme or active_theme
+    selected_theme_name = selected_theme.name if selected_theme else 'Build a new theme'
+    selected_theme_slug = selected_theme.slug if selected_theme else ''
+    selected_theme_description = selected_theme.description if selected_theme else ''
+    selected_theme_type = selected_theme.theme_type if selected_theme else 'global'
+    selected_theme_type_display = selected_theme.get_theme_type_display() if selected_theme else 'Theme'
+    selected_theme_is_public = bool(selected_theme.is_public) if selected_theme else False
+    selected_theme_is_active = bool(selected_theme.is_active) if selected_theme else False
+    active_theme_name = active_theme.name if active_theme else 'No active theme'
+    active_theme_type_display = active_theme.get_theme_type_display() if active_theme else 'Preview'
 
     context = {
         'breadcrumbs': [
@@ -218,8 +227,17 @@ def _theme_studio_context(request, selected_theme=None):
         'search': search,
         'status': status_filter,
         'active_theme': active_theme,
+        'active_theme_name': active_theme_name,
+        'active_theme_type_display': active_theme_type_display,
         'tokens': tokens,
         'selected_theme': selected_theme,
+        'selected_theme_name': selected_theme_name,
+        'selected_theme_slug': selected_theme_slug,
+        'selected_theme_description': selected_theme_description,
+        'selected_theme_type': selected_theme_type,
+        'selected_theme_type_display': selected_theme_type_display,
+        'selected_theme_is_public': selected_theme_is_public,
+        'selected_theme_is_active': selected_theme_is_active,
         'theme_payload': _build_theme_payload(preview_theme),
         'merged_tokens': preview_theme.get_merged_tokens() if preview_theme else {},
         'preview_css': preview_theme.generate_css() if preview_theme else '',
