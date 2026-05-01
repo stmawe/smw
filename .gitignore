@@ -72,6 +72,9 @@ secrets.json
 config.json
 *.pem
 *.key
+.secrets/
+cf.ini
+cloudflare_credentials.ini
 
 # npm/node (if used)
 node_modules/

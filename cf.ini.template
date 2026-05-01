@@ -1,0 +1,18 @@
+# Cloudflare Credentials Template for Certbot
+# 
+# IMPORTANT: This is a TEMPLATE only. Do NOT commit credentials with actual tokens!
+#
+# To use:
+# 1. Copy this file to ~/.secrets/cf.ini
+# 2. Replace YOUR_CF_API_TOKEN with your actual Cloudflare API token
+# 3. Set permissions to 600: chmod 600 ~/.secrets/cf.ini
+# 4. Delete this template file after setup
+#
+# The setup_ssl.sh script does this automatically when you run:
+#   export CF_API_TOKEN="your_token_here"
+#   bash setup_ssl.sh
+
+dns_cloudflare_api_token = YOUR_CF_API_TOKEN
+
+# Optional: Specify Cloudflare email (if using email auth instead of token)
+# dns_cloudflare_email = your_email@example.com
