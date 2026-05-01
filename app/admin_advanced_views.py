@@ -621,7 +621,7 @@ def admin_moderation_center(request):
         return render(request, 'admin/moderation_center.html', context)
     except Exception as e:
         messages.error(request, f"Error loading moderation center: {str(e)}")
-        return redirect('admin:dashboard_full')
+        return redirect('admin_dashboard_full')
 
 
 @login_required
