@@ -319,6 +319,10 @@ class AdminPermissions:
         """Shortcut: check if user can view analytics"""
         return self.has(AdminPermission.VIEW_ANALYTICS)
     
+    def can_view_audit_logs(self):
+        """Shortcut: check if user can view audit logs"""
+        return self.has(AdminPermission.VIEW_AUDIT_LOGS)
+    
     def __repr__(self):
         return f"AdminPermissions(role={self.role}, user={self.user.username})"
 
