@@ -87,7 +87,7 @@
             </a>
           </div>
         </form>
-      {% endinclude %}
+      
 
       <!-- Domain & SSL -->
       {% include "admin/components/card.html" with title="Domain & SSL" icon="bi-lock" %}
@@ -130,7 +130,7 @@
             </button>
           </div>
         </form>
-      {% endinclude %}
+      
 
       <!-- Payment Settings -->
       {% include "admin/components/card.html" with title="Payment Settings" icon="bi-credit-card" %}
@@ -165,7 +165,7 @@
             </button>
           </div>
         </form>
-      {% endinclude %}
+      
 
       <!-- Danger Zone -->
       {% include "admin/components/card.html" with title="Danger Zone" icon="bi-exclamation-triangle" header_class="bg-danger text-white" %}
@@ -178,7 +178,7 @@
             <i class="bi bi-trash"></i> Delete Shop
           </button>
         </div>
-      {% endinclude %}
+      
     </div>
 
     <!-- Sidebar (Right) -->
@@ -203,7 +203,7 @@
             <h6 class="mb-0">{{ shop.revenue|format_currency|default:"$0.00" }}</h6>
           </div>
         </div>
-      {% endinclude %}
+      
 
       <!-- Shop Status -->
       {% include "admin/components/card.html" with title="Shop Status" icon="bi-info-circle" %}
@@ -227,7 +227,7 @@
             {% endif %}
           </p>
         </div>
-      {% endinclude %}
+      
 
       <!-- Quick Actions -->
       {% include "admin/components/card.html" with title="Quick Actions" icon="bi-lightning" %}
@@ -242,7 +242,7 @@
             <i class="bi bi-lock"></i> SSL & Domain
           </a>
         </div>
-      {% endinclude %}
+      
     </div>
   </div>
 </div>
@@ -264,7 +264,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <!-- Delete Shop Modal -->
 {% include "admin/components/modal.html" with modal_id="deleteShopModal" title="Delete Shop" size="lg" %}
@@ -283,5 +283,5 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 {% endblock %}

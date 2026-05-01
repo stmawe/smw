@@ -134,7 +134,7 @@
         <p class="mt-3">No transactions found</p>
       </div>
     {% endif %}
-  {% endinclude %}
+  
 
   <!-- Pending Refunds Section -->
   {% if pending_refunds %}
@@ -170,7 +170,7 @@
           </tbody>
         </table>
       </div>
-    {% endinclude %}
+    
   {% endif %}
 </div>
 
@@ -201,7 +201,7 @@
       <textarea class="form-control" id="refundNotes" rows="3" placeholder="Additional notes..."></textarea>
     </div>
   </form>
-{% endinclude %}
+
 
 <script>
 function processRefund(transactionId) {

@@ -87,7 +87,7 @@
         <p class="mt-3">No categories yet</p>
       </div>
     {% endif %}
-  {% endinclude %}
+  
 </div>
 
 <!-- Add Category Modal -->
@@ -112,7 +112,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <!-- Edit Category Modal -->
 {% include "admin/components/modal.html" with modal_id="editCategoryModal" title="Edit Category" size="lg" %}
@@ -137,7 +137,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <script>
 function editCategory(categoryId) {

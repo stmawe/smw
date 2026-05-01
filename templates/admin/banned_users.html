@@ -113,7 +113,7 @@
         <p class="mt-3">No banned users</p>
       </div>
     {% endif %}
-  {% endinclude %}
+  
 
   <!-- Recent Unbans -->
   {% if recent_unbans %}
@@ -138,7 +138,7 @@
           {% endfor %}
         </tbody>
       </table>
-    {% endinclude %}
+    
   {% endif %}
 </div>
 
@@ -147,7 +147,7 @@
   <div id="banDetailContent">
     <p class="text-muted">Loading...</p>
   </div>
-{% endinclude %}
+
 
 <!-- Extend Ban Modal -->
 {% include "admin/components/modal.html" with modal_id="extendBanModal" title="Extend Ban" size="lg" %}
@@ -168,7 +168,7 @@
       <textarea class="form-control" id="extendReason" rows="3" placeholder="Optional reason..."></textarea>
     </div>
   </form>
-{% endinclude %}
+
 
 <!-- Unban Confirmation Modal -->
 {% include "admin/components/modal.html" with modal_id="unbanConfirmModal" title="Unban User" size="lg" %}
@@ -189,7 +189,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <script>
 function loadBanDetail(userId) {

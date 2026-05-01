@@ -107,7 +107,7 @@
             </div>
           </div>
         </form>
-      {% endinclude %}
+      
 
       <!-- Danger Zone (Edit Only) -->
       {% if user_obj %}
@@ -121,7 +121,7 @@
               <i class="bi bi-trash"></i> Delete User
             </button>
           </div>
-        {% endinclude %}
+        
       {% endif %}
     </div>
 
@@ -150,7 +150,7 @@
               {% endif %}
             </p>
           </div>
-        {% endinclude %}
+        
 
         <!-- User Activity -->
         {% include "admin/components/card.html" with title="Recent Activity" icon="bi-clock-history" %}
@@ -168,7 +168,7 @@
               <h6 class="mb-0">{{ user_obj.total_sales|format_currency|default:"$0.00" }}</h6>
             </div>
           </div>
-        {% endinclude %}
+        
 
         <!-- Permissions Summary -->
         {% include "admin/components/card.html" with title="Permissions" icon="bi-shield-check" %}
@@ -198,7 +198,7 @@
               </label>
             </div>
           </div>
-        {% endinclude %}
+        
       </div>
     {% endif %}
   </div>
@@ -231,7 +231,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <!-- Delete Modal -->
 {% include "admin/components/modal.html" with modal_id="deleteModal" title="Delete User" size="lg" %}
@@ -251,7 +251,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <script>
 document.getElementById('changePassword').addEventListener('change', function() {

@@ -103,7 +103,7 @@
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDomainModal">
           <i class="bi bi-plus"></i> Add Custom Domain
         </button>
-      {% endinclude %}
+      
     </div>
 
     <!-- SSL Certificates Tab -->
@@ -202,7 +202,7 @@
             </tbody>
           </table>
         {% endif %}
-      {% endinclude %}
+      
     </div>
 
     <!-- DNS Records Tab -->
@@ -246,7 +246,7 @@
         <button class="btn btn-primary">
           <i class="bi bi-arrow-repeat"></i> Check DNS Status
         </button>
-      {% endinclude %}
+      
     </div>
   </div>
 </div>
@@ -266,7 +266,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <!-- Generate SSL Modal -->
 {% include "admin/components/modal.html" with modal_id="generateSSLModal" title="Generate SSL Certificate" size="lg" %}
@@ -293,7 +293,7 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 
 <script>
 function copyToClipboard(text) {

@@ -53,7 +53,7 @@
           <h6>Description</h6>
           <p>{{ listing.description|truncatewords:50 }}</p>
         </div>
-      {% endinclude %}
+      
 
       <!-- Status & Actions -->
       {% include "admin/components/card.html" with title="Status & Actions" icon="bi-sliders" %}
@@ -93,7 +93,7 @@
             </button>
           </div>
         </form>
-      {% endinclude %}
+      
 
       <!-- Flags & Reports -->
       {% if listing.flags or listing.reports %}
@@ -121,7 +121,7 @@
               </div>
             {% endfor %}
           {% endif %}
-        {% endinclude %}
+        
       {% endif %}
 
       <!-- Danger Zone -->
@@ -132,7 +132,7 @@
             <i class="bi bi-trash"></i> Delete Listing
           </button>
         </div>
-      {% endinclude %}
+      
     </div>
 
     <!-- Sidebar (Right) -->
@@ -157,7 +157,7 @@
             <h6 class="mb-0">{{ listing.created_at|date:"M d, Y" }}</h6>
           </div>
         </div>
-      {% endinclude %}
+      
 
       <!-- Current Status -->
       {% include "admin/components/card.html" with title="Current Status" icon="bi-info-circle" %}
@@ -179,7 +179,7 @@
           <dt class="col-sm-6">Quantity:</dt>
           <dd class="col-sm-6">{{ listing.quantity|default:1 }}</dd>
         </dl>
-      {% endinclude %}
+      
 
       <!-- Shop Info -->
       {% include "admin/components/card.html" with title="Shop Information" icon="bi-shop" %}
@@ -187,7 +187,7 @@
         <a href="{% url 'admin:shop-detail' listing.shop.id %}">View Shop →</a>
         <hr>
         <small class="text-muted">{{ listing.shop.listings_count }} listings</small>
-      {% endinclude %}
+      
     </div>
   </div>
 </div>
@@ -209,5 +209,5 @@
       </label>
     </div>
   </form>
-{% endinclude %}
+
 {% endblock %}
