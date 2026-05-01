@@ -654,7 +654,7 @@ def admin_transactions_list(request):
     List all transactions with filtering.
     """
     transactions = Transaction.objects.all().select_related(
-        'seller', 'buyer', 'shop'
+        'user', 'shop', 'listing'
     ).order_by('-created_at')
     
     # Apply filters
@@ -666,9 +666,9 @@ def admin_transactions_list(request):
     
     if search:
         transactions = transactions.filter(
-            Q(transaction_id__icontains=search) |
-            Q(seller__email__icontains=search) |
-            Q(buyer__email__icontains=search)
+            Q(reference_id__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(mpesa_receipt__icontains=search)
         )
     
     # Pagination
