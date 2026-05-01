@@ -29,8 +29,16 @@
     </div>
 
     <!-- Form -->
-    <form class="shop-creation-form" method="POST">
+    <form class="shop-creation-form" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
+      
+      {% if messages %}
+        <div class="form-messages">
+          {% for message in messages %}
+            <div class="message message-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
 
       <!-- Step 1: Basic Info -->
       <div class="wizard-step active" data-step="1">
@@ -230,6 +238,41 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   margin-top: var(--space-5);
+}
+
+.form-messages {
+  margin-bottom: var(--space-5);
+}
+
+.message {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font: 500 13px var(--font-body);
+  margin-bottom: var(--space-2);
+  animation: slideDown 0.3s ease-out;
+}
+
+.message-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.message-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16A34A;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .wizard-step {

@@ -152,7 +152,7 @@ def locations_view(request):
     return render(request, 'locations.html')
 
 def create_shop_view(request):
-    """Shop creation wizard"""
+    """Shop creation wizard with multi-step form"""
     # Check if user is authenticated
     if not request.user.is_authenticated:
         messages.info(request, 'Please log in to create a shop.')
@@ -160,25 +160,76 @@ def create_shop_view(request):
     
     # Check if user already has 2 shops (max limit)
     from mydak.models import Shop
-    shop_count = Shop.objects.filter(owner=request.user, is_active=True).count()
+    shop_count = Shop.objects.filter(owner=request.user, is_active=False).count() + \
+                 Shop.objects.filter(owner=request.user, is_active=True).count()
     if shop_count >= 2:
         messages.error(request, 'You have reached the maximum number of shops (2). Delete an existing shop to create a new one.')
         return redirect('explore')
     
     if request.method == 'POST':
-        # Handle shop creation
-        shop_name = request.POST.get('shop_name')
-        shop_description = request.POST.get('shop_description', '')
+        # Get form data from POST
+        shop_name = request.POST.get('shop_name', '').strip()
+        description = request.POST.get('description', '').strip()
+        category = request.POST.get('category', '')
+        location = request.POST.get('location', '')
+        terms_agreed = request.POST.get('terms')
+        
+        # Validation
+        if not shop_name:
+            messages.error(request, 'Shop name is required.')
+            return render(request, 'create_shop.html', {
+                'remaining_shops': 2 - shop_count,
+                'shop_count': shop_count,
+                'form_data': request.POST
+            })
+        
+        if not category:
+            messages.error(request, 'Please select a category.')
+            return render(request, 'create_shop.html', {
+                'remaining_shops': 2 - shop_count,
+                'shop_count': shop_count,
+                'form_data': request.POST
+            })
+        
+        if not location:
+            messages.error(request, 'Please select a location.')
+            return render(request, 'create_shop.html', {
+                'remaining_shops': 2 - shop_count,
+                'shop_count': shop_count,
+                'form_data': request.POST
+            })
+        
+        if not terms_agreed:
+            messages.error(request, 'You must agree to the terms and conditions.')
+            return render(request, 'create_shop.html', {
+                'remaining_shops': 2 - shop_count,
+                'shop_count': shop_count,
+                'form_data': request.POST
+            })
         
         # Create the shop
-        shop = Shop.objects.create(
-            owner=request.user,
-            name=shop_name,
-            description=shop_description
-        )
-        
-        messages.success(request, f'Shop "{shop_name}" created successfully!')
-        return redirect('explore')
+        try:
+            shop = Shop.objects.create(
+                owner=request.user,
+                name=shop_name,
+                description=description
+            )
+            
+            # Save uploaded files if provided
+            if 'logo' in request.FILES:
+                shop.logo = request.FILES['logo']
+            
+            shop.save()
+            
+            messages.success(request, f'🎉 Shop "{shop_name}" created successfully! Start adding items to your shop.')
+            return redirect('explore')
+        except Exception as e:
+            messages.error(request, f'Error creating shop: {str(e)}')
+            return render(request, 'create_shop.html', {
+                'remaining_shops': 2 - shop_count,
+                'shop_count': shop_count,
+                'form_data': request.POST
+            })
     
     context = {
         'remaining_shops': 2 - shop_count,
