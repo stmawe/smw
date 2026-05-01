@@ -240,8 +240,8 @@ def admin_analytics_dashboard(request):
     # Transactions by status
     status_breakdown = transactions.values('status').annotate(count=Count('*'))
     
-    # Top sellers
-    top_sellers = transactions.values('seller').annotate(
+    # Top sellers (by user)
+    top_sellers = transactions.values('user').annotate(
         total_sales=Count('*'),
         revenue=Sum('amount')
     ).order_by('-revenue')[:10]
