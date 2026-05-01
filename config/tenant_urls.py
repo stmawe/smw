@@ -9,9 +9,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # Import admin URL patterns for admin subdomain
-from app.admin_urls import admin_subdomain_patterns
+from app.admin_urls import admin_subdomain_patterns, admin_crud_patterns
 
-urlpatterns = admin_subdomain_patterns + [
+urlpatterns = admin_subdomain_patterns + admin_crud_patterns + [
     path('admin/', admin.site.urls),
     path('', include('mydak.urls')),
 ]
