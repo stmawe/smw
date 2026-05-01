@@ -52,7 +52,18 @@ admin_core_patterns = [
     path('admin/analytics/', admin_advanced_views.admin_analytics_dashboard, name='admin_analytics_dashboard'),
     path('admin/settings/general/', admin_crud_views.admin_settings_view, name='admin_settings'),
     path('admin/settings/save/', admin_advanced_views.admin_save_settings, name='admin_save_settings'),
-    
+
+    # Theme Studio
+    path('admin/themes/', admin_crud_views.admin_themes_list, name='admin_themes_list'),
+    path('admin/theme/<int:theme_id>/', admin_crud_views.admin_theme_detail, name='admin_theme_detail'),
+    path('admin/theme/create/', admin_crud_views.admin_theme_create, name='admin_theme_create'),
+    path('admin/theme/<int:theme_id>/update/', admin_crud_views.admin_theme_update, name='admin_theme_update'),
+    path('admin/theme/<int:theme_id>/activate/', admin_crud_views.admin_theme_activate, name='admin_theme_activate'),
+    path('admin/theme/<int:theme_id>/delete/', admin_crud_views.admin_theme_delete, name='admin_theme_delete'),
+    path('admin/theme/<int:theme_id>/preview/', admin_crud_views.admin_theme_preview, name='admin_theme_preview'),
+    path('admin/theme/<int:theme_id>/publish/', admin_crud_views.admin_theme_publish, name='admin_theme_publish'),
+    path('admin/theme/<int:theme_id>/unpublish/', admin_crud_views.admin_theme_unpublish, name='admin_theme_unpublish'),
+
     # Audit Logs
     path('admin/audit-logs/', admin_crud_views.admin_audit_logs, name='admin_audit_logs'),
 ]
