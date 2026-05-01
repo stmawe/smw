@@ -11,10 +11,8 @@ from django.conf.urls.static import static
 # Import admin URL patterns for admin subdomain
 from app.admin_urls import admin_subdomain_patterns
 
-urlpatterns = [
+urlpatterns = admin_subdomain_patterns + [
     path('admin/', admin.site.urls),
-    # Include admin console routes for admin subdomain
-    path('', admin_subdomain_patterns),
     path('', include('mydak.urls')),
 ]
 
