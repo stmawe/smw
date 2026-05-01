@@ -1,8 +1,18 @@
 """Admin URL configuration."""
 
 from django.urls import path
-from . import university_admin_views, deployment_views
+from . import university_admin_views, deployment_views, admin_views
 from mydak import seller_views
+
+# Admin subdomain URLs (for https://admin.smw.pgwiz.cloud/)
+admin_subdomain_patterns = [
+    path('', admin_views.admin_dashboard_view, name='admin_dashboard'),
+    path('dashboard/', admin_views.admin_dashboard_view, name='admin_dashboard_full'),
+    path('<str:username>/', admin_views.admin_dashboard_view, name='admin_dashboard_user'),
+    path('<str:username>/dashboard/', admin_views.admin_dashboard_view, name='admin_dashboard_user_full'),
+    path('<str:username>/shops/', admin_views.admin_shops_view, name='admin_shops'),
+    path('<str:username>/shop/<int:shop_id>/', admin_views.admin_shop_detail_view, name='admin_shop_detail'),
+]
 
 # University admin URLs
 admin_patterns = [
