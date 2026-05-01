@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - {{ target_user.get_full_name|default:target_user.username }}{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-wrapper">
+  <div class="admin-sidebar">
+    <div class="admin-user-info">
+      <h3>{{ target_user.get_full_name|default:target_user.username }}</h3>
+      <p class="admin-role">Administrator</p>
+    </div>
+    
+    <nav class="admin-nav">
+      <a href="{% url 'admin_dashboard' %}" class="admin-nav-link active">Dashboard</a>
+      <a href="{% url 'admin_shops' %}{{ target_user.username }}/" class="admin-nav-link">My Shops</a>
+      <a href="/" class="admin-nav-link">Back to Site</a>
+    </nav>
+  </div>
+  
+  <main class="admin-content">
+    <div class="dashboard-header">
+      <h1>Welcome Back, {{ target_user.first_name|default:target_user.username }}! 👋</h1>
+      <p>Here's your shop overview</p>
+    </div>
+    
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <h3>{{ shop_count }}</h3>
+        <p>Shops</p>
+      </div>
+      <div class="stat-card">
+        <h3>{{ active_shops }}</h3>
+        <p>Active</p>
+      </div>
+      <div class="stat-card">
+        <h3>{{ total_listings }}</h3>
+        <p>Listings</p>
+      </div>
+    </div>
+    
+    <div class="dashboard-section">
+      <h2>Your Shops</h2>
+      {% if shops %}
+        <div class="shops-list">
+          {% for shop in shops %}
+            <div class="shop-card">
+              <h3>{{ shop.name }}</h3>
+              <p class="shop-description">{{ shop.description|truncatewords:20 }}</p>
+              <div class="shop-status">
+                <span class="status-badge {% if shop.is_active %}active{% else %}inactive{% endif %}">
+                  {% if shop.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+              </div>
+              <a href="{% url 'admin_shop_detail' target_user.username shop.id %}" class="btn-manage">Manage Shop</a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-data">You don't have any shops yet. <a href="{% url 'create_shop' %}">Create one now!</a></p>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<style>
+.admin-dashboard-wrapper {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: var(--space-6);
+  min-height: 100vh;
+  background: var(--surface-0);
+  padding: var(--space-6);
+}
+
+.admin-sidebar {
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  height: fit-content;
+  position: sticky;
+  top: var(--space-6);
+}
+
+.admin-user-info {
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: var(--space-4);
+}
+
+.admin-user-info h3 {
+  font: 600 16px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.admin-role {
+  font: 500 12px var(--font-body);
+  color: var(--text-3);
+  margin: 0;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-nav-link {
+  display: block;
+  padding: var(--space-3);
+  background: transparent;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font: 500 14px var(--font-body);
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.active {
+  background: rgba(26, 114, 232, 0.1);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
+
+.admin-content {
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.dashboard-header h1 {
+  font: 700 32px var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.dashboard-header p {
+  font: 500 16px var(--font-body);
+  color: var(--text-2);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.stat-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.stat-card h3 {
+  font: 700 32px var(--font-display);
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.stat-card p {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  margin: var(--space-1) 0 0 0;
+}
+
+.dashboard-section h2 {
+  font: 600 20px var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.shops-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.shop-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.shop-card h3 {
+  font: 600 18px var(--font-body);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.shop-description {
+  font: 500 13px var(--font-body);
+  color: var(--text-2);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.shop-status {
+  margin-bottom: var(--space-3);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font: 600 12px var(--font-body);
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16A34A;
+}
+
+.status-badge.inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6B7280;
+}
+
+.btn-manage {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font: 600 13px var(--font-body);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-manage:hover {
+  background: var(--color-primary-hover);
+}
+
+.no-data {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.no-data a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard-wrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-sidebar {
+    position: static;
+  }
+}
+</style>
+{% endblock %}

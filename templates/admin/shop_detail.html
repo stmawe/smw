@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ shop.name }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+  <div class="admin-header">
+    <div>
+      <h1>{{ shop.name }}</h1>
+      <p class="shop-meta">
+        <span class="status-badge {% if shop.is_active %}active{% else %}inactive{% endif %}">
+          {{ shop.is_active|yesno:"Active,Inactive" }}
+        </span>
+        <span class="listing-count">{{ listing_count }} listings</span>
+      </p>
+    </div>
+    <a href="{% url 'admin_shops' %}" class="btn-back">← Back to Shops</a>
+  </div>
+  
+  <div class="shop-detail-container">
+    <div class="shop-info-section">
+      <h2>Shop Information</h2>
+      
+      <div class="info-group">
+        <label>Shop Name</label>
+        <p>{{ shop.name }}</p>
+      </div>
+      
+      <div class="info-group">
+        <label>Description</label>
+        <p>{{ shop.description|default:"No description" }}</p>
+      </div>
+      
+      <div class="info-group">
+        <label>Status</label>
+        <p>
+          <span class="status-badge {% if shop.is_active %}active{% else %}inactive{% endif %}">
+            {{ shop.is_active|yesno:"Active,Inactive" }}
+          </span>
+        </p>
+      </div>
+      
+      <div class="info-group">
+        <label>Created</label>
+        <p>{{ shop.created_at|date:"M d, Y" }}</p>
+      </div>
+    </div>
+    
+    <div class="shop-listings-section">
+      <h2>Listings</h2>
+      
+      {% if listings %}
+        <div class="listings-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for listing in listings %}
+                <tr>
+                  <td>{{ listing.name|truncatewords:5 }}</td>
+                  <td>${{ listing.price }}</td>
+                  <td>
+                    <span class="status-badge active">Active</span>
+                  </td>
+                  <td>
+                    <a href="#" class="btn-small">Edit</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="empty">No listings yet</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+.admin-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+}
+
+.admin-header h1 {
+  font: 700 32px var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.shop-meta {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font: 600 12px var(--font-body);
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16A34A;
+}
+
+.status-badge.inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6B7280;
+}
+
+.listing-count {
+  font: 600 14px var(--font-body);
+  color: var(--color-primary);
+}
+
+.btn-back {
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-1);
+  color: var(--text-1);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  font: 600 14px var(--font-body);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.shop-detail-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-6);
+}
+
+.shop-info-section,
+.shop-listings-section {
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.shop-info-section h2,
+.shop-listings-section h2 {
+  font: 600 20px var(--font-display);
+  color: var(--text-1);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.info-group {
+  margin-bottom: var(--space-4);
+}
+
+.info-group label {
+  display: block;
+  font: 600 12px var(--font-body);
+  color: var(--text-2);
+  text-transform: uppercase;
+  margin-bottom: var(--space-1);
+}
+
+.info-group p {
+  font: 500 14px var(--font-body);
+  color: var(--text-1);
+  margin: 0;
+}
+
+.listings-table {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th {
+  font: 600 12px var(--font-body);
+  color: var(--text-2);
+  text-align: left;
+  padding: var(--space-3);
+  border-bottom: 2px solid var(--border-dim);
+  text-transform: uppercase;
+}
+
+table td {
+  font: 500 14px var(--font-body);
+  color: var(--text-1);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.btn-small {
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font: 600 12px var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background: var(--color-primary-hover);
+}
+
+.empty {
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  text-align: center;
+  padding: var(--space-6);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  
+  .shop-detail-container {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
