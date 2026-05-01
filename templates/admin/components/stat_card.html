@@ -22,7 +22,7 @@ Parameters:
           {% if trend %}
             <small class="{% if trend >= 0 %}text-success{% else %}text-danger{% endif %}">
               <i class="bi {% if trend >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
-              {{ trend|abs }}% {% if trend_period %}{{ trend_period }}{% endif %}
+          {{ trend|abs_filter }}% {% if trend_period %}{{ trend_period }}{% endif %}
             </small>
           {% endif %}
         </div>

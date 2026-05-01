@@ -50,3 +50,14 @@ def status_class(status):
         'success': 'badge bg-success',
     }
     return status_map.get(str(status).lower(), 'badge bg-primary')
+
+@register.filter
+def abs_filter(value):
+    """
+    Return absolute value.
+    Usage: {{ value|abs_filter }}
+    """
+    try:
+        return abs(float(value))
+    except (ValueError, TypeError):
+        return value
