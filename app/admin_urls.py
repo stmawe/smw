@@ -6,7 +6,7 @@ from mydak import seller_views
 
 # Admin subdomain URLs (for https://admin.smw.pgwiz.cloud/)
 # This becomes the urlpatterns when middleware routes to admin subdomain
-admin_subdomain_patterns = [
+admin_subdomain_base = [
     # Admin login (root path - shows login page for unauthenticated users)
     path('', admin_views.admin_login_view, name='admin_login'),
     path('login/', admin_views.admin_login_view, name='admin_login_explicit'),
@@ -173,5 +173,8 @@ admin_crud_patterns = [
     
     path('admin/api/activity-feed/', admin_api.api_activity_feed, name='api_activity_feed'),
 ]
+
+# Combine admin subdomain patterns with CRUD patterns for the admin subdomain
+admin_subdomain_patterns = admin_subdomain_base + admin_crud_patterns
 
 urlpatterns = admin_patterns + seller_patterns + deployment_patterns + admin_crud_patterns
