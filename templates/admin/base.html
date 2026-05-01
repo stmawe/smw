@@ -294,6 +294,10 @@
             margin-left: auto;
         }
 
+        .navbar-action-group {
+            position: relative;
+        }
+
         .navbar-action {
             background: none;
             border: none;
@@ -301,11 +305,14 @@
             color: var(--gray-600);
             font-size: 1.25rem;
             position: relative;
-            transition: color var(--transition);
+            transition: all var(--transition);
+            padding: 0.5rem;
+            border-radius: 0.375rem;
         }
 
         .navbar-action:hover {
             color: var(--primary-color);
+            background-color: var(--primary-light);
         }
 
         .navbar-badge {
@@ -324,12 +331,63 @@
             font-weight: 700;
         }
 
+        .dropdown-menu {
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius);
+        }
+
+        .dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .dropdown-header h6 {
+            color: var(--gray-800);
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            transition: background-color var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--gray-100);
+            color: var(--primary-color);
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 0.5rem;
+        }
+
+        .dropdown-item-text {
+            cursor: default;
+        }
+
         .navbar-user {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0;
             padding-left: 1rem;
             border-left: 1px solid var(--gray-200);
+        }
+
+        .navbar-user-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: all var(--transition);
+            color: var(--gray-800);
+        }
+
+        .navbar-user-button:hover {
+            background-color: var(--gray-100);
         }
 
         .navbar-user-avatar {
@@ -343,17 +401,39 @@
             color: var(--primary-color);
             font-weight: 700;
             font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .navbar-user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+            text-align: left;
+            min-width: 120px;
         }
 
         .navbar-user-name {
             color: var(--gray-800);
             font-weight: 500;
             font-size: 0.95rem;
+            line-height: 1.2;
         }
 
-        .navbar-user-dropdown {
-            margin-left: 0.5rem;
+        .navbar-user-role {
             color: var(--gray-400);
+            font-size: 0.8rem;
+            line-height: 1.2;
+        }
+
+        .navbar-user-button i:last-child {
+            color: var(--gray-400);
+            font-size: 1rem;
+            transition: transform var(--transition);
+            margin-left: 0.25rem;
+        }
+
+        .navbar-user-button[aria-expanded="true"] i:last-child {
+            transform: rotate(180deg);
         }
 
         /* Content Area */
@@ -743,35 +823,116 @@
             <!-- Top Navbar -->
             <nav class="admin-navbar">
                 <div class="navbar-left">
-                    <button class="navbar-mobile-toggle" id="navbarMobileToggle">
+                    <button class="navbar-mobile-toggle" id="navbarMobileToggle" aria-label="Toggle sidebar">
                         <i class="bi bi-list"></i>
                     </button>
                     <div class="navbar-search">
-                        <i class="bi bi-search" style="color: var(--gray-400);"></i>
-                        <input type="text" placeholder="Search users, shops, listings...">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search users, shops, listings..." id="globalSearch" aria-label="Global search">
                     </div>
                 </div>
 
                 <div class="navbar-actions">
-                    <button class="navbar-action" title="Notifications">
-                        <i class="bi bi-bell"></i>
-                        <span class="navbar-badge">3</span>
-                    </button>
-                    <button class="navbar-action" title="Messages">
-                        <i class="bi bi-envelope"></i>
-                    </button>
+                    <!-- Notifications Dropdown -->
+                    <div class="navbar-action-group">
+                        <button class="navbar-action" id="notificationsBtn" title="Notifications" aria-label="Notifications" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell"></i>
+                            <span class="navbar-badge">3</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsBtn" style="min-width: 300px;">
+                            <div class="dropdown-header">
+                                <h6 class="mb-0">Notifications</h6>
+                            </div>
+                            <hr class="my-0">
+                            <a class="dropdown-item" href="#" style="padding: 12px 1rem;">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-exclamation-circle text-warning"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="small fw-500">System Alert</div>
+                                        <small class="text-muted">High CPU usage detected</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="dropdown-item" href="#" style="padding: 12px 1rem;">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-info-circle text-info"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="small fw-500">New User</div>
+                                        <small class="text-muted">5 minutes ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <a class="dropdown-item" href="#" style="padding: 12px 1rem;">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-shop text-success"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="small fw-500">New Shop</div>
+                                        <small class="text-muted">10 minutes ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            <hr class="my-0">
+                            <a class="dropdown-item text-center small py-2" href="#">View all notifications</a>
+                        </div>
+                    </div>
+
+                    <!-- Messages Dropdown -->
+                    <div class="navbar-action-group">
+                        <button class="navbar-action" id="messagesBtn" title="Messages" aria-label="Messages" data-bs-toggle="dropdown">
+                            <i class="bi bi-envelope"></i>
+                            <span class="navbar-badge" style="display: none;">0</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="messagesBtn" style="min-width: 320px;">
+                            <div class="dropdown-header">
+                                <h6 class="mb-0">Messages</h6>
+                            </div>
+                            <hr class="my-0">
+                            <div class="dropdown-item-text text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0 small">No messages yet</p>
+                            </div>
+                        </div>
+                    </div>
                     
+                    <!-- User Menu Dropdown -->
                     <div class="navbar-user">
-                        <div class="navbar-user-avatar">
-                            {{ request.user.first_name|first|upper }}
-                        </div>
-                        <div>
-                            <div class="navbar-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-                            <small style="color: var(--gray-400);">{{ request.admin_perms.role.value|default:"User" }}</small>
-                        </div>
-                        <button class="navbar-user-dropdown">
+                        <button class="navbar-user-button" id="userMenuBtn" data-bs-toggle="dropdown" aria-label="User menu">
+                            <div class="navbar-user-avatar">
+                                {{ request.user.first_name|first|upper }}
+                            </div>
+                            <div class="navbar-user-info">
+                                <div class="navbar-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+                                <small class="navbar-user-role">{{ request.admin_perms.role.value|default:"User" }}</small>
+                            </div>
                             <i class="bi bi-chevron-down"></i>
                         </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuBtn">
+                            <div class="dropdown-header">
+                                <h6 class="mb-1">{{ request.user.get_full_name|default:request.user.username }}</h6>
+                                <small class="text-muted">{{ request.user.email }}</small>
+                            </div>
+                            <hr class="my-2">
+                            <a class="dropdown-item" href="{% url 'admin_dashboard_full' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-person"></i> Profile Settings
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-lock"></i> Change Password
+                            </a>
+                            <hr class="my-2">
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-question-circle"></i> Help & Support
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-gear"></i> Admin Settings
+                            </a>
+                            <hr class="my-2">
+                            <a class="dropdown-item text-danger" href="{% url 'account_logout' %}">
+                                <i class="bi bi-box-arrow-right"></i> Sign Out
+                            </a>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -812,28 +973,47 @@
 
     <!-- Admin Panel JavaScript -->
     <script>
-        // Sidebar toggle
-        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-            document.getElementById('adminSidebar').classList.remove('show');
-        });
+        // Initialize Bootstrap Dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all dropdowns
+            document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(element => {
+                new bootstrap.Dropdown(element);
+            });
 
-        document.getElementById('navbarMobileToggle')?.addEventListener('click', function() {
-            document.getElementById('adminSidebar').classList.toggle('show');
-        });
+            // Sidebar toggle
+            document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+                document.getElementById('adminSidebar').classList.remove('show');
+            });
 
-        // Active nav link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            if (link.href === window.location.href) {
-                link.classList.add('active');
+            document.getElementById('navbarMobileToggle')?.addEventListener('click', function() {
+                document.getElementById('adminSidebar').classList.toggle('show');
+            });
+
+            // Active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.href === window.location.href) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Alert auto-dismiss
+            document.querySelectorAll('.alert').forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+
+            // Global search functionality
+            const globalSearch = document.getElementById('globalSearch');
+            if (globalSearch) {
+                globalSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        // TODO: Implement global search
+                        console.log('Search for:', this.value);
+                    }
+                });
             }
-        });
-
-        // Alert auto-dismiss
-        document.querySelectorAll('.alert').forEach(alert => {
-            setTimeout(() => {
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 300);
-            }, 5000);
         });
     </script>
 
