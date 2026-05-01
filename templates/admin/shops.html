@@ -7,131 +7,97 @@
 {% block content %}
 <div class="container-fluid">
   <!-- Breadcrumbs -->
-  {% include "admin/components/breadcrumbs.html" with items=breadcrumbs %}
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item active">Shops</li>
+    </ol>
+  </nav>
   
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h1 class="mb-1">Shops Management</h1>
-      <p class="text-muted mb-0">Manage all shops, activate, suspend, or delete.</p>
-    </div>
-    {% if perms.admin.create_shops %}
-      <a href="{% url 'admin_shop_create' %}" class="btn btn-primary">
-        <i class="bi bi-shop"></i> Add Shop
-      </a>
-    {% endif %}
-  </div>
-
-  <!-- Quick Stats -->
-  <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="card shadow-sm text-center py-3">
-        <h5 class="mb-0 text-primary">{{ total_shops }}</h5>
-        <small class="text-muted">Total Shops</small>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm text-center py-3">
-        <h5 class="mb-0 text-success">{{ active_shops }}</h5>
-        <small class="text-muted">Active</small>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm text-center py-3">
-        <h5 class="mb-0 text-warning">{{ suspended_shops }}</h5>
-        <small class="text-muted">Suspended</small>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm text-center py-3">
-        <h5 class="mb-0 text-danger">{{ deleted_shops }}</h5>
-        <small class="text-muted">Deleted</small>
-      </div>
+      <p class="text-muted mb-0">Manage all marketplace shops.</p>
     </div>
   </div>
 
   <!-- Filter & Search Bar -->
-  {% include "admin/components/filter_bar.html" with 
-    search_placeholder="Search shop name, owner..." 
-    filters=filters 
-    show_reset=True 
-  %}
-
-  <!-- Bulk Actions -->
-  {% include "admin/components/bulk_actions.html" with actions=bulk_actions %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-6">
+          <input type="text" name="search" class="form-control" placeholder="Search by name..." value="{{ search }}">
+        </div>
+        <div class="col-md-3">
+          <select name="status" class="form-select">
+            <option value="">All Status</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Shops Table Card -->
-  {% include "admin/components/card.html" with title="Shops List" icon="bi-shop" %}
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">
+        <i class="bi bi-shop"></i> Shops List ({{ total }} total)
+      </h5>
+    </div>
+    
     {% if shops %}
       <div class="table-responsive">
-        <table class="table table-hover table-sm">
+        <table class="table table-hover table-sm mb-0">
           <thead class="table-light">
             <tr>
-              <th style="width: 40px;">
-                <input type="checkbox" class="form-check-input select-all" aria-label="Select all">
-              </th>
               <th>Shop Name</th>
               <th>Owner</th>
-              <th>Domain</th>
-              <th>Listings</th>
               <th>Status</th>
+              <th>Listings</th>
               <th>Created</th>
-              <th style="width: 150px;">Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for shop in shops %}
               <tr>
                 <td>
-                  <input type="checkbox" class="form-check-input row-select" value="{{ shop.id }}" aria-label="Select row">
-                </td>
-                <td>
                   <strong>{{ shop.name }}</strong>
-                  {% if shop.description %}
-                    <br><small class="text-muted">{{ shop.description|truncatewords:10 }}</small>
+                </td>
+                <td>
+                  {% if shop.owner %}
+                    <a href="{% url 'admin_user_detail' shop.owner.id %}">
+                      {{ shop.owner.username }}
+                    </a>
+                  {% else %}
+                    <span class="text-muted">N/A</span>
                   {% endif %}
-                </td>
-                <td>
-                  <a href="{% url 'admin_user_detail' shop.owner.id %}">
-                    {{ shop.owner.username }}
-                  </a>
-                </td>
-                <td>
-                  <code style="font-size: 0.85rem;">{{ shop.domain|default:"—" }}</code>
-                </td>
-                <td>
-                  <span class="badge bg-info">{{ shop.listings_count|default:0 }}</span>
                 </td>
                 <td>
                   {% if shop.is_active %}
-                    {% include "admin/components/badge.html" with status="success" text="Active" %}
-                  {% elif shop.is_suspended %}
-                    {% include "admin/components/badge.html" with status="warning" text="Suspended" %}
+                    <span class="badge bg-success">Active</span>
                   {% else %}
-                    {% include "admin/components/badge.html" with status="secondary" text="Inactive" %}
+                    <span class="badge bg-danger">Inactive</span>
                   {% endif %}
                 </td>
                 <td>
-                  <small>{{ shop.created_at|date:"M d, Y" }}</small>
+                  <span class="badge bg-info">{{ shop.active_listing_count|default:0 }}</span>
                 </td>
                 <td>
-                  <div class="btn-group btn-group-sm" role="group">
-                    {% if perms.admin.change_shops %}
-                      <a href="{% url 'admin_shop_detail' shop.id %}" class="btn btn-outline-primary" title="View/Edit">
-                        <i class="bi bi-pencil"></i>
-                      </a>
-                    {% endif %}
-                    {% if perms.admin.manage_shop_ssl %}
-                      <a href="{% url 'admin_shop_ssl' shop.id %}" class="btn btn-outline-info" title="SSL/Domain">
-                        <i class="bi bi-lock"></i>
-                      </a>
-                    {% endif %}
-                    {% if perms.admin.delete_shops %}
-                      <button class="btn btn-outline-danger" title="Delete">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    {% endif %}
-                  </div>
+                  {{ shop.created_at|date:"M d, Y" }}
+                </td>
+                <td>
+                  <a href="{% url 'admin_shop_detail' shop.id %}" class="btn btn-sm btn-outline-primary" title="View">
+                    <i class="bi bi-eye"></i> View
+                  </a>
                 </td>
               </tr>
             {% endfor %}
@@ -140,47 +106,53 @@
       </div>
 
       <!-- Pagination -->
-      {% include "admin/components/pagination.html" with page_obj=page_obj %}
+      {% if total_pages > 1 %}
+        <div class="card-footer bg-light">
+          <nav aria-label="Page navigation">
+            <ul class="pagination mb-0 flex-wrap">
+              {% if page > 1 %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">First</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page|add:'-1' }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+                </li>
+              {% endif %}
+
+              {% for p in "x"|rjust:total_pages %}
+                {% if forloop.counter == page %}
+                  <li class="page-item active">
+                    <span class="page-link">{{ forloop.counter }}</span>
+                  </li>
+                {% else %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ forloop.counter }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ forloop.counter }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page < total_pages %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page|add:'1' }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ total_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Last</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          <div class="text-muted small mt-2">
+            Showing page {{ page }} of {{ total_pages }}
+          </div>
+        </div>
+      {% endif %}
     {% else %}
-      <div class="text-center text-muted py-5">
-        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-        <p class="mt-3">No shops found</p>
+      <div class="card-body">
+        <div class="alert alert-info mb-0">
+          <i class="bi bi-info-circle"></i> No shops found.
+        </div>
       </div>
     {% endif %}
-  
+  </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const selectAll = document.querySelector('.select-all');
-  const rowSelects = document.querySelectorAll('.row-select');
-  const selectedCount = document.getElementById('selectedCount');
-  const bulkActionBar = document.getElementById('bulkActionBar');
-  
-  if (selectAll) {
-    selectAll.addEventListener('change', function() {
-      rowSelects.forEach(checkbox => {
-        checkbox.checked = this.checked;
-      });
-      updateBulkActionBar();
-    });
-  }
-  
-  rowSelects.forEach(checkbox => {
-    checkbox.addEventListener('change', updateBulkActionBar);
-  });
-  
-  function updateBulkActionBar() {
-    const selected = document.querySelectorAll('.row-select:checked').length;
-    if (selectedCount) selectedCount.textContent = selected;
-    if (bulkActionBar) {
-      if (selected > 0) {
-        bulkActionBar.classList.remove('d-none');
-      } else {
-        bulkActionBar.classList.add('d-none');
-      }
-    }
-  }
-});
-</script>
 {% endblock %}
