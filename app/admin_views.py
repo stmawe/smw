@@ -5,7 +5,7 @@ Provides admin dashboard and shop management for sellers.
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -69,6 +69,17 @@ def admin_login_view(request):
             messages.error(request, 'Invalid username or password.')
     
     return render(request, 'admin/login.html', {'title': 'Admin Login'})
+
+
+@login_required(login_url='admin_login')
+def admin_logout_view(request):
+    """
+    Admin logout endpoint.
+    Logs out the current admin user and redirects to login page.
+    """
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('admin_login')
 
 
 @admin_login_required

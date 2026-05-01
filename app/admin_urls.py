@@ -11,6 +11,7 @@ admin_subdomain_base = [
     # Admin login (root path - shows login page for unauthenticated users)
     path('', admin_views.admin_login_view, name='admin_login'),
     path('login/', admin_views.admin_login_view, name='admin_login_explicit'),
+    path('logout/', admin_views.admin_logout_view, name='admin_logout'),
     # Redirect for allauth login URL (used by @login_required decorator)
     path('accounts/login/', RedirectView.as_view(url='/login/', permanent=False), name='accounts_login'),
     
