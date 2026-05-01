@@ -5,6 +5,7 @@ Provides admin dashboard and shop management for sellers.
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -16,14 +17,58 @@ from mydak.models import Shop
 def admin_login_required(function):
     """
     Custom login required decorator for admin subdomain.
-    Redirects to main domain login if not authenticated.
+    Redirects to admin login if not authenticated.
     """
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated:
-            return function(request, *args, **kwargs)
-        # Redirect to main domain login
-        return redirect(f'https://smw.pgwiz.cloud/login/?next={request.path}')
+            # Verify user is staff/admin
+            if request.user.is_staff or request.user.is_superuser:
+                return function(request, *args, **kwargs)
+            else:
+                messages.error(request, 'Only admin users can access this area.')
+                return redirect('admin_login')
+        # Redirect to admin login
+        return redirect('admin_login')
     return wrapper
+
+
+def admin_login_view(request):
+    """
+    Admin login page for admin.smw.pgwiz.cloud
+    Only allows staff and superuser access
+    """
+    if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('admin_dashboard')
+        else:
+            return redirect('admin_login')
+    
+    if request.method == 'POST':
+        username_email = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Try to authenticate
+        user = authenticate(request, username=username_email, password=password)
+        
+        # If not found by username, try email
+        if user is None:
+            try:
+                user_obj = User.objects.get(email=username_email)
+                user = authenticate(request, username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                user = None
+        
+        if user is not None:
+            # Check if user is admin/staff
+            if user.is_staff or user.is_superuser:
+                login(request, user)
+                return redirect('admin_dashboard')
+            else:
+                messages.error(request, 'Only admin users can access this area.')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    
+    return render(request, 'admin/login.html', {'title': 'Admin Login'})
 
 
 @admin_login_required

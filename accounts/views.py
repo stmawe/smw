@@ -65,7 +65,7 @@ def register_view(request):
             )
             
             messages.success(request, 'Registration successful. Please check your email to verify your account.')
-            return redirect('account_login')
+            return redirect('accounts:login')
         
         except Exception as e:
             messages.error(request, f'Registration failed: {str(e)}')
@@ -88,7 +88,7 @@ def login_view(request):
         
         if not email or not password:
             messages.error(request, 'Email and password are required.')
-            return redirect('account_login')
+            return redirect('accounts:login')
         
         # Authenticate with email
         try:
@@ -98,18 +98,18 @@ def login_view(request):
             if user is not None:
                 if not user.is_active:
                     messages.error(request, 'Please verify your email before logging in.')
-                    return redirect('account_login')
+                    return redirect('accounts:login')
                 
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.email}!')
                 return redirect('/')
             else:
                 messages.error(request, 'Invalid email or password.')
-                return redirect('account_login')
+                return redirect('accounts:login')
         
         except User.DoesNotExist:
             messages.error(request, 'Invalid email or password.')
-            return redirect('account_login')
+            return redirect('accounts:login')
     
     return render(request, 'accounts/login.html')
 
