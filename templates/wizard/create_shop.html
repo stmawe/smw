@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Your Shop{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/wizard.css' %}">
+{% endblock %}
+
+{% block content %}
+{{ wizard_config|json_script:"wizard-config" }}
+
+<div class="wizard-shell" id="shop-wizard-shell" data-start-step="{{ wizard_active_step|default:1 }}" data-payment-state="{{ payment_state|default:'idle' }}" data-payment-ref="{{ payment_checkout_request_id|default:'' }}">
+  <div class="wizard-hero">
+    <div>
+      <p class="wizard-hero__eyebrow">Shop creation studio</p>
+      <h1 class="wizard-hero__title">Build your shop like a creator.</h1>
+      <p class="wizard-hero__copy">Six steps, live preview, and a mobile-first flow tuned for fast setup.</p>
+    </div>
+    <button type="button" class="wizard-preview-toggle d-lg-none" data-preview-toggle>Preview</button>
+  </div>
+
+  {% if messages %}
+  <div class="wizard-alerts">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} wizard-alert mb-2">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="wizard-stepper" aria-label="Shop creation steps">
+    {% for step in wizard_steps %}
+      <button type="button" class="wizard-stepper__item{% if forloop.first %} is-active{% endif %}" data-step-jump="{{ step.number }}">
+        <span class="wizard-stepper__circle">{{ step.number }}</span>
+        <span class="wizard-stepper__label">{{ step.label }}</span>
+      </button>
+      {% if not forloop.last %}
+        <span class="wizard-stepper__line"></span>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <form id="shop-wizard-form" class="wizard-layout" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="wizard_step" value="1" data-wizard-step>
+    <input type="hidden" name="slug" id="shop-slug" value="{{ generated_slug }}">
+    <input type="hidden" name="theme_id" id="theme-id" value="dark_noir">
+    <input type="hidden" name="accent_color" id="accent-color" value="electric-blue">
+    <input type="hidden" name="banner_preset" id="banner-preset" value="navy-gradient">
+    <input type="hidden" name="affiliation_mode" id="affiliation-mode" value="skip">
+
+    <div class="wizard-layout__main">
+      <section class="wizard-panel is-active" data-step-panel="1">
+        <div class="wizard-panel__header">
+          <p class="wizard-panel__eyebrow">Step 1</p>
+          <h2 class="wizard-panel__title">Identity</h2>
+          <p class="wizard-panel__copy">Name it, shape the URL, and choose the category.</p>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label wizard-label" for="shop-name">What's your shop called?</label>
+          <input class="form-control wizard-input wizard-input--xl" id="shop-name" name="shop_name" type="text" value="{{ form_data.shop_name|default:incomplete_shop.shop_name }}" placeholder="e.g. Juju's Electronics" required data-preview-source="shop_name">
+          <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+            <span class="wizard-chip">URL</span>
+            <span class="wizard-slug" data-slug-preview>{{ generated_slug|default:'your-shop' }}</span>
+            <span class="wizard-status" data-slug-status>Available</span>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="shop-tagline">Tagline</label>
+            <input class="form-control wizard-input" id="shop-tagline" name="tagline" type="text" value="{{ form_data.tagline|default:incomplete_shop.tagline }}" maxlength="80" placeholder="Quality tech, student prices">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-label">Primary category</label>
+            <div class="wizard-category-grid">
+              {% for category in categories %}
+                <input class="btn-check" type="radio" name="category" id="category-{{ category.id }}" value="{{ category.name }}" {% if form_data.category == category.name or incomplete_shop.category == category.name or forloop.first %}checked{% endif %}>
+                <label class="wizard-card-toggle" for="category-{{ category.id }}">
+                  <span class="wizard-card-toggle__title">{{ category.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wizard-panel" data-step-panel="2">
+        <div class="wizard-panel__header">
+          <p class="wizard-panel__eyebrow">Step 2</p>
+          <h2 class="wizard-panel__title">Affiliation</h2>
+          <p class="wizard-panel__copy">Link a university or location, or skip for now.</p>
+        </div>
+
+        <div class="wizard-choice-grid mb-4">
+          <input class="btn-check" type="radio" name="affiliation_mode_choice" id="affiliation-skip" value="skip" checked>
+          <label class="wizard-choice-card" for="affiliation-skip">
+            <span class="wizard-choice-card__icon">✦</span>
+            <span class="wizard-choice-card__title">Skip</span>
+            <span class="wizard-choice-card__copy">Independent shop</span>
+          </label>
+
+          <input class="btn-check" type="radio" name="affiliation_mode_choice" id="affiliation-university" value="university">
+          <label class="wizard-choice-card" for="affiliation-university">
+            <span class="wizard-choice-card__icon">🎓</span>
+            <span class="wizard-choice-card__title">University</span>
+            <span class="wizard-choice-card__copy">Student or campus linked</span>
+          </label>
+
+          <input class="btn-check" type="radio" name="affiliation_mode_choice" id="affiliation-location" value="location">
+          <label class="wizard-choice-card" for="affiliation-location">
+            <span class="wizard-choice-card__icon">📍</span>
+            <span class="wizard-choice-card__title">Location</span>
+            <span class="wizard-choice-card__copy">Community based</span>
+          </label>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="university-id">University</label>
+            <select class="form-select wizard-input" id="university-id" name="university_id">
+              <option value="">Choose university</option>
+              {% for university in universities %}
+                <option value="{{ university.id }}">{{ university.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="location-id">Location</label>
+            <select class="form-select wizard-input" id="location-id" name="location_id">
+              <option value="">Choose location</option>
+              {% for location in locations %}
+                <option value="{{ location.id }}">{{ location.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label wizard-label" for="verification-email">Verification email</label>
+            <div class="input-group">
+              <input class="form-control wizard-input" id="verification-email" name="verification_email" type="email" placeholder="yourname@students.uon.ac.ke">
+              <button type="button" class="btn wizard-btn wizard-btn--primary" data-email-send>Send code</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="verification-code">OTP code</label>
+            <input class="form-control wizard-input" id="verification-code" name="verification_code" type="text" maxlength="6" placeholder="123456">
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <button type="button" class="btn wizard-btn wizard-btn--ghost w-100" data-email-verify>Verify code</button>
+          </div>
+          <div class="col-12">
+            <div class="wizard-email-state" data-email-state>Not verified</div>
+          </div>
+        </div>
+        <input type="hidden" name="email_verified" value="{{ form_data.email_verified|default:0 }}" data-email-verified-flag>
+      </section>
+
+      <section class="wizard-panel" data-step-panel="3">
+        <div class="wizard-panel__header">
+          <p class="wizard-panel__eyebrow">Step 3</p>
+          <h2 class="wizard-panel__title">Design</h2>
+          <p class="wizard-panel__copy">Choose a look and tint it with an accent color.</p>
+        </div>
+
+        <div class="wizard-theme-grid mb-4">
+          {% for theme in themes %}
+            <input class="btn-check" type="radio" name="theme_choice" id="theme-{{ theme.id }}" value="{{ theme.id }}" {% if forloop.first %}checked{% endif %}>
+            <label class="wizard-theme-card" for="theme-{{ theme.id }}" data-theme-id="{{ theme.id }}" data-theme-bg="{{ theme.bg }}" data-theme-surface="{{ theme.surface }}" data-theme-accent="{{ theme.accent }}" data-theme-text="{{ theme.text }}">
+              <span class="wizard-theme-card__name">{{ theme.name }}</span>
+              <span class="wizard-theme-card__desc">{{ theme.description }}</span>
+              <span class="wizard-theme-card__swatch" style="background: linear-gradient(135deg, {{ theme.bg }}, {{ theme.surface }} 60%, {{ theme.accent }});"></span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="wizard-accent-row">
+          {% for accent in accent_colors %}
+            <button type="button" class="wizard-accent-pill{% if forloop.first %} is-active{% endif %}" data-accent="{{ accent.value }}">{{ accent.name }}</button>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="wizard-panel" data-step-panel="4">
+        <div class="wizard-panel__header">
+          <p class="wizard-panel__eyebrow">Step 4</p>
+          <h2 class="wizard-panel__title">Branding</h2>
+          <p class="wizard-panel__copy">Add your logo, banner, and initials treatment.</p>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="shop-logo">Logo</label>
+            <input class="form-control wizard-input" id="shop-logo" name="logo" type="file" accept="image/*" data-logo-input>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="shop-banner">Banner</label>
+            <input class="form-control wizard-input" id="shop-banner" name="banner" type="file" accept="image/*" data-banner-input>
+          </div>
+          <div class="col-12">
+            <div class="wizard-banner-presets">
+              {% for preset in banner_presets %}
+                <button type="button" class="wizard-banner-pill{% if forloop.first %} is-active{% endif %}" data-banner-preset="{{ preset.id }}">{{ preset.name }}</button>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="wizard-initials-row">
+              <button type="button" class="wizard-initials-pill is-active" data-initials-style="bold">Bold pill</button>
+              <button type="button" class="wizard-initials-pill" data-initials-style="bordered">Bordered</button>
+              <button type="button" class="wizard-initials-pill" data-initials-style="minimal">Minimal</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wizard-panel" data-step-panel="5">
+        <div class="wizard-panel__header">
+          <p class="wizard-panel__eyebrow">Step 5</p>
+          <h2 class="wizard-panel__title">Details</h2>
+          <p class="wizard-panel__copy">Tell buyers what you sell and how to reach you.</p>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label wizard-label" for="shop-description">Description</label>
+          <textarea class="form-control wizard-input" id="shop-description" name="description" rows="5" maxlength="500" placeholder="Tell buyers about your shop...">{{ form_data.description|default:incomplete_shop.description }}</textarea>
+          <div class="wizard-counter"><span data-description-count>0</span>/500 characters</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="shop-whatsapp">WhatsApp</label>
+            <input class="form-control wizard-input" id="shop-whatsapp" name="whatsapp" type="text" placeholder="+254 712 345 678">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-label" for="shop-location">Campus / area</label>
+            <input class="form-control wizard-input" id="shop-location" name="location" type="text" placeholder="UoN Main Campus, Gate C">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label wizard-label" for="social-instagram">Instagram</label>
+            <input class="form-control wizard-input" id="social-instagram" name="instagram" type="text" placeholder="username">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label wizard-label" for="social-tiktok">TikTok</label>
+            <input class="form-control wizard-input" id="social-tiktok" name="tiktok" type="text" placeholder="username">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label wizard-label" for="social-twitter">X / Twitter</label>
+            <input class="form-control wizard-input" id="social-twitter" name="twitter" type="text" placeholder="username">
+          </div>
+          <div class="col-12">
+            <div class="wizard-hours-grid">
+              {% for day in week_days %}
+                <div class="wizard-hours-row">
+                  <label class="wizard-hours-row__label">
+                    <input type="checkbox" name="{{ day.key }}_open" checked>
+                    {{ day.label }}
+                  </label>
+                  <input class="form-control wizard-input wizard-hours-row__time" type="time" name="{{ day.key }}_from" value="08:00">
+                  <span class="wizard-hours-row__dash">–</span>
+                  <input class="form-control wizard-input wizard-hours-row__time" type="time" name="{{ day.key }}_to" value="18:00">
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wizard-panel" data-step-panel="6">
+        <div class="wizard-panel__header">
+          <p class="wizard-panel__eyebrow">Step 6</p>
+          <h2 class="wizard-panel__title">Launch</h2>
+          <p class="wizard-panel__copy">Review your setup and finish the creation flow.</p>
+        </div>
+
+        <div class="wizard-review">
+          <div class="wizard-review__row"><span>Shop name</span><strong data-review-name>—</strong></div>
+          <div class="wizard-review__row"><span>Slug</span><strong data-review-slug>—</strong></div>
+          <div class="wizard-review__row"><span>Category</span><strong data-review-category>—</strong></div>
+          <div class="wizard-review__row"><span>Theme</span><strong data-review-theme>—</strong></div>
+          <div class="wizard-review__row"><span>WhatsApp</span><strong data-review-whatsapp>—</strong></div>
+        </div>
+
+        <div class="wizard-price-card mt-4">
+          <div class="wizard-price-card__label">Setup fee</div>
+          <div class="wizard-price-card__value">KES {{ mpesa_fee }}</div>
+          <p class="wizard-price-card__copy">This locks in your shop and starts the M-Pesa prompt.</p>
+        </div>
+
+        <div class="mt-4">
+          <label class="form-label wizard-label" for="payment-phone">M-Pesa phone</label>
+          <input class="form-control wizard-input wizard-input--xl" id="payment-phone" name="payment_phone" type="text" value="{{ form_data.payment_phone|default:payment_phone|default:'' }}" placeholder="254712345678">
+          <div class="wizard-counter">Use the number that will receive the STK push.</div>
+        </div>
+
+        <div class="wizard-payment-state mt-4" data-payment-state-panel>
+          <div class="wizard-payment-state__pill" data-payment-state-label>{{ payment_state|default:'idle' }}</div>
+          <p class="wizard-payment-state__copy" data-payment-state-copy>
+            {% if payment_state == 'waiting' %}
+              Check your phone and approve the M-Pesa prompt.
+            {% elif payment_state == 'success' %}
+              Payment confirmed. Your shop is now active.
+            {% elif payment_state == 'failed' %}
+              The payment failed or timed out. You can try again.
+            {% else %}
+              Ready when you are.
+            {% endif %}
+          </p>
+          <div class="d-flex gap-2 flex-wrap mt-3" data-payment-actions>
+            <button type="button" class="btn wizard-btn wizard-btn--primary" data-payment-retry>Try again</button>
+            <button type="button" class="btn wizard-btn wizard-btn--ghost" data-payment-change-number>Change number</button>
+          </div>
+        </div>
+
+        <label class="wizard-terms mt-4">
+          <input type="checkbox" name="terms" required>
+          I agree to the shop creation terms.
+        </label>
+      </section>
+    </div>
+
+    <aside class="wizard-preview" data-preview-shell>
+      <div class="wizard-preview__top">
+        <div>
+          <p class="wizard-preview__eyebrow">Live preview</p>
+          <h3 class="wizard-preview__title" data-preview-name>{{ generated_slug|default:"your-shop" }}</h3>
+        </div>
+        <span class="wizard-preview__badge" data-preview-theme-label>Dark Noir</span>
+      </div>
+
+      <div class="wizard-preview__banner" data-preview-banner>
+        <div class="wizard-preview__logo" data-preview-logo>
+          <span data-preview-logo-text>JE</span>
+        </div>
+        <div class="wizard-preview__banner-copy">
+          <div class="wizard-preview__shop" data-preview-shop>{{ generated_slug|default:"your-shop" }}</div>
+          <div class="wizard-preview__meta">
+            <span data-preview-category>Electronics</span>
+            <span>•</span>
+            <span data-preview-affiliation>Independent</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-preview__body">
+        <p class="wizard-preview__description" data-preview-description>Tell buyers what you sell and how you stand out.</p>
+
+        <div class="wizard-preview__stats">
+          <div class="wizard-preview__stat">
+            <span>Slug</span>
+            <strong data-preview-slug>{{ generated_slug|default:"your-shop" }}</strong>
+          </div>
+          <div class="wizard-preview__stat">
+            <span>Contact</span>
+            <strong data-preview-whatsapp>—</strong>
+          </div>
+        </div>
+
+        <div class="wizard-preview__chips" data-preview-socials>
+          <span class="wizard-preview__chip">Instagram</span>
+          <span class="wizard-preview__chip">TikTok</span>
+        </div>
+
+        <div class="wizard-preview__samples">
+          <div class="wizard-preview__sample-card"></div>
+          <div class="wizard-preview__sample-card"></div>
+          <div class="wizard-preview__sample-card"></div>
+          <div class="wizard-preview__sample-card"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="wizard-footer">
+      <button type="button" class="btn wizard-btn wizard-btn--ghost" data-step-prev>Back</button>
+      <button type="button" class="btn wizard-btn wizard-btn--primary" data-step-next>Next</button>
+      <button type="submit" class="btn wizard-btn wizard-btn--gold" data-step-submit>Launch shop</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/wizard.js' %}" defer></script>
+{% endblock %}

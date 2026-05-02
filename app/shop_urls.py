@@ -1,9 +1,7 @@
-"""
-Shop URL generation and management utilities.
-Handles generating URLs for shops based on different routing strategies.
-"""
+"""Shop URL generation and management utilities."""
 
-from django.utils.text import slugify
+import re
+
 from django.conf import settings
 
 
@@ -17,7 +15,15 @@ def generate_shop_slug(shop_name):
     Returns:
         str: URL-safe slug
     """
-    return slugify(shop_name)
+    if not shop_name:
+        return ""
+
+    slug = str(shop_name).lower().strip()
+    slug = slug.replace("'", "").replace("`", "")
+    slug = re.sub(r"[^a-z0-9\s-]", "", slug)
+    slug = re.sub(r"\s+", "-", slug)
+    slug = re.sub(r"-{2,}", "-", slug).strip("-")
+    return slug[:48].strip("-")
 
 
 def get_shop_url(shop):
@@ -36,7 +42,7 @@ def get_shop_url(shop):
             'main_site_url': 'https://smw.pgwiz.cloud/shop/shopname/'
         }
     """
-    shop_slug = generate_shop_slug(shop.name)
+    shop_slug = shop.domain or generate_shop_slug(shop.name)
     owner_username = shop.owner.username
     
     # Get domain from settings or use default
@@ -80,20 +86,25 @@ def get_shop_from_request(request):
         shop_identifier = parts[0]
         
         try:
-            # Try to find by shop name
-            shop = Shop.objects.get(name__iexact=shop_identifier, is_active=True)
+            # Try to find by shop slug/domain first
+            shop = Shop.objects.get(domain__iexact=shop_identifier, is_active=True)
             return shop
         except Shop.DoesNotExist:
-            # Try to find by owner username
             try:
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                owner = User.objects.get(username=shop_identifier)
-                # Return first active shop for this owner
-                return Shop.objects.filter(owner=owner, is_active=True).first()
-            except User.DoesNotExist:
-                return None
-    
+                # Fallback to shop name for legacy records
+                shop = Shop.objects.get(name__iexact=shop_identifier, is_active=True)
+                return shop
+            except Shop.DoesNotExist:
+                # Try to find by owner username
+                try:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    owner = User.objects.get(username=shop_identifier)
+                    # Return first active shop for this owner
+                    return Shop.objects.filter(owner=owner, is_active=True).first()
+                except User.DoesNotExist:
+                    return None
+
     return None
 
 
@@ -114,49 +125,78 @@ def validate_shop_slug(slug):
     from mydak.models import Shop
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
+    normalized = generate_shop_slug(slug)
+    reserved_words = [
+        'admin', 'api', 'www', 'mail', 'ftp', 'shop', 'shops', 'dashboard',
+        'seller', 'account', 'accounts', 'login', 'register', 'auth', 'payment',
+        'cart', 'checkout'
+    ]
+
     # Check length
-    if len(slug) < 3:
+    if len(normalized) < 3:
         return {
             'valid': False,
             'error': 'Slug must be at least 3 characters long',
-            'available': False
+            'available': False,
+            'slug': normalized,
+            'suggestion': None,
         }
-    
-    if len(slug) > 50:
+
+    if len(normalized) > 48:
         return {
             'valid': False,
-            'error': 'Slug must be 50 characters or less',
-            'available': False
+            'error': 'Slug must be 48 characters or less',
+            'available': False,
+            'slug': normalized,
+            'suggestion': None,
         }
-    
+
+    def _is_shop_slug_taken(candidate):
+        if Shop.objects.filter(domain__iexact=candidate).exists():
+            return True
+        return any(
+            generate_shop_slug(shop_name) == candidate
+            for shop_name in Shop.objects.values_list('name', flat=True)
+        )
+
     # Check if already used by shop
-    if Shop.objects.filter(name__iexact=slug).exists():
+    if _is_shop_slug_taken(normalized):
+        suggestion = f"{normalized}-2"
+        while _is_shop_slug_taken(suggestion) or User.objects.filter(username__iexact=suggestion).exists() or suggestion in reserved_words:
+            suffix = int(suggestion.rsplit('-', 1)[-1]) + 1 if '-' in suggestion and suggestion.rsplit('-', 1)[-1].isdigit() else 3
+            suggestion = f"{normalized}-{suffix}"
         return {
             'valid': False,
-            'error': 'This shop name is already taken',
+            'error': 'This shop slug is already taken',
             'available': False
+            , 'slug': normalized,
+            'suggestion': suggestion,
         }
-    
+
     # Check if already used as username
-    if User.objects.filter(username=slug).exists():
+    if User.objects.filter(username__iexact=normalized).exists():
         return {
             'valid': False,
             'error': 'This username is already taken',
-            'available': False
+            'available': False,
+            'slug': normalized,
+            'suggestion': f"{normalized}-2",
         }
-    
+
     # Check for reserved words
-    reserved_words = ['admin', 'api', 'www', 'mail', 'ftp', 'shop', 'shops', 'dashboard', 'seller', 'account', 'accounts', 'login', 'register', 'auth', 'payment', 'cart', 'checkout']
-    if slug.lower() in reserved_words:
+    if normalized in reserved_words:
         return {
             'valid': False,
-            'error': f'"{slug}" is a reserved word and cannot be used',
-            'available': False
+            'error': f'"{normalized}" is a reserved word and cannot be used',
+            'available': False,
+            'slug': normalized,
+            'suggestion': f"{normalized}-shop",
         }
-    
+
     return {
         'valid': True,
         'error': None,
-        'available': True
+        'available': True,
+        'slug': normalized,
+        'suggestion': None,
     }

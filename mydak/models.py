@@ -68,13 +68,18 @@ class Shop(TimeStampedModel):
         return self.name
 
     @property
+    def slug(self):
+        """Return the canonical shop slug used for URLs."""
+        return self.domain or slugify(self.name)
+
+    @property
     def full_domain(self):
         """
         Returns the full domain for the shop.
         """
-        if self.domain:
+        if self.slug:
             base_domain = settings.BASE_DOMAIN
-            return f"{self.domain}.{base_domain}"
+            return f"{self.slug}.{base_domain}"
         return None
 
     def activate(self):
