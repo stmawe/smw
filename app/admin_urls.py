@@ -129,8 +129,14 @@ admin_crud_patterns = [
     path('admin/transaction/<int:transaction_id>/', admin_advanced_views.admin_analytics_dashboard, name='admin_transaction_detail'),
     
     # Settings & Configuration
-    path('admin/settings/', admin_crud_views.admin_settings_view, name='admin_settings_view'),
-    path('admin/settings/general/', admin_crud_views.admin_settings_view, name='admin_settings'),
+    path('admin/settings/', admin_crud_views.admin_settings_view, name='admin_settings'),
+    path('admin/settings/general/', admin_crud_views.admin_settings_view, name='admin_settings_general'),
+    
+    # Admin User Pages
+    path('admin/profile/', admin_crud_views.admin_profile_view, name='admin_profile'),
+    path('admin/change-password/', admin_crud_views.admin_change_password_view, name='admin_change_password'),
+    path('admin/help/', admin_crud_views.admin_help_view, name='admin_help'),
+    path('admin/user-settings/', admin_crud_views.admin_user_settings_view, name='admin_user_settings'),
     
     # Theme Management
     path('admin/themes/', admin_crud_views.admin_themes_list, name='admin_themes_list'),

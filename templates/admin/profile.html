@@ -1,0 +1,151 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Profile Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item active">Profile Settings</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="mb-4">
+    <h1 class="mb-1">Profile Settings</h1>
+    <p class="text-muted">Manage your admin profile information.</p>
+  </div>
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+      <!-- Profile Form -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-person"></i> Personal Information</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-6">
+              <label for="firstName" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="firstName" name="first_name" 
+                     value="{{ user.first_name }}" placeholder="First name">
+            </div>
+
+            <div class="col-md-6">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="lastName" name="last_name" 
+                     value="{{ user.last_name }}" placeholder="Last name">
+            </div>
+
+            <div class="col-12">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email" 
+                     value="{{ user.email }}" required>
+              <small class="text-muted">Your email for notifications and account recovery</small>
+            </div>
+
+            <div class="col-12">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
+              <small class="text-muted">Username cannot be changed</small>
+            </div>
+
+            <div class="col-12">
+              <label for="joinedDate" class="form-label">Member Since</label>
+              <input type="text" class="form-control" id="joinedDate" 
+                     value="{{ user.date_joined|date:'F j, Y' }}" disabled>
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Save Changes
+              </button>
+              <a href="{% url 'admin_dashboard_full' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Security Section -->
+      <div class="card mt-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Security</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-1">Password</h6>
+              <p class="text-muted small mb-0">Change your password regularly to keep your account secure.</p>
+            </div>
+            <a href="{% url 'admin_change_password' %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Quick Info -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Account Info</h5>
+        </div>
+        <div class="card-body small">
+          <div class="mb-3">
+            <strong class="d-block text-muted">Role</strong>
+            <span class="badge bg-primary">Admin</span>
+          </div>
+          <div class="mb-3">
+            <strong class="d-block text-muted">Status</strong>
+            {% if user.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-danger">Inactive</span>
+            {% endif %}
+          </div>
+          <div class="mb-0">
+            <strong class="d-block text-muted">Last Login</strong>
+            <span>{{ user.last_login|default:"Never" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Card -->
+      <div class="card mt-3">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-question-circle"></i> Need Help?</h5>
+        </div>
+        <div class="card-body small">
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <a href="{% url 'admin_help' %}" class="link-primary text-decoration-none">
+                <i class="bi bi-question-circle"></i> View Help Docs
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="mailto:support@smw.pgwiz.cloud" class="link-primary text-decoration-none">
+                <i class="bi bi-envelope"></i> Contact Support
+              </a>
+            </li>
+            <li>
+              <a href="#" class="link-primary text-decoration-none">
+                <i class="bi bi-file-text"></i> Documentation
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

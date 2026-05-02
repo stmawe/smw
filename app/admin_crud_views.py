@@ -2637,6 +2637,200 @@ def admin_theme_unpublish(request, theme_id):
             'success': True,
             'message': f'Theme {theme.name} unpublished',
         })
-    
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+# ============================================================
+# ADMIN USER PAGES
+# ============================================================
+
+@login_required
+def admin_profile_view(request):
+    """
+    Admin profile settings page.
+    Allows admin to view and edit their profile information.
+    """
+    user = request.user
+    
+    if request.method == 'POST':
+        # Update profile
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.save()
+        
+        log_admin_action(
+            request,
+            'update',
+            'AdminProfile',
+            user.id,
+            user.username,
+            reason='Updated profile settings'
+        )
+        
+        messages.success(request, 'Profile updated successfully.')
+        return redirect('admin_profile')
+    
+    context = {
+        'user': user,
+        'breadcrumbs': [
+            {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+            {'label': 'Profile Settings'},
+        ],
+    }
+    
+    return render(request, 'admin/profile.html', context)
+
+
+@login_required
+def admin_change_password_view(request):
+    """
+    Admin change password page.
+    Requires current password validation before allowing new password.
+    """
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        user = request.user
+        
+        # Validate current password
+        if not user.check_password(current_password):
+            messages.error(request, 'Current password is incorrect.')
+            return render(request, 'admin/change_password.html', {
+                'breadcrumbs': [
+                    {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+                    {'label': 'Change Password'},
+                ]
+            })
+        
+        # Validate new password
+        if len(new_password) < 8:
+            messages.error(request, 'New password must be at least 8 characters long.')
+            return render(request, 'admin/change_password.html', {
+                'breadcrumbs': [
+                    {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+                    {'label': 'Change Password'},
+                ]
+            })
+        
+        if new_password != confirm_password:
+            messages.error(request, 'New passwords do not match.')
+            return render(request, 'admin/change_password.html', {
+                'breadcrumbs': [
+                    {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+                    {'label': 'Change Password'},
+                ]
+            })
+        
+        # Update password
+        user.set_password(new_password)
+        user.save()
+        
+        log_admin_action(
+            request,
+            'change_password',
+            'AdminUser',
+            user.id,
+            user.username,
+            reason='Changed password'
+        )
+        
+        messages.success(request, 'Password changed successfully. Please log in again.')
+        return redirect('admin_logout')
+    
+    context = {
+        'breadcrumbs': [
+            {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+            {'label': 'Change Password'},
+        ]
+    }
+    
+    return render(request, 'admin/change_password.html', context)
+
+
+@login_required
+def admin_help_view(request):
+    """
+    Admin help and support page.
+    Displays FAQ, documentation, and support information.
+    """
+    context = {
+        'breadcrumbs': [
+            {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+            {'label': 'Help & Support'},
+        ],
+        'help_sections': [
+            {
+                'title': 'Getting Started',
+                'items': [
+                    {'q': 'How do I log in?', 'a': 'Use your admin credentials at /admin/ or admin.smw.pgwiz.cloud'},
+                    {'q': 'What can I do as an admin?', 'a': 'You can manage users, shops, listings, payments, and system settings.'},
+                    {'q': 'How do I create a shop?', 'a': 'Go to Shops > Create Shop and fill in the shop details.'},
+                ]
+            },
+            {
+                'title': 'User Management',
+                'items': [
+                    {'q': 'How do I add a new user?', 'a': 'Go to Users > Create User and fill in their information.'},
+                    {'q': 'How do I reset a user password?', 'a': 'Go to Users, find the user, and use the password reset option.'},
+                    {'q': 'How do I suspend a user?', 'a': 'Go to Users, click the user, and select "Suspend User".'},
+                ]
+            },
+            {
+                'title': 'Shop Management',
+                'items': [
+                    {'q': 'How do I disable a shop?', 'a': 'Go to Shops, click the shop, and select "Disable Shop".'},
+                    {'q': 'Can I transfer shop ownership?', 'a': 'Yes, go to the shop detail page and use the Transfer Ownership option.'},
+                    {'q': 'How do I manage SSL certificates?', 'a': 'Go to the shop detail and click "SSL & Domain" to manage certificates.'},
+                ]
+            },
+            {
+                'title': 'Moderation',
+                'items': [
+                    {'q': 'How do I moderate listings?', 'a': 'Go to Moderation > Listings to review flagged content.'},
+                    {'q': 'How do I ban a user?', 'a': 'Go to Moderation > Users and select the ban option.'},
+                    {'q': 'Can I unban a user?', 'a': 'Yes, go to Moderation > Banned Users and select unban.'},
+                ]
+            },
+        ]
+    }
+    
+    return render(request, 'admin/help.html', context)
+
+
+@login_required
+def admin_user_settings_view(request):
+    """
+    Admin settings page for personal preferences.
+    Allows admins to customize their admin interface experience.
+    """
+    if request.method == 'POST':
+        theme = request.POST.get('theme', 'light')
+        language = request.POST.get('language', 'en')
+        timezone_str = request.POST.get('timezone', 'UTC')
+        notifications = request.POST.get('notifications') == 'on'
+        
+        request.session['admin_theme'] = theme
+        request.session['admin_language'] = language
+        request.session['admin_timezone'] = timezone_str
+        request.session['admin_notifications'] = notifications
+        
+        messages.success(request, 'Preferences saved successfully.')
+        return redirect('admin_user_settings')
+    
+    context = {
+        'breadcrumbs': [
+            {'label': 'Dashboard', 'url': reverse('admin_dashboard_full')},
+            {'label': 'Settings'},
+        ],
+        'current_theme': request.session.get('admin_theme', 'light'),
+        'current_language': request.session.get('admin_language', 'en'),
+        'current_timezone': request.session.get('admin_timezone', 'UTC'),
+        'notifications_enabled': request.session.get('admin_notifications', True),
+    }
+    
+    return render(request, 'admin/admin_settings.html', context)

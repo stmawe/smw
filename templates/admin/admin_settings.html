@@ -1,0 +1,278 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}My Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item active">Settings</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="mb-4">
+    <h1 class="mb-1">My Settings</h1>
+    <p class="text-muted">Customize your admin panel experience and preferences.</p>
+  </div>
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+      <!-- Preferences Form -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-sliders"></i> Preferences</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <!-- Theme Preference -->
+            <div class="col-12">
+              <label class="form-label">Theme</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" 
+                       {% if current_theme == 'light' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary" for="themeLight">
+                  <i class="bi bi-sun"></i> Light
+                </label>
+                
+                <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" 
+                       {% if current_theme == 'dark' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary" for="themeDark">
+                  <i class="bi bi-moon"></i> Dark
+                </label>
+                
+                <input type="radio" class="btn-check" name="theme" id="themeAuto" value="auto" 
+                       {% if current_theme == 'auto' %}checked{% endif %}>
+                <label class="btn btn-outline-secondary" for="themeAuto">
+                  <i class="bi bi-circle-half"></i> Auto
+                </label>
+              </div>
+              <small class="text-muted">Choose your preferred color scheme for the admin panel</small>
+            </div>
+
+            <!-- Language -->
+            <div class="col-md-6">
+              <label for="language" class="form-label">Language</label>
+              <select class="form-select" id="language" name="language">
+                <option value="en" {% if current_language == 'en' %}selected{% endif %}>English</option>
+                <option value="es" {% if current_language == 'es' %}selected{% endif %}>Español</option>
+                <option value="fr" {% if current_language == 'fr' %}selected{% endif %}>Français</option>
+                <option value="de" {% if current_language == 'de' %}selected{% endif %}>Deutsch</option>
+                <option value="it" {% if current_language == 'it' %}selected{% endif %}>Italiano</option>
+              </select>
+            </div>
+
+            <!-- Timezone -->
+            <div class="col-md-6">
+              <label for="timezone" class="form-label">Timezone</label>
+              <select class="form-select" id="timezone" name="timezone">
+                <option value="UTC" {% if current_timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                <option value="America/New_York" {% if current_timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                <option value="America/Chicago" {% if current_timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                <option value="America/Denver" {% if current_timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                <option value="America/Los_Angeles" {% if current_timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                <option value="Europe/London" {% if current_timezone == 'Europe/London' %}selected{% endif %}>London</option>
+                <option value="Europe/Paris" {% if current_timezone == 'Europe/Paris' %}selected{% endif %}>Paris</option>
+                <option value="Asia/Tokyo" {% if current_timezone == 'Asia/Tokyo' %}selected{% endif %}>Tokyo</option>
+                <option value="Australia/Sydney" {% if current_timezone == 'Australia/Sydney' %}selected{% endif %}>Sydney</option>
+              </select>
+            </div>
+
+            <!-- Notifications -->
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="notifications" name="notifications" 
+                       value="on" {% if notifications_enabled %}checked{% endif %}>
+                <label class="form-check-label" for="notifications">
+                  <strong>Enable Notifications</strong>
+                  <small class="d-block text-muted">Receive notifications for important system events and alerts</small>
+                </label>
+              </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Save Preferences
+              </button>
+              <a href="{% url 'admin_dashboard_full' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Advanced Settings -->
+      <div class="card mt-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-gear"></i> Advanced Settings</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <!-- Page Size -->
+            <div class="col-md-6">
+              <label for="pageSize" class="form-label">Items Per Page</label>
+              <select class="form-select" id="pageSize" name="page_size">
+                <option value="20" {% if page_size == 20 %}selected{% endif %}>20</option>
+                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                <option value="250" {% if page_size == 250 %}selected{% endif %}>250</option>
+              </select>
+              <small class="text-muted">Default number of items to display in lists</small>
+            </div>
+
+            <!-- Date Format -->
+            <div class="col-md-6">
+              <label for="dateFormat" class="form-label">Date Format</label>
+              <select class="form-select" id="dateFormat" name="date_format">
+                <option value="MMM DD, YYYY" {% if date_format == 'MMM DD, YYYY' %}selected{% endif %}>MMM DD, YYYY</option>
+                <option value="DD/MM/YYYY" {% if date_format == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY</option>
+                <option value="YYYY-MM-DD" {% if date_format == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD</option>
+                <option value="MM-DD-YYYY" {% if date_format == 'MM-DD-YYYY' %}selected{% endif %}>MM-DD-YYYY</option>
+              </select>
+            </div>
+
+            <!-- Session Timeout -->
+            <div class="col-md-6">
+              <label for="sessionTimeout" class="form-label">Session Timeout</label>
+              <select class="form-select" id="sessionTimeout" name="session_timeout">
+                <option value="15">15 minutes</option>
+                <option value="30" selected>30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="120">2 hours</option>
+                <option value="999">Never</option>
+              </select>
+              <small class="text-muted">Auto-logout after inactivity</small>
+            </div>
+
+            <!-- Animations -->
+            <div class="col-md-6">
+              <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" id="animations" name="animations" 
+                       {% if animations_enabled %}checked{% endif %}>
+                <label class="form-check-label" for="animations">
+                  Enable animations
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data & Privacy -->
+      <div class="card mt-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-shield-check"></i> Data & Privacy</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info mb-3">
+            <small>Manage your personal data and privacy settings.</small>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#downloadDataModal">
+              <i class="bi bi-download"></i> Download My Data
+            </button>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+              <i class="bi bi-trash"></i> Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Settings Info -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Settings Info</h5>
+        </div>
+        <div class="card-body small">
+          <p class="mb-2">
+            <strong>Current Settings:</strong>
+          </p>
+          <ul class="mb-0">
+            <li>Theme: <strong>{{ current_theme|title }}</strong></li>
+            <li>Language: <strong>{{ current_language|upper }}</strong></li>
+            <li>Timezone: <strong>{{ current_timezone }}</strong></li>
+            <li>Notifications: {% if notifications_enabled %}<strong class="text-success">Enabled</strong>{% else %}<strong class="text-danger">Disabled</strong>{% endif %}</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Help Card -->
+      <div class="card mt-3">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-question-circle"></i> Help</h5>
+        </div>
+        <div class="card-body small">
+          <p class="mb-2">Need help with settings?</p>
+          <a href="{% url 'admin_help' %}" class="link-primary text-decoration-none">
+            <i class="bi bi-arrow-right"></i> View Help Documentation
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Download Data Modal -->
+<div class="modal fade" id="downloadDataModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-download"></i> Download My Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Download a copy of all your personal data in a portable format.</p>
+        <p class="text-muted small">This includes your profile information, preferences, and audit logs.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary">
+          <i class="bi bi-download"></i> Download Data
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Delete Account</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <strong>Warning:</strong> This action is permanent and cannot be undone!
+        </div>
+        <p>Deleting your account will:</p>
+        <ul>
+          <li>Remove all your personal data</li>
+          <li>Close your admin access</li>
+          <li>Archive all your activity logs</li>
+        </ul>
+        <p class="text-muted small">Type your username to confirm: <strong>{{ user.username }}</strong></p>
+        <input type="text" class="form-control" placeholder="Enter your username to confirm">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" disabled>
+          <i class="bi bi-trash"></i> Delete My Account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
