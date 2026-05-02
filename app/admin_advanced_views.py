@@ -606,23 +606,6 @@ def api_activity_feed_updates(request):
 # MODERATION CENTER VIEWS
 # ============================================================================
 
-@login_required
-@permission_required('admin.can_moderate')
-def admin_moderation_center(request):
-    """Admin moderation center - manage flagged content"""
-    try:
-        flagged_listings = Listing.objects.filter(status='flagged').select_related('shop')[:50]
-        
-        context = {
-            'title': 'Moderation Center',
-            'flagged_listings': flagged_listings,
-            'flagged_count': Listing.objects.filter(status='flagged').count(),
-        }
-        return render(request, 'admin/moderation_center.html', context)
-    except Exception as e:
-        messages.error(request, f"Error loading moderation center: {str(e)}")
-        return redirect('admin_dashboard_full')
-
 
 @login_required
 @permission_required('admin.can_moderate')
