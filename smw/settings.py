@@ -80,6 +80,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
+    # Dev auth bypass (local development only - emulates admin login)
+    'app.dev_auth_middleware.DevAuthBypassMiddleware',
+    
     # Admin subdomain routing (must come AFTER TenantMainMiddleware to override it)
     'app.admin_middleware.AdminSubdomainMiddleware',
     
