@@ -7,6 +7,7 @@ All views include RBAC permission checks and audit logging.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Q, Count, Sum
@@ -671,35 +672,72 @@ def admin_listings_moderation(request):
     """
     Listings pending approval/review.
     """
-    listings = Listing.objects.filter(status='pending').order_by('-created_at')
+    listings = Listing.objects.all().select_related('seller', 'shop', 'category').order_by('-created_at')
     
     # Apply filters
     search = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
     category_filter = request.GET.get('category', '')
     
     if search:
         listings = listings.filter(Q(title__icontains=search))
     
+    if status_filter == 'featured':
+        listings = listings.filter(is_featured=True)
+    elif status_filter:
+        listings = listings.filter(status=status_filter)
+
     if category_filter:
         listings = listings.filter(category_id=category_filter)
     
-    # Pagination
-    page = int(request.GET.get('page', 1))
-    per_page = 50
-    total = listings.count()
-    start = (page - 1) * per_page
-    end = start + per_page
-    
-    listings_page = listings[start:end]
-    total_pages = (total + per_page - 1) // per_page
+    pending_count = listings.filter(status='draft').count()
+    approved_count = listings.filter(status='active').count()
+    rejected_count = listings.filter(status__in=['hidden', 'expired']).count()
+    flagged_count = listings.filter(is_featured=True).count()
+
+    paginator = Paginator(listings, 50)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    total = paginator.count
+
+    categories = Category.objects.all().order_by('name')
     
     context = {
-        'listings': listings_page,
+        'listings': page_obj,
         'total': total,
-        'page': page,
-        'total_pages': total_pages,
+        'page_obj': page_obj,
         'search': search,
+        'breadcrumbs': [{'label': 'Listings'}],
+        'filters': [
+            {
+                'key': 'status',
+                'label': 'Status',
+                'options': [
+                    {'value': 'draft', 'label': 'Pending Review'},
+                    {'value': 'active', 'label': 'Approved'},
+                    {'value': 'hidden', 'label': 'Rejected'},
+                    {'value': 'featured', 'label': 'Featured'},
+                ],
+            },
+            {
+                'key': 'category',
+                'label': 'Category',
+                'options': [
+                    {'value': f'{category.id}', 'label': category.name}
+                    for category in categories
+                ],
+            },
+        ],
         'category_filter': category_filter,
+        'status_filter': status_filter,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'flagged_count': flagged_count,
+        'bulk_actions': [
+            {'key': 'approve', 'label': 'Approve', 'icon': 'bi-check-circle', 'confirm': 'Approve selected listings?'},
+            {'key': 'reject', 'label': 'Reject', 'icon': 'bi-x-circle', 'confirm': 'Reject selected listings?'},
+            {'key': 'feature', 'label': 'Feature', 'icon': 'bi-star', 'confirm': 'Feature selected listings?'},
+        ],
     }
     
     return render(request, 'admin/listings.html', context)
@@ -878,23 +916,39 @@ def admin_transactions_list(request):
             Q(mpesa_receipt__icontains=search)
         )
     
-    # Pagination
-    page = int(request.GET.get('page', 1))
-    per_page = 50
-    total = transactions.count()
-    start = (page - 1) * per_page
-    end = start + per_page
-    
-    transactions_page = transactions[start:end]
-    total_pages = (total + per_page - 1) // per_page
+    total_revenue = transactions.filter(status='success').aggregate(total=Sum('amount'))['total'] or 0
+    completed_transactions = transactions.filter(status='success').count()
+    pending_transactions = transactions.filter(status__in=['pending', 'initiated']).count()
+    failed_transactions = transactions.filter(status__in=['failed', 'expired']).count()
+
+    paginator = Paginator(transactions, 50)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
     
     context = {
-        'transactions': transactions_page,
-        'total': total,
-        'page': page,
-        'total_pages': total_pages,
+        'transactions': page_obj,
+        'page_obj': page_obj,
+        'total': paginator.count,
         'status_filter': status_filter,
         'search': search,
+        'breadcrumbs': [{'label': 'Transactions'}],
+        'filters': [
+            {
+                'key': 'status',
+                'label': 'Status',
+                'options': [
+                    {'value': 'pending', 'label': 'Pending'},
+                    {'value': 'initiated', 'label': 'Initiated'},
+                    {'value': 'success', 'label': 'Success'},
+                    {'value': 'failed', 'label': 'Failed'},
+                    {'value': 'refunded', 'label': 'Refunded'},
+                    {'value': 'expired', 'label': 'Expired'},
+                ],
+            },
+        ],
+        'total_revenue': total_revenue,
+        'completed_transactions': completed_transactions,
+        'pending_transactions': pending_transactions,
+        'failed_transactions': failed_transactions,
     }
     
     return render(request, 'admin/transactions.html', context)
