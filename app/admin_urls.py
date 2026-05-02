@@ -230,4 +230,6 @@ admin_subdomain_patterns = admin_subdomain_base + admin_core_patterns
 # Full admin_crud_patterns disabled as most view functions are not yet implemented (see admin_crud_patterns above)
 
 # Main urlpatterns - exclude admin_crud_patterns as most view functions are not yet implemented
-urlpatterns = admin_patterns + seller_patterns + deployment_patterns
+# If this module is being used as the urlconf for admin subdomain, use admin patterns
+# Otherwise use the default patterns
+urlpatterns = admin_subdomain_patterns
