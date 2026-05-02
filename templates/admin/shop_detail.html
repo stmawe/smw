@@ -247,6 +247,48 @@
   </div>
 </div>
 
+<!-- Admin Management Card -->
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-lg-4 ms-auto">
+      {% include "admin/components/card.html" with title="Admin Management" icon="bi-shield-check" %}
+        <form method="post" class="mb-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="enable" id="actionField">
+          
+          <div class="d-grid gap-2">
+            {% if shop.is_active %}
+              <button type="submit" class="btn btn-warning btn-sm" onclick="document.getElementById('actionField').value='disable'">
+                <i class="bi bi-pause-circle"></i> Disable Shop
+              </button>
+            {% else %}
+              <button type="submit" class="btn btn-success btn-sm" onclick="document.getElementById('actionField').value='enable'">
+                <i class="bi bi-play-circle"></i> Enable Shop
+              </button>
+            {% endif %}
+          </div>
+        </form>
+
+        <!-- Transfer Ownership -->
+        <form method="post" class="mb-0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="transfer">
+          
+          <label for="newOwnerUsername" class="form-label small">Transfer Ownership</label>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="newOwnerUsername" name="new_owner_username" 
+                   placeholder="New owner username" autocomplete="off">
+            <button type="submit" class="btn btn-primary" title="Transfer ownership to another user">
+              <i class="bi bi-arrow-left-right"></i>
+            </button>
+          </div>
+          <small class="text-muted">Enter username to transfer shop ownership</small>
+        </form>
+      
+    </div>
+  </div>
+</div>
+
 <!-- Suspend Shop Modal -->
 {% include "admin/components/modal.html" with modal_id="suspendShopModal" title="Suspend Shop" size="lg" %}
   <form id="suspendShopForm">

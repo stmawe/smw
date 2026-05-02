@@ -1,0 +1,175 @@
+{% extends "admin/base.html" %}
+{% load admin_filters %}
+{% load static %}
+
+{% block title %}Create Shop - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'admin_shops_list' %}">Shops</a></li>
+      <li class="breadcrumb-item active">Create Shop</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Create New Shop</h1>
+      <p class="text-muted mb-0">Create a shop for a user or for yourself. Shop will be saved as draft.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main Content (Left) -->
+    <div class="col-lg-8">
+      <!-- User Selection -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-person"></i> Shop Owner</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <!-- Owner Selection -->
+            <div class="col-12">
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="owner_type" id="owner_me" value="me" checked>
+                <label class="btn btn-outline-primary" for="owner_me">
+                  <i class="bi bi-person"></i> Create for Myself
+                </label>
+                
+                <input type="radio" class="btn-check" name="owner_type" id="owner_other" value="other">
+                <label class="btn btn-outline-primary" for="owner_other">
+                  <i class="bi bi-people"></i> Create for Other User
+                </label>
+              </div>
+            </div>
+
+            <!-- Owner Selection Form -->
+            <div id="other-user-section" class="col-12" style="display: none;">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="ownerUsername" class="form-label">Username</label>
+                  <input type="text" class="form-control" id="ownerUsername" name="owner_username" 
+                         placeholder="Enter username" value="{{ owner_username }}">
+                  <small class="text-muted">Existing user or new username to create</small>
+                  {% if user_not_found %}
+                    <div class="alert alert-warning mt-2">User not found. Check below to create.</div>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label for="ownerEmail" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="ownerEmail" name="owner_email" 
+                         placeholder="user@example.com" value="{{ owner_email }}">
+                  <small class="text-muted">Required if creating new user</small>
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="createUser" name="create_user" 
+                           value="on" {% if user_not_found %}checked{% endif %}>
+                    <label class="form-check-label" for="createUser">
+                      Create user if it doesn't exist
+                    </label>
+                    <small class="text-muted d-block mt-1">
+                      ✓ New user will be created with auto-generated password
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shop Details -->
+            <div class="col-12">
+              <hr>
+            </div>
+
+            <div class="col-12">
+              <h6 class="mb-3"><i class="bi bi-shop"></i> Shop Details</h6>
+            </div>
+
+            <div class="col-12">
+              <label for="shopName" class="form-label">Shop Name *</label>
+              <input type="text" class="form-control" id="shopName" name="name" 
+                     placeholder="e.g., Tech Store, Fashion Hub" required>
+            </div>
+
+            <div class="col-12">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="description" name="description" rows="4" 
+                        placeholder="Shop description..."></textarea>
+            </div>
+
+            <!-- Draft Notice -->
+            <div class="col-12">
+              <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle"></i> 
+                <strong>Draft Status:</strong> This shop will be created in draft status (inactive). 
+                Admin can enable it after verification.
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-12">
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-plus-circle"></i> Create Shop
+                </button>
+                <a href="{% url 'admin_shops_list' %}" class="btn btn-secondary">
+                  <i class="bi bi-arrow-left"></i> Cancel
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="col-lg-4">
+      <!-- Info Card -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Tips</h5>
+        </div>
+        <div class="card-body small">
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <strong>Draft Shops:</strong> New shops start inactive until admin enables them.
+            </li>
+            <li class="mb-2">
+              <strong>User Creation:</strong> Admin can create users on-the-fly during shop creation.
+            </li>
+            <li class="mb-2">
+              <strong>Owner Assignment:</strong> Shop owner can be changed later via edit page.
+            </li>
+            <li>
+              <strong>Self-Service:</strong> Admin can create shops for themselves too.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Toggle owner selection section
+document.querySelectorAll('input[name="owner_type"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const otherSection = document.getElementById('other-user-section');
+    if (this.value === 'other') {
+      otherSection.style.display = 'block';
+      document.getElementById('ownerUsername').required = true;
+    } else {
+      otherSection.style.display = 'none';
+      document.getElementById('ownerUsername').required = false;
+    }
+  });
+});
+</script>
+{% endblock %}

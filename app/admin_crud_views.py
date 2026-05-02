@@ -598,17 +598,59 @@ def admin_shops_list(request):
 def admin_shop_detail(request, shop_id=None):
     """
     Shop detail/edit page or create new shop.
+    Enhanced: Admins can create shops for other users or themselves.
     """
     # Handle shop creation
     if shop_id is None:
         if request.method == 'POST':
-            # Create new shop
-            from mydak.models import Shop
+            # Step 1: Determine owner (user lookup or create)
+            owner_username = request.POST.get('owner_username', '').strip()
+            owner_email = request.POST.get('owner_email', '').strip()
+            
+            if owner_username:
+                # Try to find existing user
+                owner = User.objects.filter(username=owner_username).first()
+                if not owner:
+                    # Create new user if requested
+                    if request.POST.get('create_user') == 'on':
+                        # Auto-generate password
+                        from django.contrib.auth.models import make_password
+                        temp_password = User.objects.make_random_password()
+                        owner = User.objects.create_user(
+                            username=owner_username,
+                            email=owner_email or f"{owner_username}@smw.pgwiz.cloud",
+                            password=temp_password,
+                            is_active=True,
+                        )
+                        log_admin_action(
+                            request,
+                            'create',
+                            'User',
+                            owner.id,
+                            owner.username,
+                        )
+                    else:
+                        messages.error(request, f"User '{owner_username}' not found. Check 'Create User' to create it.")
+                        return render(request, 'admin/shop_create.html', {
+                            'owner_username': owner_username,
+                            'owner_email': owner_email,
+                            'user_not_found': True,
+                            'breadcrumbs': [
+                                {'label': 'Shops', 'url': reverse('admin_shops_list')},
+                                {'label': 'Create Shop'},
+                            ],
+                        })
+            else:
+                # Use current admin as owner
+                owner = request.user
+            
+            # Step 2: Create shop as draft
             shop = Shop.objects.create(
                 name=request.POST.get('name', 'Unnamed Shop'),
                 description=request.POST.get('description', ''),
-                owner=request.user,
-                is_active=request.POST.get('is_active') == 'on',
+                owner=owner,
+                is_active=False,  # Draft status
+                status='draft',  # Mark as draft if model supports
             )
             
             log_admin_action(
@@ -617,6 +659,7 @@ def admin_shop_detail(request, shop_id=None):
                 'Shop',
                 shop.id,
                 shop.name,
+                reason=f"Created for {owner.username}",
             )
             log_activity_feed(
                 request,
@@ -624,10 +667,10 @@ def admin_shop_detail(request, shop_id=None):
                 'Shop',
                 shop.id,
                 object_title=shop.name,
-                description=f"Created shop {shop.name}",
+                description=f"Created draft shop {shop.name} for {owner.username}",
             )
             
-            messages.success(request, f"Shop {shop.name} created successfully.")
+            messages.success(request, f"Shop '{shop.name}' created as draft for {owner.username}. Admin can now activate it.")
             return redirect('admin_shop_detail', shop_id=shop.id)
         
         # Show create form
@@ -639,55 +682,105 @@ def admin_shop_detail(request, shop_id=None):
                 {'label': 'Create Shop'},
             ],
         }
-        return render(request, 'admin/shop_detail.html', context)
+        return render(request, 'admin/shop_create.html', context)
     
-    # Handle shop update
+    # Handle shop update/management
     shop = get_object_or_404(Shop, id=shop_id)
     
     if request.method == 'POST':
-        # Handle shop update
-        old_values = {
-            'name': shop.name,
-            'description': shop.description if hasattr(shop, 'description') else '',
-            'is_active': shop.is_active,
-        }
+        action = request.POST.get('action', 'update')
         
-        shop.name = request.POST.get('name', shop.name)
-        if hasattr(shop, 'description'):
-            shop.description = request.POST.get('description', shop.description)
-        shop.is_active = request.POST.get('is_active') == 'on'
-        shop.save()
-        
-        new_values = {
-            'name': shop.name,
-            'description': shop.description if hasattr(shop, 'description') else '',
-            'is_active': shop.is_active,
-        }
-        
-        changes = {
-            k: {'old': old_values[k], 'new': new_values[k]}
-            for k in old_values if old_values[k] != new_values[k]
-        }
+        # Handle different admin actions
+        if action == 'disable':
+            shop.is_active = False
+            shop.save()
+            log_admin_action(
+                request,
+                'disable',
+                'Shop',
+                shop.id,
+                shop.name,
+                reason=request.POST.get('reason', ''),
+            )
+            messages.success(request, f"Shop '{shop.name}' has been disabled.")
+            
+        elif action == 'enable':
+            shop.is_active = True
+            shop.save()
+            log_admin_action(
+                request,
+                'enable',
+                'Shop',
+                shop.id,
+                shop.name,
+                reason=request.POST.get('reason', ''),
+            )
+            messages.success(request, f"Shop '{shop.name}' has been enabled.")
+            
+        elif action == 'transfer':
+            new_owner_username = request.POST.get('new_owner_username', '').strip()
+            if new_owner_username:
+                new_owner = User.objects.filter(username=new_owner_username).first()
+                if new_owner:
+                    old_owner = shop.owner
+                    shop.owner = new_owner
+                    shop.save()
+                    log_admin_action(
+                        request,
+                        'transfer',
+                        'Shop',
+                        shop.id,
+                        shop.name,
+                        changes={'owner': {'old': old_owner.username, 'new': new_owner.username}},
+                        reason=request.POST.get('reason', ''),
+                    )
+                    messages.success(request, f"Shop ownership transferred from {old_owner.username} to {new_owner.username}.")
+                else:
+                    messages.error(request, f"User '{new_owner_username}' not found.")
+            else:
+                messages.error(request, "Please specify new owner username.")
+        else:
+            # Regular shop update
+            old_values = {
+                'name': shop.name,
+                'description': shop.description if hasattr(shop, 'description') else '',
+            }
+            
+            shop.name = request.POST.get('name', shop.name)
+            if hasattr(shop, 'description'):
+                shop.description = request.POST.get('description', shop.description)
+            shop.save()
+            
+            new_values = {
+                'name': shop.name,
+                'description': shop.description if hasattr(shop, 'description') else '',
+            }
+            
+            changes = {
+                k: {'old': old_values[k], 'new': new_values[k]}
+                for k in old_values if old_values[k] != new_values[k]
+            }
 
-        log_admin_action(
-            request,
-            'update',
-            'Shop',
-            shop.id,
-            shop.name,
-            changes=changes,
-            reason=request.POST.get('reason', '')
-        )
-        log_activity_feed(
-            request,
-            'updated',
-            'Shop',
-            shop.id,
-            object_title=shop.name,
-            description=f"Updated shop {shop.name}",
-        )
+            log_admin_action(
+                request,
+                'update',
+                'Shop',
+                shop.id,
+                shop.name,
+                changes=changes,
+                reason=request.POST.get('reason', '')
+            )
+            log_activity_feed(
+                request,
+                'updated',
+                'Shop',
+                shop.id,
+                object_title=shop.name,
+                description=f"Updated shop {shop.name}",
+            )
+            
+            messages.success(request, f"Shop '{shop.name}' updated successfully.")
         
-        messages.success(request, f"Shop {shop.name} updated successfully.")
         return redirect('admin_shop_detail', shop_id=shop.id)
     
     # Get shop stats
