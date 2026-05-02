@@ -70,9 +70,6 @@ TENANT_MODEL = "app.Client"
 TENANT_DOMAIN_MODEL = "app.ClientDomain"
 
 MIDDLEWARE = [
-    # Admin subdomain routing (must come BEFORE TenantMainMiddleware to intercept)
-    'app.admin_middleware.AdminSubdomainMiddleware',
-    
     'django_tenants.middleware.main.TenantMainMiddleware',
     
     'django.middleware.security.SecurityMiddleware',
@@ -82,6 +79,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Admin subdomain routing (must come AFTER TenantMainMiddleware to override it)
+    'app.admin_middleware.AdminSubdomainMiddleware',
     
     # Custom subdomain detection middleware
     'smw.middleware.SubdomainMiddleware',
