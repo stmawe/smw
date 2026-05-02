@@ -37,6 +37,7 @@ admin_core_patterns = [
     
     # Shop Management  
     path('admin/shops/', admin_crud_views.admin_shops_list, name='admin_shops_list'),
+    path('admin/shop/create/', admin_crud_views.admin_shop_detail, {'shop_id': None}, name='admin_shop_create'),
     path('admin/shop/<int:shop_id>/', admin_crud_views.admin_shop_detail, name='admin_shop_detail'),
     
     # Listings Management

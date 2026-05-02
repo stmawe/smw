@@ -13,6 +13,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from django.utils.text import slugify
+from django.urls import reverse
 from datetime import timedelta
 import json
 
@@ -592,11 +593,55 @@ def admin_shops_list(request):
 
 
 @login_required
+@login_required
 @permission_required(AdminPermission.MANAGE_SHOPS)
-def admin_shop_detail(request, shop_id):
+def admin_shop_detail(request, shop_id=None):
     """
-    Shop detail/edit page.
+    Shop detail/edit page or create new shop.
     """
+    # Handle shop creation
+    if shop_id is None:
+        if request.method == 'POST':
+            # Create new shop
+            from mydak.models import Shop
+            shop = Shop.objects.create(
+                name=request.POST.get('name', 'Unnamed Shop'),
+                description=request.POST.get('description', ''),
+                owner=request.user,
+                is_active=request.POST.get('is_active') == 'on',
+            )
+            
+            log_admin_action(
+                request,
+                'create',
+                'Shop',
+                shop.id,
+                shop.name,
+            )
+            log_activity_feed(
+                request,
+                'created',
+                'Shop',
+                shop.id,
+                object_title=shop.name,
+                description=f"Created shop {shop.name}",
+            )
+            
+            messages.success(request, f"Shop {shop.name} created successfully.")
+            return redirect('admin_shop_detail', shop_id=shop.id)
+        
+        # Show create form
+        context = {
+            'shop': None,
+            'is_create': True,
+            'breadcrumbs': [
+                {'label': 'Shops', 'url': reverse('admin_shops_list')},
+                {'label': 'Create Shop'},
+            ],
+        }
+        return render(request, 'admin/shop_detail.html', context)
+    
+    # Handle shop update
     shop = get_object_or_404(Shop, id=shop_id)
     
     if request.method == 'POST':
@@ -623,7 +668,7 @@ def admin_shop_detail(request, shop_id):
             k: {'old': old_values[k], 'new': new_values[k]}
             for k in old_values if old_values[k] != new_values[k]
         }
-        
+
         log_admin_action(
             request,
             'update',
@@ -652,6 +697,7 @@ def admin_shop_detail(request, shop_id):
     
     context = {
         'shop': shop,
+        'is_create': False,
         'listings_count': listings_count,
         'active_listings': active_listings,
         'transactions_count': transactions_count,
