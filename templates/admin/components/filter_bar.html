@@ -37,7 +37,7 @@ Parameters:
           <select class="form-select form-select-sm" id="filter_{{ filter.key }}" name="{{ filter.key }}">
             <option value="">All</option>
             {% for option in filter.options %}
-              <option value="{{ option.value }}" {% if option.value == request.GET|dict_lookup:filter.key %}selected{% endif %}>
+              <option value="{{ option.value }}" {% if option.value == request.GET|get:filter.key %}selected{% endif %}>
                 {{ option.label }}
               </option>
             {% endfor %}
