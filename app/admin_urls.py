@@ -234,8 +234,7 @@ admin_crud_patterns = [
 
 # Combine admin subdomain patterns with core CRUD patterns for the admin subdomain
 # admin_core_patterns MUST come FIRST so specific /admin/* paths match before the catch-all <str:username> patterns
-admin_subdomain_patterns = admin_core_patterns + admin_subdomain_base
-# Full admin_crud_patterns disabled as most view functions are not yet implemented (see admin_crud_patterns above)
+admin_subdomain_patterns = admin_core_patterns + admin_crud_patterns + admin_subdomain_base
 
 # Main urlpatterns - exclude admin_crud_patterns as most view functions are not yet implemented
 # If this module is being used as the urlconf for admin subdomain, use admin patterns
