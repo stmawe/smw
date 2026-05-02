@@ -264,7 +264,7 @@ def admin_analytics_dashboard(request):
     ).count()
     
     active_listings = Listing.objects.filter(
-        is_active=True,
+        status='active',
         created_at__gte=start_date
     ).count()
     
