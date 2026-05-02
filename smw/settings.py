@@ -70,10 +70,10 @@ TENANT_MODEL = "app.Client"
 TENANT_DOMAIN_MODEL = "app.ClientDomain"
 
 MIDDLEWARE = [
-    'django_tenants.middleware.main.TenantMainMiddleware',
-    
-    # Admin subdomain routing (must come early to set request.urlconf)
+    # Admin subdomain routing (must come BEFORE TenantMainMiddleware to intercept)
     'app.admin_middleware.AdminSubdomainMiddleware',
+    
+    'django_tenants.middleware.main.TenantMainMiddleware',
     
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
