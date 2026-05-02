@@ -546,11 +546,8 @@ def admin_user_unsuspend(request, user_id):
 # SHOP MANAGEMENT VIEWS
 # ============================================================
 
-
-# @login_required
-# @permission_required(AdminPermission.MANAGE_SHOPS)
-# @login_required
-# @permission_required(AdminPermission.VIEW_SHOPS)
+@login_required
+@permission_required(AdminPermission.VIEW_SHOPS)
 def admin_shops_list(request):
     """
     List all shops with filtering and stats.

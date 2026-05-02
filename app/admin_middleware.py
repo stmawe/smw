@@ -2,8 +2,11 @@
 Middleware to route admin.smw.pgwiz.cloud to admin URL config
 Bypasses django-tenants routing for the admin subdomain.
 """
+import logging
 from django.http import HttpResponseNotFound
 from django.urls import resolve, Resolver404
+
+logger = logging.getLogger(__name__)
 
 
 class AdminSubdomainMiddleware:
@@ -25,15 +28,16 @@ class AdminSubdomainMiddleware:
             request.is_admin_subdomain = True
             # Override urlconf with admin patterns
             request.urlconf = 'app.admin_urls'
+            logger.info(f"[ADMIN] Request to {host}{request.path_info} - urlconf set to app.admin_urls")
             
             # Try to resolve the URL using admin patterns directly
             try:
                 from django.urls import resolve as django_resolve
                 match = django_resolve(request.path_info, urlconf='app.admin_urls')
-                # URL is valid, proceed
+                logger.info(f"[ADMIN] URL resolved to {match.func.__name__}")
             except Resolver404:
-                # URL doesn't match any admin pattern, return 404
-                return HttpResponseNotFound(f'Admin endpoint not found: {request.path_info}')
+                logger.warning(f"[ADMIN] URL {request.path_info} not found in admin patterns")
+                # URL doesn't match any admin pattern, proceed anyway and let Django handle 404
         else:
             request.is_admin_subdomain = False
         
