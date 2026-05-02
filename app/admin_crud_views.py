@@ -606,6 +606,8 @@ def admin_shop_detail(request, shop_id=None):
             # Step 1: Determine owner (user lookup or create)
             owner_username = request.POST.get('owner_username', '').strip()
             owner_email = request.POST.get('owner_email', '').strip()
+            user_created = False
+            temp_password = None
             
             if owner_username:
                 # Try to find existing user
@@ -622,6 +624,7 @@ def admin_shop_detail(request, shop_id=None):
                             password=temp_password,
                             is_active=True,
                         )
+                        user_created = True
                         log_admin_action(
                             request,
                             'create',
@@ -629,6 +632,77 @@ def admin_shop_detail(request, shop_id=None):
                             owner.id,
                             owner.username,
                         )
+                        
+                        # Send welcome email with password
+                        try:
+                            from django.core.mail import EmailMultiAlternatives
+                            from django.template.loader import render_to_string
+                            from django.conf import settings
+                            
+                            subject = f"Welcome to {settings.SITE_NAME}! - Your Account Created"
+                            context = {
+                                'username': owner.username,
+                                'email': owner.email,
+                                'password': temp_password,
+                                'site_name': settings.SITE_NAME,
+                                'login_url': f"{settings.SITE_URL}/admin/login/",
+                            }
+                            
+                            text_content = f"""
+Welcome to {settings.SITE_NAME}!
+
+Your admin account has been created by an administrator.
+
+Account Details:
+- Username: {owner.username}
+- Email: {owner.email}
+- Temporary Password: {temp_password}
+
+Please log in and change your password immediately for security.
+Login URL: {settings.SITE_URL}/admin/login/
+
+If you have any questions, please contact support.
+                            """
+                            
+                            try:
+                                html_content = render_to_string('emails/welcome_with_password.html', context)
+                            except:
+                                html_content = f"""
+<html>
+  <body>
+    <h2>Welcome to {settings.SITE_NAME}!</h2>
+    <p>Your admin account has been created by an administrator.</p>
+    <h3>Account Details:</h3>
+    <ul>
+      <li><strong>Username:</strong> {owner.username}</li>
+      <li><strong>Email:</strong> {owner.email}</li>
+      <li><strong>Temporary Password:</strong> <code>{temp_password}</code></li>
+    </ul>
+    <p>Please <a href="{settings.SITE_URL}/admin/login/">log in</a> and change your password immediately for security.</p>
+    <p>If you have any questions, please contact support.</p>
+  </body>
+</html>
+                                """
+                            
+                            msg = EmailMultiAlternatives(
+                                subject=subject,
+                                body=text_content,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                to=[owner.email],
+                            )
+                            msg.attach_alternative(html_content, "text/html")
+                            msg.send()
+                            
+                            log_admin_action(
+                                request,
+                                'send_email',
+                                'User',
+                                owner.id,
+                                owner.username,
+                                reason='Welcome email with temporary password sent',
+                            )
+                        except Exception as e:
+                            messages.warning(request, f"User created but email failed to send: {str(e)}")
                     else:
                         messages.error(request, f"User '{owner_username}' not found. Check 'Create User' to create it.")
                         return render(request, 'admin/shop_create.html', {
@@ -670,7 +744,10 @@ def admin_shop_detail(request, shop_id=None):
                 description=f"Created draft shop {shop.name} for {owner.username}",
             )
             
-            messages.success(request, f"Shop '{shop.name}' created as draft for {owner.username}. Admin can now activate it.")
+            if user_created:
+                messages.success(request, f"User '{owner.username}' created and welcome email sent to {owner.email}. Shop '{shop.name}' created as draft.")
+            else:
+                messages.success(request, f"Shop '{shop.name}' created as draft for {owner.username}. Admin can now activate it.")
             return redirect('admin_shop_detail', shop_id=shop.id)
         
         # Show create form
