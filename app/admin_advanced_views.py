@@ -248,7 +248,7 @@ def admin_analytics_dashboard(request):
     
     # Top categories
     top_categories = Listing.objects.filter(
-        transaction__created_at__gte=start_date
+        transactions__created_at__gte=start_date
     ).values('category').annotate(
         count=Count('*')
     ).order_by('-count')[:10]
@@ -538,7 +538,7 @@ def api_dashboard_metrics(request):
     """
     total_users = User.objects.count()
     total_shops = Shop.objects.count()
-    active_listings = Listing.objects.filter(is_active=True).count()
+    active_listings = Listing.objects.filter(status='active').count()
     
     # Last 7 days metrics
     week_ago = timezone.now() - timedelta(days=7)
