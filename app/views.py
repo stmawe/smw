@@ -418,57 +418,59 @@ def tenant_register_view(request):
     if request.method == 'POST':
         form = TenantRegistrationForm(request.POST)
         if form.is_valid():
+            from django.conf import settings
+            from django_tenants.utils import schema_context
+
             university_name = form.cleaned_data['university_name']
             preferred_subdomain = form.cleaned_data.get('preferred_subdomain')
+            main_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
 
-            subdomain = ""
-            main_domain = "localhost"  # Change for production
-
-            # Use the user's preferred subdomain if they provided a valid one
+            # Determine subdomain
             if preferred_subdomain:
                 subdomain = preferred_subdomain
             else:
-                # Otherwise, auto-generate a unique subdomain from the university name
                 base_slug = slugify(university_name)
                 subdomain = base_slug
-                while ClientDomain.objects.filter(domain=f"{subdomain}.{main_domain}").exists():
-                    # Append a timestamp to ensure uniqueness if the base slug is taken
-                    subdomain = f"{base_slug}-{int(time.time())}"
+                # Uniqueness check must run in public schema
+                with schema_context('public'):
+                    while ClientDomain.objects.filter(
+                        domain=f"{subdomain}.{main_domain}"
+                    ).exists():
+                        subdomain = f"{base_slug}-{int(time.time())}"
 
-            # --- 1. Create the Tenant (Client) ---
-            # The schema_name must be unique and URL-friendly
             schema_name = subdomain.replace('-', '_')
-            tenant = Client(
-                name=university_name,
-                schema_name=schema_name,
-                tenant_type='university',
-                on_trial=True
-            )
-            tenant.save()
 
-            # --- 2. Create the Tenant Domain ---
-            domain_name = f"{subdomain}.{main_domain}"
+            # All tenant/domain creation MUST happen in the public schema
+            with schema_context('public'):
+                tenant = Client(
+                    name=university_name,
+                    schema_name=schema_name,
+                    tenant_type='university',
+                    on_trial=True,
+                )
+                tenant.save()
 
-            domain = ClientDomain(
-                domain=domain_name,
-                tenant=tenant,
-                is_primary=True
-            )
-            domain.save()
+                domain_name = f"{subdomain}.{main_domain}"
+                ClientDomain.objects.create(
+                    domain=domain_name,
+                    tenant=tenant,
+                    is_primary=True,
+                )
 
-            # --- 3. Create the University Admin User ---
-            # Now using the dedicated 'username' field from the form
+            # User creation is schema-independent (app.User is in public schema)
             user = User.objects.create_user(
                 username=form.cleaned_data['username'],
                 email=form.cleaned_data['email'],
                 password=form.cleaned_data['password'],
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
-                role='university_admin'
+                role='university_admin',
             )
 
-            messages.success(request,
-                             f"University '{university_name}' and admin account for '{user.username}' created successfully!")
+            messages.success(
+                request,
+                f"University '{university_name}' and admin account for '{user.username}' created successfully!",
+            )
             return redirect('login')
 
     else:
