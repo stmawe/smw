@@ -95,6 +95,86 @@ class User(AbstractUser):
     )
 
 
+class Entity(models.Model):
+    """
+    Represents an institution (university, location, NGO, etc.) that can host
+    shops on the platform.
+
+    Two creation paths:
+    - Admin-created: status=active immediately, Cloudflare DNS created on save.
+    - Self-registered: status=pending until main admin approves.
+
+    is_active is derived from status in save() — never set directly.
+    """
+
+    STATUS_PENDING   = 'pending'
+    STATUS_ACTIVE    = 'active'
+    STATUS_SUSPENDED = 'suspended'
+    STATUS_CHOICES = [
+        (STATUS_PENDING,   'Pending'),
+        (STATUS_ACTIVE,    'Active'),
+        (STATUS_SUSPENDED, 'Suspended'),
+    ]
+
+    name        = models.CharField(max_length=255)
+    entity_type = models.CharField(
+        max_length=100,
+        help_text='Free-form type label, e.g. "University", "Location", "NGO"'
+    )
+    subdomain   = models.SlugField(
+        max_length=63,
+        unique=True,
+        help_text='Subdomain slug — becomes {subdomain}.smw.pgwiz.cloud'
+    )
+    admin_user  = models.ForeignKey(
+        'app.User',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='administered_entities',
+        help_text='Designated admin for this entity'
+    )
+    status      = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        db_index=True,
+    )
+    is_active   = models.BooleanField(
+        default=False,
+        help_text='Derived from status in save() — do not set directly'
+    )
+    created_by  = models.ForeignKey(
+        'app.User',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='created_entities',
+        help_text='NULL for self-registrations; set to admin user for admin-created entities'
+    )
+    city        = models.CharField(max_length=100, blank=True)
+    country     = models.CharField(max_length=100, blank=True)
+    website     = models.URLField(blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'entities'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['is_active', 'name']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # Keep is_active in sync with status — never set is_active directly
+        self.is_active = (self.status == self.STATUS_ACTIVE)
+        super().save(*args, **kwargs)
+
+
 class Category(models.Model):
     """
     Shared category model for organizing listings.
