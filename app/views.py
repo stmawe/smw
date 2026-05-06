@@ -404,7 +404,7 @@ def create_shop_view(request):
     context = {
         'remaining_shops': 2 - shop_count,
         'shop_count': shop_count,
-        'incomplete_shop': incomplete_shop,
+        'incomplete_shop': incomplete_shop or {},
         'shop_progress': shop_progress,
         'generated_slug': generate_shop_slug((incomplete_shop or {}).get('shop_name', '')) if incomplete_shop else '',
         'wizard_config': wizard_config,  # BUG-1 fix: required by wizard.js json_script tag
