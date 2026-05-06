@@ -37,9 +37,48 @@
         <a href="{% url 'create_shop' %}" class="btn btn-accent btn-pill btn-sm">
           Sell
         </a>
-        <a href="{% url 'login' %}" class="btn btn-ghost btn-pill btn-sm">
-          Sign In
-        </a>
+        {% if user.is_authenticated %}
+          <!-- User dropdown -->
+          <div class="navbar-user-dropdown" id="userDropdown">
+            <button class="navbar-user-btn" id="userDropdownToggle" aria-expanded="false" aria-haspopup="true">
+              <span class="navbar-user-avatar">{{ user.username|slice:":2"|upper }}</span>
+              <span class="navbar-user-name hidden-mobile">{{ user.username }}</span>
+              <svg class="navbar-user-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="navbar-user-menu" id="userDropdownMenu" role="menu">
+              <div class="navbar-user-menu__header">
+                <span class="navbar-user-menu__name">{{ user.username }}</span>
+                <span class="navbar-user-menu__email">{{ user.email }}</span>
+              </div>
+              <div class="navbar-user-menu__divider"></div>
+              <a href="{% url 'accounts:profile' %}" class="navbar-user-menu__item" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                My Profile
+              </a>
+              <a href="{% url 'create_shop' %}" class="navbar-user-menu__item" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                My Shops
+              </a>
+              {% if user.is_staff or user.is_superuser %}
+              <a href="https://admin.smw.pgwiz.cloud/dashboard/" class="navbar-user-menu__item" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Admin Panel
+              </a>
+              {% endif %}
+              <div class="navbar-user-menu__divider"></div>
+              <a href="{% url 'accounts:logout' %}" class="navbar-user-menu__item navbar-user-menu__item--danger" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-ghost btn-pill btn-sm">
+            Sign In
+          </a>
+        {% endif %}
       </div>
     </div>
 
@@ -52,7 +91,12 @@
         <li><a href="{% url 'universities' %}" class="drawer-link">Universities</a></li>
         <li><a href="{% url 'locations' %}" class="drawer-link">Locations</a></li>
         <li><a href="{% url 'create_shop' %}" class="drawer-link drawer-link-primary">Sell</a></li>
-        <li><a href="{% url 'login' %}" class="drawer-link drawer-link-secondary">Sign In</a></li>
+        {% if user.is_authenticated %}
+          <li><a href="{% url 'accounts:profile' %}" class="drawer-link">My Profile ({{ user.username }})</a></li>
+          <li><a href="{% url 'accounts:logout' %}" class="drawer-link drawer-link-secondary">Sign Out</a></li>
+        {% else %}
+          <li><a href="{% url 'login' %}" class="drawer-link drawer-link-secondary">Sign In</a></li>
+        {% endif %}
       </ul>
     </div>
   </nav>
@@ -80,7 +124,12 @@
       <li><a href="{% url 'locations' %}" class="expanded-link">Locations</a></li>
       <li class="expanded-divider"></li>
       <li><a href="{% url 'create_shop' %}" class="expanded-link expanded-link-primary">Sell</a></li>
-      <li><a href="{% url 'login' %}" class="expanded-link expanded-link-secondary">Sign In</a></li>
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'accounts:profile' %}" class="expanded-link expanded-link-secondary">{{ user.username }}</a></li>
+        <li><a href="{% url 'accounts:logout' %}" class="expanded-link expanded-link-secondary">Sign Out</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}" class="expanded-link expanded-link-secondary">Sign In</a></li>
+      {% endif %}
     </ul>
   </div>
 </div>
@@ -545,6 +594,137 @@
 body {
   padding-top: 64px;
 }
+
+/* ============================================================
+   USER DROPDOWN
+   ============================================================ */
+
+.navbar-user-dropdown {
+  position: relative;
+}
+
+.navbar-user-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px 6px 6px;
+  cursor: pointer;
+  color: var(--text-1);
+  font: 500 14px var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.navbar-user-btn:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: var(--border-hi);
+}
+
+.navbar-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-500), var(--gold-400));
+  display: grid;
+  place-items: center;
+  font: 700 11px var(--font-body);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.navbar-user-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navbar-user-chevron {
+  color: var(--text-3);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.navbar-user-btn[aria-expanded="true"] .navbar-user-chevron {
+  transform: rotate(180deg);
+}
+
+.navbar-user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-mid);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: var(--glass-blur);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+  z-index: 1100;
+}
+
+.navbar-user-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.navbar-user-menu__header {
+  padding: 14px 16px 10px;
+}
+
+.navbar-user-menu__name {
+  display: block;
+  font: 600 14px var(--font-body);
+  color: var(--text-1);
+}
+
+.navbar-user-menu__email {
+  display: block;
+  font: 400 12px var(--font-body);
+  color: var(--text-3);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navbar-user-menu__divider {
+  height: 1px;
+  background: var(--border-dim);
+  margin: 4px 0;
+}
+
+.navbar-user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font: 500 14px var(--font-body);
+  color: var(--text-2);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.navbar-user-menu__item:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-1);
+}
+
+.navbar-user-menu__item--danger {
+  color: #f87171;
+}
+
+.navbar-user-menu__item--danger:hover {
+  background: rgba(248, 113, 113, 0.08);
+  color: #fca5a5;
+}
 </style>
 
 <script>
@@ -701,5 +881,34 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 2000);
     });
   });
+
+  // User dropdown toggle
+  const userDropdownToggle = document.getElementById('userDropdownToggle');
+  const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+  if (userDropdownToggle && userDropdownMenu) {
+    userDropdownToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const isOpen = userDropdownMenu.classList.contains('is-open');
+      userDropdownMenu.classList.toggle('is-open', !isOpen);
+      userDropdownToggle.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#userDropdown')) {
+        userDropdownMenu.classList.remove('is-open');
+        userDropdownToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        userDropdownMenu.classList.remove('is-open');
+        userDropdownToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 });
 </script>

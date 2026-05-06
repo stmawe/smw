@@ -407,7 +407,13 @@ def create_shop_view(request):
         'incomplete_shop': incomplete_shop or {},
         'shop_progress': shop_progress,
         'generated_slug': generate_shop_slug((incomplete_shop or {}).get('shop_name', '')) if incomplete_shop else '',
-        'wizard_config': wizard_config,  # BUG-1 fix: required by wizard.js json_script tag
+        'wizard_config': wizard_config,
+        # Ensure all template variables have safe defaults on GET
+        'form_data': {},
+        'payment_phone': '',
+        'payment_state': 'idle',
+        'payment_checkout_request_id': '',
+        'wizard_active_step': 1,
     }
     context.update(wizard_config)
     return render(request, 'wizard/create_shop.html', context)
