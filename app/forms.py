@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.text import slugify
-from .models import User, Client, ClientDomain
+from .models import User, ClientDomain
 
 
 def get_university_choices():
@@ -56,12 +56,10 @@ class TenantRegistrationForm(forms.Form):
         return email
 
     def clean_university_name(self):
-        """Ensure the selected university hasn't already been registered."""
+        """Ensure a university name was selected."""
         name = self.cleaned_data.get('university_name')
         if not name:
             raise forms.ValidationError("Please select a university.")
-        if Client.objects.filter(name=name).exists():
-            raise forms.ValidationError("A tenant for this university already exists.")
         return name
 
     def clean_preferred_subdomain(self):
