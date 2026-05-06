@@ -58,7 +58,7 @@ TENANT_MODEL = "app.Client"
 TENANT_DOMAIN_MODEL = "app.ClientDomain"
 PUBLIC_SCHEMA_NAME = config('PUBLIC_SCHEMA_NAME', default='public')
 PUBLIC_SCHEMA_DOMAIN = config('PUBLIC_SCHEMA_DOMAIN', default='localhost')
-BASE_DOMAIN = config('BASE_DOMAIN', default='localhost')
+BASE_DOMAIN = config('BASE_DOMAIN', default='smw.pgwiz.cloud')
 TENANT_SUBFOLDER_PREFIX = config('TENANT_SUBFOLDER_PREFIX', default='')
 
 # Middleware

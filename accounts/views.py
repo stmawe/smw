@@ -140,10 +140,13 @@ def login_view(request):
                 return redirect('accounts:login')
             login(request, user)
             # Redirect to user's personal subdomain after login
-            from django.conf import settings as django_settings
             next_url = request.GET.get('next', '')
             if not next_url:
+                from django.conf import settings as django_settings
                 base_domain = getattr(django_settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+                # Never use localhost as base domain for subdomain redirects
+                if 'localhost' in base_domain or '127.0.0.1' in base_domain:
+                    base_domain = 'smw.pgwiz.cloud'
                 protocol = 'http' if django_settings.DEBUG else 'https'
                 next_url = f'{protocol}://{user.username}.{base_domain}/'
             messages.success(request, f'Welcome back, {user.email}!')
