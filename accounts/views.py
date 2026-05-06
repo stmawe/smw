@@ -94,39 +94,39 @@ def register_view(request):
 def login_view(request):
     """
     Tenant-aware login view.
+    Accepts username OR email — delegates to UsernameOrEmailBackend.
     """
     if request.user.is_authenticated:
         return redirect('/')
-    
+
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        if not email or not password:
-            messages.error(request, 'Email and password are required.')
+        # Accept either 'email' or 'username' field name from the form
+        identifier = (
+            request.POST.get('email') or
+            request.POST.get('username') or
+            ''
+        ).strip()
+        password = request.POST.get('password', '').strip()
+
+        if not identifier or not password:
+            messages.error(request, 'Username/email and password are required.')
             return redirect('accounts:login')
-        
-        # Authenticate with email
-        try:
-            user = User.objects.get(email=email)
-            user = authenticate(request, username=user.username, password=password)
-            
-            if user is not None:
-                if not user.is_active:
-                    messages.error(request, 'Please verify your email before logging in.')
-                    return redirect('accounts:login')
-                
-                login(request, user)
-                messages.success(request, f'Welcome back, {user.email}!')
-                return redirect('/')
-            else:
-                messages.error(request, 'Invalid email or password.')
+
+        # UsernameOrEmailBackend handles both username and email lookup
+        user = authenticate(request, username=identifier, password=password)
+
+        if user is not None:
+            if not user.is_active:
+                messages.error(request, 'This account is not active. Please verify your email.')
                 return redirect('accounts:login')
-        
-        except User.DoesNotExist:
-            messages.error(request, 'Invalid email or password.')
+            login(request, user)
+            next_url = request.GET.get('next') or '/'
+            messages.success(request, f'Welcome back, {user.email}!')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Invalid username/email or password.')
             return redirect('accounts:login')
-    
+
     return render(request, 'accounts/login.html')
 
 
