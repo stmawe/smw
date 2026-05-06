@@ -2,7 +2,7 @@
 
 from django.urls import path
 from django.views.generic import RedirectView
-from . import university_admin_views, deployment_views, admin_views, admin_console_views, admin_crud_views, admin_advanced_views, admin_api
+from . import university_admin_views, deployment_views, admin_views, admin_console_views, admin_crud_views, admin_advanced_views, admin_api, entity_admin_views
 from mydak import seller_views
 
 # Admin subdomain URLs (for https://admin.smw.pgwiz.cloud/)
@@ -235,6 +235,15 @@ admin_crud_patterns = [
     path('admin/slug-requests/', admin_views.slug_requests_list_view, name='admin_slug_requests'),
     path('admin/slug-request/<int:pk>/approve/', admin_views.slug_request_approve_view, name='admin_slug_request_approve'),
     path('admin/slug-request/<int:pk>/reject/', admin_views.slug_request_reject_view, name='admin_slug_request_reject'),
+
+    # Entity Management
+    path('admin/entities/', entity_admin_views.entity_list_view, name='admin_entities_list'),
+    path('admin/entities/create/', entity_admin_views.entity_create_view, name='admin_entity_create'),
+    path('admin/entities/<int:entity_id>/edit/', entity_admin_views.entity_edit_view, name='admin_entity_edit'),
+    path('admin/entities/<int:entity_id>/approve/', entity_admin_views.entity_approve_view, name='admin_entity_approve'),
+    path('admin/entities/<int:entity_id>/reject/', entity_admin_views.entity_reject_view, name='admin_entity_reject'),
+    path('admin/entities/<int:entity_id>/suspend/', entity_admin_views.entity_suspend_view, name='admin_entity_suspend'),
+    path('admin/entities/<int:entity_id>/reactivate/', entity_admin_views.entity_reactivate_view, name='admin_entity_reactivate'),
 ]
 
 # Combine admin subdomain patterns with core CRUD patterns for the admin subdomain

@@ -1,0 +1,141 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Entities — Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item active">Entities</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Entities</h1>
+      <p class="text-muted mb-0">Manage institutions — universities, locations, and other affiliates.</p>
+    </div>
+    <a href="{% url 'admin_entity_create' %}" class="btn btn-success">
+      <i class="bi bi-plus-circle"></i> Add Entity
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Status filter tabs -->
+  <div class="mb-4">
+    <ul class="nav nav-pills">
+      <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'all' %}active{% endif %}"
+           href="?status=all">All <span class="badge bg-secondary ms-1">{{ counts.all }}</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}"
+           href="?status=pending">Pending <span class="badge bg-warning text-dark ms-1">{{ counts.pending }}</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'active' %}active{% endif %}"
+           href="?status=active">Active <span class="badge bg-success ms-1">{{ counts.active }}</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'suspended' %}active{% endif %}"
+           href="?status=suspended">Suspended <span class="badge bg-danger ms-1">{{ counts.suspended }}</span></a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      {% if entities %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" aria-label="Entities list">
+            <thead class="table-dark">
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Subdomain</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entity in entities %}
+              <tr>
+                <td>
+                  <strong>{{ entity.name }}</strong>
+                  {% if entity.city %}<div class="text-muted small">{{ entity.city }}{% if entity.country %}, {{ entity.country }}{% endif %}</div>{% endif %}
+                </td>
+                <td><span class="badge bg-secondary">{{ entity.entity_type }}</span></td>
+                <td><code>{{ entity.subdomain }}.smw.pgwiz.cloud</code></td>
+                <td>
+                  {% if entity.status == 'active' %}
+                    <span class="badge bg-success">Active</span>
+                  {% elif entity.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% else %}
+                    <span class="badge bg-danger">Suspended</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ entity.created_at|date:"d M Y" }}</td>
+                <td class="text-end">
+                  <div class="d-flex gap-1 justify-content-end flex-wrap">
+                    <a href="{% url 'admin_entity_edit' entity.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+
+                    {% if entity.status == 'pending' %}
+                      <form method="post" action="{% url 'admin_entity_approve' entity.id %}"
+                            onsubmit="return confirm('Approve {{ entity.name }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                      </form>
+                      <form method="post" action="{% url 'admin_entity_reject' entity.id %}"
+                            onsubmit="return confirm('Reject {{ entity.name }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                      </form>
+                    {% elif entity.status == 'active' %}
+                      <form method="post" action="{% url 'admin_entity_suspend' entity.id %}"
+                            onsubmit="return confirm('Suspend {{ entity.name }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-warning">Suspend</button>
+                      </form>
+                    {% elif entity.status == 'suspended' %}
+                      <form method="post" action="{% url 'admin_entity_reactivate' entity.id %}"
+                            onsubmit="return confirm('Reactivate {{ entity.name }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Reactivate</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+          <h5 class="mt-3 text-muted">No entities found</h5>
+          {% if status_filter != 'all' %}
+            <p class="text-muted small">No {{ status_filter }} entities. <a href="?status=all">View all</a></p>
+          {% else %}
+            <p class="text-muted small">Add the first entity to get started.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

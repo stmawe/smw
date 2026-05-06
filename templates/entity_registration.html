@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Your Institution — SMW{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 680px;">
+
+  <div class="mb-5 text-center">
+    <h1 class="mb-2">Register Your Institution</h1>
+    <p class="text-muted">
+      Get your institution listed on SMW so students can affiliate their shops with you.
+      Registrations are reviewed and approved by our team.
+    </p>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if submitted %}
+    <div class="card text-center py-5">
+      <div class="card-body">
+        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+        <h4 class="mt-3">Registration Submitted</h4>
+        <p class="text-muted">
+          Your registration is under review. We'll contact you at the email you provided
+          once it has been approved.
+        </p>
+        <a href="/" class="btn btn-primary mt-2">Back to Home</a>
+      </div>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="id_name">Institution Name *</label>
+              <input type="text" name="name" id="id_name"
+                     class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                     value="{{ form.name.value|default:'' }}"
+                     placeholder="e.g. University of Nairobi" required>
+              {% if form.name.errors %}<div class="invalid-feedback">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="id_entity_type">Type *</label>
+              <input type="text" name="entity_type" id="id_entity_type"
+                     class="form-control {% if form.entity_type.errors %}is-invalid{% endif %}"
+                     value="{{ form.entity_type.value|default:'' }}"
+                     placeholder="University, College…" required>
+              {% if form.entity_type.errors %}<div class="invalid-feedback">{{ form.entity_type.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="id_subdomain">Preferred Subdomain *</label>
+              <div class="input-group">
+                <input type="text" name="subdomain" id="id_subdomain"
+                       class="form-control {% if form.subdomain.errors %}is-invalid{% endif %}"
+                       value="{{ form.subdomain.value|default:'' }}"
+                       placeholder="e.g. uon" required>
+                <span class="input-group-text text-muted">.smw.pgwiz.cloud</span>
+              </div>
+              <div class="form-text">Lowercase letters, digits, and hyphens only.</div>
+              {% if form.subdomain.errors %}<div class="text-danger small mt-1">{{ form.subdomain.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="id_city">City</label>
+              <input type="text" name="city" id="id_city"
+                     class="form-control"
+                     value="{{ form.city.value|default:'' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="id_country">Country</label>
+              <input type="text" name="country" id="id_country"
+                     class="form-control"
+                     value="{{ form.country.value|default:'' }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="id_website">Website</label>
+              <input type="url" name="website" id="id_website"
+                     class="form-control {% if form.website.errors %}is-invalid{% endif %}"
+                     value="{{ form.website.value|default:'' }}"
+                     placeholder="https://example.ac.ke">
+              {% if form.website.errors %}<div class="invalid-feedback">{{ form.website.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="id_contact_email">Contact Email *</label>
+              <input type="email" name="contact_email" id="id_contact_email"
+                     class="form-control {% if form.contact_email.errors %}is-invalid{% endif %}"
+                     value="{{ form.contact_email.value|default:'' }}"
+                     placeholder="admin@yourinstitution.ac.ke" required>
+              <div class="form-text">We'll use this to follow up on your registration.</div>
+              {% if form.contact_email.errors %}<div class="invalid-feedback">{{ form.contact_email.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-primary w-100">Submit Registration</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

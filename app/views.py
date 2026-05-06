@@ -160,6 +160,7 @@ def locations_view(request):
 
 def _wizard_catalog_data():
     from mydak.models import Category as MarketplaceCategory
+    from .models import Entity
 
     categories = list(
         MarketplaceCategory.objects.order_by('name').values('id', 'name')
@@ -174,11 +175,14 @@ def _wizard_catalog_data():
             {'id': 6, 'name': 'Other'},
         ]
 
+    # Read universities and locations from Entity DB (replaces Client tenant_type query)
     universities = list(
-        Client.objects.filter(tenant_type='university').order_by('name').values('id', 'name')
+        Entity.objects.filter(is_active=True, entity_type='University')
+        .order_by('name').values('id', 'name')
     )
     locations = list(
-        Client.objects.filter(tenant_type='location').order_by('name').values('id', 'name')
+        Entity.objects.filter(is_active=True, entity_type='Location')
+        .order_by('name').values('id', 'name')
     )
 
     themes = [

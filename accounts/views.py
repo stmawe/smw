@@ -19,71 +19,11 @@ logger = logging.getLogger(__name__)
 def _register_user_subdomain(username: str) -> None:
     """
     Create a Cloudflare DNS A record for {username}.smw.pgwiz.cloud on user registration.
-
-    - Proxied through Cloudflare (orange cloud) so the wildcard SSL cert covers it.
-    - Non-fatal: logs errors but never raises, so registration always completes.
-    - Skips silently if CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID, or SERVER_IP are not set.
+    Delegates to the shared helper in app/cloudflare_dns.py.
+    Non-fatal — logs errors but never raises.
     """
-    from django.conf import settings
-    import requests as http_requests
-
-    cf_token = getattr(settings, 'CLOUDFLARE_API_TOKEN', '') or ''
-    cf_zone = getattr(settings, 'CLOUDFLARE_ZONE_ID', '') or ''
-    server_ip = getattr(settings, 'SERVER_IP', '') or ''
-    base_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
-
-    if not (cf_token and cf_zone and server_ip):
-        logger.warning(
-            'Cloudflare DNS skipped for user %s — '
-            'CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID or SERVER_IP not configured',
-            username,
-        )
-        return
-
-    record_name = f'{username}.{base_domain}'
-    headers = {
-        'Authorization': f'Bearer {cf_token}',
-        'Content-Type': 'application/json',
-    }
-
-    try:
-        # Check if record already exists
-        list_resp = http_requests.get(
-            f'https://api.cloudflare.com/client/v4/zones/{cf_zone}/dns_records'
-            f'?type=A&name={record_name}',
-            headers=headers,
-            timeout=10,
-        )
-        existing = list_resp.json().get('result', [])
-
-        if existing:
-            logger.warning('Cloudflare DNS A record already exists for %s — skipping', record_name)
-            return
-
-        create_resp = http_requests.post(
-            f'https://api.cloudflare.com/client/v4/zones/{cf_zone}/dns_records',
-            headers=headers,
-            json={
-                'type': 'A',
-                'name': record_name,
-                'content': server_ip,
-                'ttl': 1,        # 1 = auto TTL
-                'proxied': True,  # orange-cloud → wildcard SSL applies
-            },
-            timeout=10,
-        )
-        result = create_resp.json()
-        if result.get('success'):
-            logger.info('Cloudflare DNS A record created: %s → %s', record_name, server_ip)
-        else:
-            logger.error(
-                'Cloudflare DNS creation failed for user %s: %s',
-                username,
-                result.get('errors'),
-            )
-
-    except Exception as exc:
-        logger.error('Cloudflare DNS registration failed for user %s: %s', username, exc)
+    from app.cloudflare_dns import create_subdomain_dns_record
+    create_subdomain_dns_record(username)
 
 
 @require_http_methods(["GET", "POST"])
