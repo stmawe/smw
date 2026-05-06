@@ -65,12 +65,12 @@ urlpatterns = [
     path('api/shop/<int:shop_id>/url/', shop_url_api, name='shop_url_api'),
     path('shop/<int:shop_id>/share/', shop_sharing_page, name='shop_sharing'),
     path('api/check-slug/', validate_shop_slug_api, name='check_slug_api'),
+    # /api/create-shop/ kept for external/AJAX callers; wizard uses form POST to /create-shop/
     path('api/create-shop/', create_shop_api_view, name='create_shop_api'),
     path('api/email-verification/send/', shop_email_verification_send_view, name='shop_email_verification_send'),
     path('api/email-verification/verify/', shop_email_verification_verify_view, name='shop_email_verification_verify'),
     path('api/mpesa-callback/', shop_mpesa_callback_view, name='shop_mpesa_callback'),
     path('api/poll-payment/', shop_payment_status_api, name='shop_payment_status'),
-    path('api/validate-slug/', validate_shop_slug_api, name='validate_slug_api'),
 ]
 
 if settings.DEBUG:

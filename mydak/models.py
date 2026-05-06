@@ -27,10 +27,10 @@ class Shop(TimeStampedModel):
     )
     domain = models.CharField(
         max_length=255,
-        unique=True,
         null=True,
         blank=True,
-        db_index=True
+        db_index=True,
+        help_text='Shop slug used as URL path segment (e.g. juju-electronics). Unique per owner.'
     )
     description = models.TextField(blank=True, help_text='Shop description')
     logo = models.ImageField(upload_to='shop_logos/', null=True, blank=True)
@@ -57,15 +57,39 @@ class Shop(TimeStampedModel):
         help_text='SSL certificate expiration date'
     )
 
+    # URL Tier Fields
+    is_root_shop = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text='If True, this shop serves at the root of the owner subdomain (e.g. juju254.smw.pgwiz.cloud/)'
+    )
+    slug_approved = models.BooleanField(
+        default=False,
+        help_text='If True, a custom slug was admin-approved for this shop'
+    )
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['owner', 'is_active']),
             models.Index(fields=['theme_id']),
+            models.Index(fields=['owner', 'is_root_shop']),
         ]
+        unique_together = [['owner', 'domain']]
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Enforce at-most-one root shop per user atomically.
+        # When setting is_root_shop=True on an existing record, clear siblings first.
+        # For new records (no pk yet), SlugRequestService handles the atomic clear.
+        if self.is_root_shop and self.pk:
+            Shop.objects.filter(
+                owner=self.owner,
+                is_root_shop=True,
+            ).exclude(pk=self.pk).update(is_root_shop=False)
+        super().save(*args, **kwargs)
 
     @property
     def slug(self):
@@ -775,3 +799,100 @@ class OfferRule(TimeStampedModel):
             return None
         
         return offer_price * (1 + self.counter_offer_percent / 100)
+
+
+class ShopSlugRequest(TimeStampedModel):
+    """
+    Tracks requests for Tier 1 (root promotion) and Tier 2 (custom slug) upgrades.
+
+    Tier 1 — root_promotion: user wants their shop to serve at
+        {username}.smw.pgwiz.cloud/ instead of /{shop_slug}/
+    Tier 2 — custom_slug: user wants a cleaner/custom path segment
+        e.g. change 'juju-electronics' → 'electronics'
+
+    Both require admin approval (and optionally a payment reference).
+    """
+
+    REQUEST_TYPE_CHOICES = [
+        ('root_promotion', 'Root Promotion'),
+        ('custom_slug', 'Custom Slug'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    shop = models.ForeignKey(
+        Shop,
+        on_delete=models.CASCADE,
+        related_name='slug_requests',
+        db_index=True,
+    )
+    request_type = models.CharField(
+        max_length=20,
+        choices=REQUEST_TYPE_CHOICES,
+        db_index=True,
+    )
+    requested_slug = models.CharField(
+        max_length=48,
+        null=True,
+        blank=True,
+        help_text='Desired custom slug (required for custom_slug requests only)',
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        db_index=True,
+    )
+    payment_reference = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text='M-Pesa payment reference (if payment was required)',
+    )
+    admin_reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='reviewed_slug_requests',
+        help_text='Admin who approved or rejected this request',
+    )
+    reviewer_notes = models.TextField(
+        blank=True,
+        help_text='Admin notes — required when rejecting',
+    )
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['shop', 'status']),
+            models.Index(fields=['request_type', 'status']),
+        ]
+        # Prevent duplicate pending requests of the same type for the same shop
+        unique_together = [['shop', 'request_type', 'status']]
+
+    def __str__(self):
+        return f'{self.get_request_type_display()} for {self.shop.name} ({self.get_status_display()})'
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        # custom_slug requests must supply a requested_slug
+        if self.request_type == 'custom_slug' and not (self.requested_slug or '').strip():
+            raise ValidationError(
+                {'requested_slug': 'A requested slug is required for custom slug requests.'}
+            )
+
+        # Block duplicate pending requests (belt-and-suspenders alongside unique_together)
+        if self.status == 'pending' and self.pk is None:
+            if ShopSlugRequest.objects.filter(
+                shop=self.shop,
+                request_type=self.request_type,
+                status='pending',
+            ).exists():
+                raise ValidationError(
+                    f'A pending {self.get_request_type_display()} request already exists for this shop.'
+                )

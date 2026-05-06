@@ -141,7 +141,19 @@ class ShopCreationService:
 
     @staticmethod
     def activate_shop_from_transaction(transaction):
-        """Activate the shop linked to a successful transaction."""
+        """
+        Activate the shop linked to a successful transaction.
+        Creates the ClientDomain record for django-tenants routing (non-fatal).
+
+        NOTE: Cloudflare DNS is no longer created here — it is created at user
+        registration time in accounts/views._register_user_subdomain().
+        The user's subdomain (username.smw.pgwiz.cloud) already exists before
+        any shop is created.
+        """
+        import logging
+        from django.conf import settings
+
+        logger = logging.getLogger(__name__)
         shop = transaction.shop
         if not shop:
             return None
@@ -149,6 +161,32 @@ class ShopCreationService:
         if not shop.is_active:
             shop.is_active = True
             shop.save(update_fields=['is_active', 'updated_at'])
+
+        # --- Register ClientDomain for django-tenants routing ---
+        # Maps {owner_username}.smw.pgwiz.cloud → owner's tenant schema
+        try:
+            from app.models import Client, ClientDomain
+            base_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+            owner_username = shop.owner.username
+            full_subdomain = f'{owner_username}.{base_domain}'
+
+            if not ClientDomain.objects.filter(domain=full_subdomain).exists():
+                client, _ = Client.objects.get_or_create(
+                    schema_name=owner_username.replace('-', '_').replace('.', '_'),
+                    defaults={
+                        'name': f"{owner_username}'s shops",
+                        'tenant_type': 'shop',
+                        'on_trial': False,
+                    },
+                )
+                ClientDomain.objects.create(
+                    domain=full_subdomain,
+                    tenant=client,
+                    is_primary=True,
+                )
+                logger.info('ClientDomain created: %s', full_subdomain)
+        except Exception as exc:
+            logger.error('ClientDomain creation failed for shop %s: %s', shop.id, exc)
 
         transaction.metadata = {
             **(transaction.metadata or {}),

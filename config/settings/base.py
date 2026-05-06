@@ -229,6 +229,8 @@ CLAUDE_MODEL = config('CLAUDE_MODEL', default='claude-sonnet-4-20250514')
 # Cloudflare API
 CLOUDFLARE_API_TOKEN = config('CLOUDFLARE_API_TOKEN', default='')
 CLOUDFLARE_ZONE_ID = config('CLOUDFLARE_ZONE_ID', default='')
+# Server IP for Cloudflare A record creation on shop activation
+SERVER_IP = config('SERVER_IP', default='')
 
 # Django-Allauth Configuration
 SITE_ID = 1

@@ -4,6 +4,8 @@ from django.urls import path
 from . import views
 from . import listing_views
 from . import payment_views
+from . import checkout_views
+from . import seller_dashboard_views
 from . import bulk_listing_views
 from . import template_views
 
@@ -50,5 +52,25 @@ payment_patterns = [
     path('api/mpesa/timeout/', payment_views.mpesa_timeout_view, name='mpesa_timeout'),
 ]
 
+# Checkout URLs (buyer flow)
+checkout_patterns = [
+    path('checkout/<int:listing_id>/', checkout_views.checkout_view, name='checkout'),
+    path('checkout/<int:transaction_id>/status/', checkout_views.checkout_status_view, name='checkout_status'),
+    path('checkout/<int:transaction_id>/poll/', checkout_views.checkout_status_poll, name='checkout_poll'),
+    path('checkout/<int:transaction_id>/success/', checkout_views.checkout_success_view, name='checkout_success'),
+    path('checkout/<int:transaction_id>/failed/', checkout_views.checkout_failed_view, name='checkout_failed'),
+]
+
+# Seller dashboard URLs
+seller_patterns = [
+    path('seller/earnings/', seller_dashboard_views.seller_earnings_view, name='seller_earnings'),
+    path('seller/withdrawal/', seller_dashboard_views.seller_withdrawal_view, name='seller_withdrawal'),
+    path('seller/orders/', seller_dashboard_views.seller_orders_view, name='seller_orders'),
+    path('seller/orders/<int:transaction_id>/', seller_dashboard_views.seller_order_detail_view, name='seller_order_detail'),
+    path('seller/payments/', seller_dashboard_views.seller_payments_view, name='seller_payments'),
+]
+
 urlpatterns.extend(listing_patterns)
 urlpatterns.extend(payment_patterns)
+urlpatterns.extend(checkout_patterns)
+urlpatterns.extend(seller_patterns)

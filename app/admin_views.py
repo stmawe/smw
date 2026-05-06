@@ -175,3 +175,81 @@ def admin_shop_detail_view(request, username=None, shop_id=None):
     }
     
     return render(request, 'admin/shop_detail.html', context)
+
+
+# ============================================================
+# SLUG REQUEST REVIEW — Tier 1 & Tier 2 admin approval panel
+# ============================================================
+
+@admin_login_required
+@require_http_methods(['GET'])
+def slug_requests_list_view(request):
+    """
+    List all pending ShopSlugRequests ordered oldest-first.
+    Staff/superuser only (enforced by admin_login_required).
+    """
+    from mydak.models import ShopSlugRequest
+
+    pending = ShopSlugRequest.objects.filter(
+        status='pending',
+    ).select_related('shop', 'shop__owner').order_by('created_at')
+
+    return render(request, 'admin/slug_requests.html', {
+        'pending_requests': pending,
+        'page_title': 'Slug Requests',
+    })
+
+
+@admin_login_required
+@require_http_methods(['POST'])
+def slug_request_approve_view(request, pk):
+    """
+    Approve a pending ShopSlugRequest.
+    POST only — triggered by the approve button in the admin panel.
+    """
+    from mydak.models import ShopSlugRequest
+    from app.slug_request_service import SlugRequestService
+    from django.core.exceptions import ValidationError
+
+    req = get_object_or_404(ShopSlugRequest, pk=pk, status='pending')
+
+    try:
+        SlugRequestService.approve_request(req, reviewer=request.user)
+        messages.success(
+            request,
+            f'Request #{pk} approved — {req.get_request_type_display()} for "{req.shop.name}".',
+        )
+    except ValidationError as exc:
+        messages.error(request, f'Approval failed: {exc.message}')
+
+    return redirect('admin_slug_requests')
+
+
+@admin_login_required
+@require_http_methods(['POST'])
+def slug_request_reject_view(request, pk):
+    """
+    Reject a pending ShopSlugRequest.
+    Requires a non-empty reviewer_notes (rejection reason) in POST data.
+    """
+    from mydak.models import ShopSlugRequest
+    from app.slug_request_service import SlugRequestService
+    from django.core.exceptions import ValidationError
+
+    req = get_object_or_404(ShopSlugRequest, pk=pk, status='pending')
+    reason = (request.POST.get('reviewer_notes') or '').strip()
+
+    if not reason:
+        messages.error(request, 'A rejection reason is required.')
+        return redirect('admin_slug_requests')
+
+    try:
+        SlugRequestService.reject_request(req, reviewer=request.user, reason=reason)
+        messages.success(
+            request,
+            f'Request #{pk} rejected — {req.get_request_type_display()} for "{req.shop.name}".',
+        )
+    except ValidationError as exc:
+        messages.error(request, f'Rejection failed: {exc.message}')
+
+    return redirect('admin_slug_requests')

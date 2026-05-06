@@ -607,3 +607,269 @@ class AdminActivityFeed(models.Model):
     
     def __str__(self):
         return f"{self.admin_user.username if self.admin_user else 'System'} - {self.description}"
+
+
+# ============================================================
+# M-PESA PAYMENT TRANSACTION TRACKING
+# ============================================================
+# Comprehensive tracking of all M-PESA Daraja Gateway
+# transactions: STK Push, B2C, Reversals, etc.
+# ============================================================
+
+class MpesaTransaction(models.Model):
+    """
+    Tracks all M-PESA payment transactions.
+    
+    Supports:
+    - STK Push (Lipa Na M-PESA Online) for customer payments
+    - STK Status polling for payment status updates
+    - Reversals for undoing payments
+    - Dynamic QR Code transactions
+    - Account Balance inquiries
+    - Transaction Status lookups
+    """
+    
+    TYPE_CHOICES = [
+        ('stk_push', 'STK Push - Customer Payment Prompt'),
+        ('stk_status', 'STK Status - Payment Status Poll'),
+        ('reversal', 'Reversal - Undo Transaction'),
+        ('qr_code', 'QR Code - Dynamic QR Generation'),
+        ('balance', 'Account Balance - Balance Inquiry'),
+        ('transaction_status', 'Transaction Status - Lookup'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending - Awaiting response'),
+        ('success', 'Success - Payment completed'),
+        ('failed', 'Failed - Payment rejected or cancelled'),
+    ]
+    
+    # ===== Transaction Identifiers =====
+    user = models.ForeignKey(
+        'app.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='mpesa_transactions',
+        help_text='User initiating the transaction'
+    )
+    shop = models.ForeignKey(
+        'app.Client',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='mpesa_transactions',
+        help_text='Shop associated with transaction (if any)'
+    )
+    
+    # ===== Transaction Type & Status =====
+    transaction_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        db_index=True,
+        help_text='Type of M-PESA transaction'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        db_index=True,
+        help_text='Current transaction status'
+    )
+    
+    # ===== Payment Details =====
+    phone = models.CharField(
+        max_length=15,
+        db_index=True,
+        help_text='Customer/recipient phone in format 254XXXXXXXXX'
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text='Amount in KES'
+    )
+    reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Transaction reference / order ID'
+    )
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Human-readable description of transaction'
+    )
+    
+    # ===== M-PESA API Responses =====
+    merchant_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text='MerchantRequestID from M-PESA API'
+    )
+    checkout_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        unique=True,
+        help_text='CheckoutRequestID from STK Push (for polling status)'
+    )
+    conversation_id = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text='ConversationID from M-PESA API response'
+    )
+    originator_conversation_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='OriginatorConversationID from M-PESA API'
+    )
+    
+    # ===== Payment Result =====
+    receipt = models.CharField(
+        max_length=20,
+        blank=True,
+        db_index=True,
+        help_text='M-PESA receipt number (on success)'
+    )
+    result_code = models.CharField(
+        max_length=10,
+        blank=True,
+        help_text='Result code from M-PESA API'
+    )
+    result_description = models.TextField(
+        blank=True,
+        help_text='Result description from M-PESA (success/failure reason)'
+    )
+    
+    # ===== API Request/Response Logging =====
+    request_payload = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Complete request sent to M-PESA API'
+    )
+    response_payload = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Complete response from M-PESA API'
+    )
+    
+    # ===== Rate Limit Information =====
+    rate_limit_remaining = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text='Remaining API quota after this request'
+    )
+    rate_limit_total = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text='Total daily API quota'
+    )
+    rate_limit_reset = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='When the rate limit counter resets'
+    )
+    
+    # ===== Timestamps =====
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='When payment was completed (success or failed)'
+    )
+    
+    # ===== Context & Audit =====
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text='IP address when transaction was initiated'
+    )
+    user_agent = models.TextField(
+        blank=True,
+        help_text='Browser/client info'
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text='Admin notes or transaction details'
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'M-PESA Transaction'
+        verbose_name_plural = 'M-PESA Transactions'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['phone', '-created_at']),
+            models.Index(fields=['receipt']),
+            models.Index(fields=['checkout_request_id']),
+            models.Index(fields=['transaction_type', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - {self.phone} KES {self.amount} ({self.get_status_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Set completed_at when status changes to success/failed
+        if self.status in ['success', 'failed'] and not self.completed_at:
+            from django.utils import timezone
+            self.completed_at = timezone.now()
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def create_from_stk_push(cls, user, phone, amount, reference, response, ip_address='', user_agent=''):
+        """
+        Create a transaction record from STK Push API response.
+        
+        Args:
+            user: User initiating the payment
+            phone: Customer phone number
+            amount: Amount in KES
+            reference: Transaction reference
+            response: Response dict from MpesaClient.stk_push()
+            ip_address: Client IP address
+            user_agent: Client user agent
+            
+        Returns:
+            MpesaTransaction instance (saved to database)
+        """
+        transaction = cls(
+            user=user,
+            phone=phone,
+            amount=amount,
+            reference=reference,
+            transaction_type='stk_push',
+            status='pending',
+            merchant_request_id=response.get('MerchantRequestID'),
+            checkout_request_id=response.get('CheckoutRequestID'),
+            response_payload=response,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        transaction.save()
+        return transaction
+    
+    def update_from_status(self, status_response):
+        """
+        Update transaction with STK Status poll response.
+        
+        Args:
+            status_response: Response dict from MpesaClient.stk_status()
+        """
+        self.status = status_response.get('status', 'pending')
+        self.receipt = status_response.get('receipt') or self.receipt
+        self.result_code = status_response.get('resultCode') or self.result_code
+        self.result_description = status_response.get('resultDesc') or self.result_description
+        self.response_payload = status_response
+        self.save()
+    
+    def get_status_label(self):
+        """Return Bootstrap badge class for status"""
+        status_map = {
+            'pending': 'warning',
+            'success': 'success',
+            'failed': 'danger',
+        }
+        return status_map.get(self.status, 'secondary')

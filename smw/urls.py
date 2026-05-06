@@ -15,6 +15,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('themes/', include('apps.themes.urls')),
     path('shops/', include('mydak.urls')),
+    path('', include('app.mpesa_urls')),  # M-PESA payment endpoints
     path('', include('app.urls'))
 ]
 

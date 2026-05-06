@@ -28,42 +28,43 @@ def generate_shop_slug(shop_name):
 
 def get_shop_url(shop):
     """
-    Get the full URL for a shop storefront.
-    
-    Current strategy: https://shopname.smw.pgwiz.cloud/ or https://username.smw.pgwiz.cloud/shopname/
-    
+    Get the canonical URL for a shop storefront.
+
+    Tier-aware:
+      - is_root_shop=True  → {protocol}://{owner_username}.{domain}/
+      - is_root_shop=False → {protocol}://{owner_username}.{domain}/{shop_slug}/
+
     Args:
-        shop: Shop object
-    
+        shop: Shop instance
+
     Returns:
         dict: {
-            'subdomain_url': 'https://shopname.smw.pgwiz.cloud/',
-            'owner_url': 'https://username.smw.pgwiz.cloud/shopname/',
-            'main_site_url': 'https://smw.pgwiz.cloud/shop/shopname/'
+            'canonical': str,   ← preferred URL (always present)
+            'owner_url': str,   ← path-based URL regardless of tier (for reference)
+            'main_site_url': str,
         }
     """
     shop_slug = shop.domain or generate_shop_slug(shop.name)
     owner_username = shop.owner.username
-    
-    # Get domain from settings or use default
-    domain = getattr(settings, 'PRIMARY_DOMAIN', 'smw.pgwiz.cloud')
-    protocol = 'https' if not settings.DEBUG else 'http'
-    
-    urls = {
-        # Option 1: Shop subdomain
-        'subdomain_url': f"{protocol}://{shop_slug}.{domain}/",
-        
-        # Option 2: Owner subdomain with shop path
-        'owner_url': f"{protocol}://{owner_username}.{domain}/{shop_slug}/",
-        
-        # Option 3: Main site with shop path
-        'main_site_url': f"{protocol}://{domain}/shop/{owner_username}/{shop_slug}/",
-        
-        # Preferred URL (subdomain - easiest for branding)
-        'preferred': f"{protocol}://{shop_slug}.{domain}/"
+
+    domain = getattr(settings, 'PRIMARY_DOMAIN', None) or getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+    protocol = 'http' if settings.DEBUG else 'https'
+
+    owner_base = f"{protocol}://{owner_username}.{domain}"
+    path_url = f"{owner_base}/{shop_slug}/"
+    root_url = f"{owner_base}/"
+    main_site_url = f"{protocol}://{domain}/shop/{owner_username}/{shop_slug}/"
+
+    canonical = root_url if getattr(shop, 'is_root_shop', False) else path_url
+
+    return {
+        'canonical': canonical,
+        'owner_url': path_url,       # always the path-based URL
+        'main_site_url': main_site_url,
+        # Legacy keys kept for backward compatibility with existing templates
+        'preferred': canonical,
+        'subdomain_url': path_url,   # deprecated — owner subdomain, not shop subdomain
     }
-    
-    return urls
 
 
 def get_shop_from_request(request):
@@ -108,18 +109,23 @@ def get_shop_from_request(request):
     return None
 
 
-def validate_shop_slug(slug):
+def validate_shop_slug(slug, user=None):
     """
-    Validate if a shop slug is available/valid.
-    
+    Validate if a shop slug is available and valid.
+
     Args:
         slug: URL slug to check
-    
+        user: Optional User instance. When provided, uniqueness is scoped to
+              that user's shops only (two different users may share the same slug).
+              When None, global uniqueness is checked (backward-compatible).
+
     Returns:
         dict: {
             'valid': bool,
             'error': str or None,
-            'available': bool  # True if slug is available
+            'available': bool,
+            'slug': str,
+            'suggestion': str or None,
         }
     """
     from mydak.models import Shop
@@ -151,30 +157,38 @@ def validate_shop_slug(slug):
             'suggestion': None,
         }
 
-    def _is_shop_slug_taken(candidate):
-        if Shop.objects.filter(domain__iexact=candidate).exists():
-            return True
-        return any(
-            generate_shop_slug(shop_name) == candidate
-            for shop_name in Shop.objects.values_list('name', flat=True)
-        )
+    def _is_slug_taken(candidate):
+        """Check uniqueness — scoped to user when provided, global otherwise."""
+        if user is not None:
+            # Per-user scope: only conflict if same owner has this slug
+            return Shop.objects.filter(owner=user, domain__iexact=candidate).exists()
+        else:
+            # Global scope (backward-compatible)
+            if Shop.objects.filter(domain__iexact=candidate).exists():
+                return True
+            return any(
+                generate_shop_slug(shop_name) == candidate
+                for shop_name in Shop.objects.values_list('name', flat=True)
+            )
 
-    # Check if already used by shop
-    if _is_shop_slug_taken(normalized):
+    # Check if already used
+    if _is_slug_taken(normalized):
         suggestion = f"{normalized}-2"
-        while _is_shop_slug_taken(suggestion) or User.objects.filter(username__iexact=suggestion).exists() or suggestion in reserved_words:
+        while _is_slug_taken(suggestion) or (
+            user is None and User.objects.filter(username__iexact=suggestion).exists()
+        ) or suggestion in reserved_words:
             suffix = int(suggestion.rsplit('-', 1)[-1]) + 1 if '-' in suggestion and suggestion.rsplit('-', 1)[-1].isdigit() else 3
             suggestion = f"{normalized}-{suffix}"
         return {
             'valid': False,
             'error': 'This shop slug is already taken',
-            'available': False
-            , 'slug': normalized,
+            'available': False,
+            'slug': normalized,
             'suggestion': suggestion,
         }
 
-    # Check if already used as username
-    if User.objects.filter(username__iexact=normalized).exists():
+    # When doing global check, also block slugs that match existing usernames
+    if user is None and User.objects.filter(username__iexact=normalized).exists():
         return {
             'valid': False,
             'error': 'This username is already taken',

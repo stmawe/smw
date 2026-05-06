@@ -1,3 +1,5 @@
+import time
+
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from django.views import generic
@@ -401,6 +403,7 @@ def create_shop_view(request):
         'incomplete_shop': incomplete_shop,
         'shop_progress': shop_progress,
         'generated_slug': generate_shop_slug((incomplete_shop or {}).get('shop_name', '')) if incomplete_shop else '',
+        'wizard_config': wizard_config,  # BUG-1 fix: required by wizard.js json_script tag
     }
     context.update(wizard_config)
     return render(request, 'wizard/create_shop.html', context)
@@ -434,7 +437,7 @@ def tenant_register_view(request):
             tenant = Client(
                 name=university_name,
                 schema_name=schema_name,
-                type='university',
+                tenant_type='university',
                 on_trial=True
             )
             tenant.save()

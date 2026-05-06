@@ -230,6 +230,11 @@ admin_crud_patterns = [
     path('admin/api/analytics/top-sellers/', admin_api.api_analytics_top_sellers, name='api_analytics_top_sellers'),
     
     path('admin/api/activity-feed/', admin_api.api_activity_feed, name='api_activity_feed'),
+
+    # Slug Request Review (Tier 1 & Tier 2 approvals)
+    path('admin/slug-requests/', admin_views.slug_requests_list_view, name='admin_slug_requests'),
+    path('admin/slug-request/<int:pk>/approve/', admin_views.slug_request_approve_view, name='admin_slug_request_approve'),
+    path('admin/slug-request/<int:pk>/reject/', admin_views.slug_request_reject_view, name='admin_slug_request_reject'),
 ]
 
 # Combine admin subdomain patterns with core CRUD patterns for the admin subdomain
