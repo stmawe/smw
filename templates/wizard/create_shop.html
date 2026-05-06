@@ -59,7 +59,7 @@
 
         <div class="mb-4">
           <label class="form-label wizard-label" for="shop-name">What's your shop called?</label>
-          <input class="form-control wizard-input wizard-input--xl" id="shop-name" name="shop_name" type="text" value="{{ form_data.shop_name|default:incomplete_shop.shop_name }}" placeholder="e.g. Juju's Electronics" required data-preview-source="shop_name">
+          <input class="form-control wizard-input wizard-input--xl" id="shop-name" name="shop_name" type="text" value="{{ form_data.shop_name|default:'' }}" placeholder="e.g. Juju's Electronics" required data-preview-source="shop_name">
           <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
             <span class="wizard-chip">URL</span>
             <span class="wizard-slug" data-slug-preview>{{ generated_slug|default:'your-shop' }}</span>
@@ -70,13 +70,13 @@
         <div class="row g-3 mb-4">
           <div class="col-md-6">
             <label class="form-label wizard-label" for="shop-tagline">Tagline</label>
-            <input class="form-control wizard-input" id="shop-tagline" name="tagline" type="text" value="{{ form_data.tagline|default:incomplete_shop.tagline }}" maxlength="80" placeholder="Quality tech, student prices">
+            <input class="form-control wizard-input" id="shop-tagline" name="tagline" type="text" value="{{ form_data.tagline|default:'' }}" maxlength="80" placeholder="Quality tech, student prices">
           </div>
           <div class="col-md-6">
             <label class="form-label wizard-label">Primary category</label>
             <div class="wizard-category-grid">
               {% for category in categories %}
-                <input class="btn-check" type="radio" name="category" id="category-{{ category.id }}" value="{{ category.name }}" {% if form_data.category == category.name or incomplete_shop.category == category.name or forloop.first %}checked{% endif %}>
+                <input class="btn-check" type="radio" name="category" id="category-{{ category.id }}" value="{{ category.name }}" {% if form_data.category == category.name or forloop.first %}checked{% endif %}>
                 <label class="wizard-card-toggle" for="category-{{ category.id }}">
                   <span class="wizard-card-toggle__title">{{ category.name }}</span>
                 </label>
@@ -223,7 +223,7 @@
 
         <div class="mb-3">
           <label class="form-label wizard-label" for="shop-description">Description</label>
-          <textarea class="form-control wizard-input" id="shop-description" name="description" rows="5" maxlength="500" placeholder="Tell buyers about your shop...">{{ form_data.description|default:incomplete_shop.description }}</textarea>
+          <textarea class="form-control wizard-input" id="shop-description" name="description" rows="5" maxlength="500" placeholder="Tell buyers about your shop...">{{ form_data.description|default:'' }}</textarea>
           <div class="wizard-counter"><span data-description-count>0</span>/500 characters</div>
         </div>
 

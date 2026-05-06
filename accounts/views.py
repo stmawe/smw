@@ -120,7 +120,13 @@ def login_view(request):
                 messages.error(request, 'This account is not active. Please verify your email.')
                 return redirect('accounts:login')
             login(request, user)
-            next_url = request.GET.get('next') or '/'
+            # Redirect to user's personal subdomain after login
+            from django.conf import settings as django_settings
+            next_url = request.GET.get('next', '')
+            if not next_url:
+                base_domain = getattr(django_settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+                protocol = 'http' if django_settings.DEBUG else 'https'
+                next_url = f'{protocol}://{user.username}.{base_domain}/'
             messages.success(request, f'Welcome back, {user.email}!')
             return redirect(next_url)
         else:
