@@ -36,53 +36,72 @@ def register_view(request):
         return redirect('/')
     
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
+        import re
+        email = request.POST.get('email', '').strip()
+        username = request.POST.get('username', '').strip().lower()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
         role = request.POST.get('role', 'buyer')
-        
+
         # Validation
-        if not email or not password1 or not password2:
+        if not email or not username or not password1 or not password2:
             messages.error(request, 'All fields are required.')
             return redirect('register')
-        
+
+        # Username: lowercase letters, digits, hyphens only — no dots (subdomain safety)
+        if not re.match(r'^[a-z0-9][a-z0-9\-]*[a-z0-9]$', username) and not re.match(r'^[a-z0-9]$', username):
+            messages.error(request, 'Username may only contain lowercase letters, digits, and hyphens. No dots or spaces.')
+            return redirect('register')
+
+        if len(username) < 3:
+            messages.error(request, 'Username must be at least 3 characters.')
+            return redirect('register')
+
+        if len(username) > 48:
+            messages.error(request, 'Username must be 48 characters or less.')
+            return redirect('register')
+
         if password1 != password2:
             messages.error(request, 'Passwords do not match.')
             return redirect('register')
-        
+
         if len(password1) < 8:
             messages.error(request, 'Password must be at least 8 characters.')
             return redirect('register')
-        
+
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Email already registered.')
             return redirect('register')
-        
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'That username is already taken.')
+            return redirect('register')
+
         # Create user
         try:
             user = User.objects.create_user(
                 email=email,
-                username=email,  # Use email as username
+                username=username,
                 password=password1,
-                role=role
+                role=role,
             )
             user.is_active = False  # Require email verification
             user.save()
 
             # Register the user's personal subdomain with Cloudflare (non-fatal)
             _register_user_subdomain(user.username)
-            
+
             # Create email address record
             EmailAddress.objects.create(
                 user=user,
                 email=email,
                 verified=False,
-                primary=True
+                primary=True,
             )
-            
+
             messages.success(request, 'Registration successful. Please check your email to verify your account.')
             return redirect('accounts:login')
-        
+
         except Exception as e:
             messages.error(request, f'Registration failed: {str(e)}')
             return redirect('register')
