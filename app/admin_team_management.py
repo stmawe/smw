@@ -1,237 +1,214 @@
 """
-Admin team management for managing admin users and their roles/permissions.
+Admin views for managing shop managers and moderators.
+Accessible at admin.smw.pgwiz.cloud/admin/team/
 """
 
-from django.db import models
-from django.contrib.auth.models import User
-from app.admin_permissions import AdminRole
+import logging
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
+
+from app.models import User
+from app.admin_views import admin_login_required
+
+logger = logging.getLogger(__name__)
 
 
-class AdminTeam(models.Model):
-    """Team/group for organizing admin users."""
-    
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    members = models.ManyToManyField(User, related_name='admin_teams')
-    
-    class Meta:
-        verbose_name = 'Admin Team'
-        verbose_name_plural = 'Admin Teams'
-    
-    def __str__(self):
-        return self.name
-
-
-class AdminTeamInvitation(models.Model):
-    """Invitation for users to join admin team."""
-    
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('declined', 'Declined'),
-    ]
-    
-    team = models.ForeignKey(AdminTeam, on_delete=models.CASCADE)
-    email = models.EmailField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    invited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
-    
-    class Meta:
-        verbose_name = 'Admin Team Invitation'
-        verbose_name_plural = 'Admin Team Invitations'
-    
-    def __str__(self):
-        return f"{self.team.name} - {self.email} ({self.status})"
-
-
-class AdminTeamService:
-    """Service for managing admin teams."""
-    
-    @staticmethod
-    def create_team(name, description='', created_by=None):
-        """Create new admin team."""
-        team = AdminTeam.objects.create(
-            name=name,
-            description=description
-        )
-        
-        if created_by:
-            team.members.add(created_by)
-        
-        return team
-    
-    @staticmethod
-    def add_member(team, user):
-        """Add user to team."""
-        team.members.add(user)
-    
-    @staticmethod
-    def remove_member(team, user):
-        """Remove user from team."""
-        team.members.remove(user)
-    
-    @staticmethod
-    def get_team_members(team):
-        """Get all members of team."""
-        return team.members.all()
-    
-    @staticmethod
-    def invite_user(team, email, invited_by):
-        """Invite user to team by email."""
-        from django.utils import timezone
-        from datetime import timedelta
-        
-        expires_at = timezone.now() + timedelta(days=7)
-        
-        invitation = AdminTeamInvitation.objects.create(
-            team=team,
-            email=email,
-            invited_by=invited_by,
-            expires_at=expires_at
-        )
-        
-        return invitation
-    
-    @staticmethod
-    def accept_invitation(invitation):
-        """Accept team invitation."""
-        try:
-            user = User.objects.get(email=invitation.email)
-            invitation.team.members.add(user)
-            invitation.status = 'accepted'
-            invitation.save()
-            return True
-        except User.DoesNotExist:
-            return False
-    
-    @staticmethod
-    def decline_invitation(invitation):
-        """Decline team invitation."""
-        invitation.status = 'declined'
-        invitation.save()
-
-
-def get_team_management_views():
-    """Return view functions for team management."""
-    return """
-    from django.shortcuts import render, redirect, get_object_or_404
-    from django.views.decorators.http import require_http_methods
-    from app.admin_permissions import AdminPermission
-    from app.admin_utils import permission_required, log_admin_action
-    
-    @require_http_methods(["GET"])
-    @permission_required(AdminPermission.VIEW_USERS)
-    def teams_list(request):
-        '''List all admin teams.'''
-        teams = AdminTeam.objects.all()
-        
-        context = {
-            'teams': teams,
-            'title': 'Admin Teams',
-        }
-        return render(request, 'admin/teams_list.html', context)
-    
-    @require_http_methods(["GET", "POST"])
-    @permission_required(AdminPermission.CREATE_USER)
-    def teams_create(request):
-        '''Create new admin team.'''
-        if request.method == 'POST':
-            name = request.POST.get('name')
-            description = request.POST.get('description', '')
-            
-            team = AdminTeamService.create_team(name, description, request.user)
-            
-            log_admin_action(
-                request,
-                'CREATE_TEAM',
-                'AdminTeam',
-                team.id,
-                'success'
-            )
-            
-            return redirect('teams_detail', pk=team.id)
-        
-        context = {'title': 'Create Team'}
-        return render(request, 'admin/teams_form.html', context)
-    
-    @require_http_methods(["GET"])
-    @permission_required(AdminPermission.VIEW_USERS)
-    def teams_detail(request, pk):
-        '''View team details.'''
-        team = get_object_or_404(AdminTeam, pk=pk)
-        members = team.members.all()
-        invitations = AdminTeamInvitation.objects.filter(team=team)
-        
-        context = {
-            'team': team,
-            'members': members,
-            'invitations': invitations,
-            'title': f'Team: {team.name}',
-        }
-        return render(request, 'admin/teams_detail.html', context)
-    
-    @require_http_methods(["POST"])
-    @permission_required(AdminPermission.EDIT_USER)
-    def teams_add_member(request, pk):
-        '''Add member to team.'''
-        team = get_object_or_404(AdminTeam, pk=pk)
-        user_id = request.POST.get('user_id')
-        
-        try:
-            user = User.objects.get(id=user_id)
-            AdminTeamService.add_member(team, user)
-            
-            log_admin_action(
-                request,
-                'ADD_TEAM_MEMBER',
-                'AdminTeam',
-                team.id,
-                'success'
-            )
-        except User.DoesNotExist:
-            pass
-        
-        return redirect('teams_detail', pk=team.id)
-    
-    @require_http_methods(["POST"])
-    @permission_required(AdminPermission.EDIT_USER)
-    def teams_remove_member(request, pk, member_id):
-        '''Remove member from team.'''
-        team = get_object_or_404(AdminTeam, pk=pk)
-        user = get_object_or_404(User, id=member_id)
-        
-        AdminTeamService.remove_member(team, user)
-        
-        log_admin_action(
-            request,
-            'REMOVE_TEAM_MEMBER',
-            'AdminTeam',
-            team.id,
-            'success'
-        )
-        
-        return redirect('teams_detail', pk=team.id)
-    
-    @require_http_methods(["POST"])
-    @permission_required(AdminPermission.CREATE_USER)
-    def teams_invite_user(request, pk):
-        '''Invite user to team.'''
-        team = get_object_or_404(AdminTeam, pk=pk)
-        email = request.POST.get('email')
-        
-        invitation = AdminTeamService.invite_user(team, email, request.user)
-        
-        log_admin_action(
-            request,
-            'INVITE_TO_TEAM',
-            'AdminTeam',
-            team.id,
-            'success'
-        )
-        
-        return redirect('teams_detail', pk=team.id)
+@admin_login_required
+@require_http_methods(['GET'])
+def team_list_view(request):
     """
+    List all users with elevated roles (shop_manager, moderator, entity admins).
+    GET /admin/team/
+    """
+    role_filter = request.GET.get('role', 'all')
+
+    users = User.objects.exclude(role__in=['buyer', 'seller']).order_by('role', 'username')
+    if role_filter != 'all':
+        users = users.filter(role=role_filter)
+
+    role_counts = {
+        'superadmin': User.objects.filter(role='superadmin').count(),
+        'university_admin': User.objects.filter(role='university_admin').count(),
+        'area_admin': User.objects.filter(role='area_admin').count(),
+        'shop_manager': User.objects.filter(role='shop_manager').count(),
+        'moderator': User.objects.filter(role='moderator').count(),
+    }
+
+    return render(request, 'admin/team.html', {
+        'users': users,
+        'role_filter': role_filter,
+        'role_counts': role_counts,
+        'page_title': 'Team Management',
+    })
+
+
+@admin_login_required
+@require_http_methods(['GET', 'POST'])
+def assign_role_view(request, user_id):
+    """
+    Assign or change a user's role.
+    GET/POST /admin/team/{user_id}/role/
+    """
+    user = get_object_or_404(User, pk=user_id)
+
+    ASSIGNABLE_ROLES = [
+        ('buyer', 'Buyer'),
+        ('seller', 'Seller'),
+        ('shop_manager', 'Shop Manager'),
+        ('moderator', 'Moderator'),
+        ('university_admin', 'University Admin'),
+        ('area_admin', 'Area Admin'),
+    ]
+
+    if request.method == 'POST':
+        new_role = request.POST.get('role', '').strip()
+        valid_roles = [r[0] for r in ASSIGNABLE_ROLES]
+        if new_role not in valid_roles:
+            messages.error(request, f'Invalid role: {new_role}')
+        else:
+            old_role = user.role
+            user.role = new_role
+            user.save(update_fields=['role'])
+            messages.success(request, f'{user.username} role changed: {old_role} → {new_role}')
+            logger.info('Role change: %s → %s for user %s by %s', old_role, new_role, user.username, request.user.username)
+        return redirect('admin_team_list')
+
+    return render(request, 'admin/assign_role.html', {
+        'target_user': user,
+        'assignable_roles': ASSIGNABLE_ROLES,
+        'page_title': f'Assign Role — {user.username}',
+    })
+
+
+@admin_login_required
+@require_http_methods(['GET'])
+def shop_managers_list_view(request):
+    """
+    List all ShopManager assignments across all tenant schemas.
+    GET /admin/team/shop-managers/
+    """
+    from django_tenants.utils import schema_context
+    from app.models import Client
+
+    assignments = []
+    tenants = Client.objects.exclude(schema_name='public').order_by('name')
+
+    for tenant in tenants:
+        try:
+            with schema_context(tenant.schema_name):
+                from mydak.models import ShopManager
+                mgrs = list(
+                    ShopManager.objects.filter(is_active=True)
+                    .select_related('shop', 'manager', 'assigned_by')
+                    .order_by('shop__name')
+                )
+                for m in mgrs:
+                    assignments.append({
+                        'schema': tenant.schema_name,
+                        'tenant_name': tenant.name,
+                        'shop_name': m.shop.name,
+                        'shop_id': m.shop.id,
+                        'manager_username': m.manager.username,
+                        'manager_email': m.manager.email,
+                        'can_edit_listings': m.can_edit_listings,
+                        'can_view_orders': m.can_view_orders,
+                        'can_message_buyers': m.can_message_buyers,
+                        'assignment_id': m.id,
+                    })
+        except Exception:
+            continue
+
+    return render(request, 'admin/shop_managers.html', {
+        'assignments': assignments,
+        'total': len(assignments),
+        'page_title': 'Shop Managers',
+    })
+
+
+@admin_login_required
+@require_http_methods(['POST'])
+def assign_shop_manager_view(request):
+    """
+    Assign a user as manager of a shop.
+    POST /admin/team/shop-managers/assign/
+    Requires: shop_id, manager_username, schema, permissions
+    """
+    from django_tenants.utils import schema_context
+
+    schema = request.POST.get('schema', '').strip()
+    shop_id = request.POST.get('shop_id', '').strip()
+    manager_username = request.POST.get('manager_username', '').strip()
+
+    if not schema or not shop_id or not manager_username:
+        messages.error(request, 'Schema, shop ID, and manager username are required.')
+        return redirect('admin_shop_managers')
+
+    try:
+        manager = User.objects.get(username=manager_username)
+    except User.DoesNotExist:
+        messages.error(request, f'User "{manager_username}" not found.')
+        return redirect('admin_shop_managers')
+
+    try:
+        with schema_context(schema):
+            from mydak.models import Shop, ShopManager
+            shop = get_object_or_404(Shop, pk=shop_id)
+            assignment, created = ShopManager.objects.get_or_create(
+                shop=shop,
+                manager=manager,
+                defaults={
+                    'assigned_by': request.user,
+                    'can_edit_listings': bool(request.POST.get('can_edit_listings')),
+                    'can_view_orders': bool(request.POST.get('can_view_orders')),
+                    'can_message_buyers': bool(request.POST.get('can_message_buyers')),
+                    'is_active': True,
+                }
+            )
+            if not created:
+                assignment.can_edit_listings = bool(request.POST.get('can_edit_listings'))
+                assignment.can_view_orders = bool(request.POST.get('can_view_orders'))
+                assignment.can_message_buyers = bool(request.POST.get('can_message_buyers'))
+                assignment.is_active = True
+                assignment.save()
+
+            # Also set the user's role to shop_manager if not already elevated
+            if manager.role in ('buyer', 'seller'):
+                manager.role = 'shop_manager'
+                manager.save(update_fields=['role'])
+
+            action = 'assigned' if created else 'updated'
+            messages.success(request, f'{manager_username} {action} as manager of "{shop.name}".')
+    except Exception as exc:
+        messages.error(request, f'Assignment failed: {exc}')
+
+    return redirect('admin_shop_managers')
+
+
+@admin_login_required
+@require_http_methods(['POST'])
+def revoke_shop_manager_view(request, assignment_id):
+    """
+    Revoke a shop manager assignment.
+    POST /admin/team/shop-managers/{assignment_id}/revoke/
+    """
+    from django_tenants.utils import schema_context
+
+    schema = request.POST.get('schema', '').strip()
+    if not schema:
+        messages.error(request, 'Schema is required.')
+        return redirect('admin_shop_managers')
+
+    try:
+        with schema_context(schema):
+            from mydak.models import ShopManager
+            assignment = get_object_or_404(ShopManager, pk=assignment_id)
+            username = assignment.manager.username
+            shop_name = assignment.shop.name
+            assignment.is_active = False
+            assignment.save(update_fields=['is_active', 'updated_at'])
+            messages.success(request, f'Revoked {username} as manager of "{shop_name}".')
+    except Exception as exc:
+        messages.error(request, f'Revoke failed: {exc}')
+
+    return redirect('admin_shop_managers')

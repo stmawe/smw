@@ -2,7 +2,7 @@
 
 from django.urls import path
 from django.views.generic import RedirectView
-from . import university_admin_views, deployment_views, admin_views, admin_console_views, admin_crud_views, admin_advanced_views, admin_api, entity_admin_views
+from . import university_admin_views, deployment_views, admin_views, admin_console_views, admin_crud_views, admin_advanced_views, admin_api, entity_admin_views, admin_team_management
 from mydak import seller_views
 
 # Admin subdomain URLs (for https://admin.smw.pgwiz.cloud/)
@@ -246,6 +246,13 @@ admin_crud_patterns = [
     path('admin/entities/<int:entity_id>/reject/', entity_admin_views.entity_reject_view, name='admin_entity_reject'),
     path('admin/entities/<int:entity_id>/suspend/', entity_admin_views.entity_suspend_view, name='admin_entity_suspend'),
     path('admin/entities/<int:entity_id>/reactivate/', entity_admin_views.entity_reactivate_view, name='admin_entity_reactivate'),
+
+    # Team & Role Management
+    path('admin/team/', admin_team_management.team_list_view, name='admin_team_list'),
+    path('admin/team/<int:user_id>/role/', admin_team_management.assign_role_view, name='admin_assign_role'),
+    path('admin/team/shop-managers/', admin_team_management.shop_managers_list_view, name='admin_shop_managers'),
+    path('admin/team/shop-managers/assign/', admin_team_management.assign_shop_manager_view, name='admin_assign_shop_manager'),
+    path('admin/team/shop-managers/<int:assignment_id>/revoke/', admin_team_management.revoke_shop_manager_view, name='admin_revoke_shop_manager'),
 ]
 
 # Combine admin subdomain patterns with core CRUD patterns for the admin subdomain

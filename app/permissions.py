@@ -110,3 +110,61 @@ class CanModifyCatalogue(BasePermission):
             return False
         
         return request.user.role in ['seller', 'superadmin', 'university_admin', 'area_admin']
+
+
+# ============================================================
+# ROLE-BASED PERMISSION HELPERS
+# ============================================================
+
+def can_manage_shop(user, shop):
+    """
+    Returns True if the user can manage the given shop.
+    True for: shop owner, superadmin, or assigned ShopManager.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser or user.role == 'superadmin':
+        return True
+    if shop.owner_id == user.pk:
+        return True
+    # Check ShopManager assignment
+    try:
+        from mydak.models import ShopManager
+        return ShopManager.objects.filter(
+            shop=shop, manager=user, is_active=True
+        ).exists()
+    except Exception:
+        return False
+
+
+def can_edit_listings(user, shop):
+    """Returns True if user can create/edit listings for this shop."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser or user.role == 'superadmin':
+        return True
+    if shop.owner_id == user.pk:
+        return True
+    try:
+        from mydak.models import ShopManager
+        return ShopManager.objects.filter(
+            shop=shop, manager=user, is_active=True, can_edit_listings=True
+        ).exists()
+    except Exception:
+        return False
+
+
+def is_moderator(user):
+    """Returns True if user has moderation privileges."""
+    if not user or not user.is_authenticated:
+        return False
+    return user.is_superuser or user.role in ('superadmin', 'moderator')
+
+
+def is_entity_admin(user, entity):
+    """Returns True if user is the admin of the given entity."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser or user.role == 'superadmin':
+        return True
+    return entity.admin_user_id == user.pk

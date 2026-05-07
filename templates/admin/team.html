@@ -1,0 +1,88 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Team Management — Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item active">Team</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Team Management</h1>
+      <p class="text-muted mb-0">Manage roles for staff, moderators, and shop managers.</p>
+    </div>
+    <a href="{% url 'admin_shop_managers' %}" class="btn btn-outline-primary">
+      <i class="bi bi-people"></i> Shop Managers
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Role filter tabs -->
+  <div class="mb-4">
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a class="nav-link {% if role_filter == 'all' %}active{% endif %}" href="?role=all">All</a></li>
+      <li class="nav-item"><a class="nav-link {% if role_filter == 'superadmin' %}active{% endif %}" href="?role=superadmin">Superadmin <span class="badge bg-secondary ms-1">{{ role_counts.superadmin }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if role_filter == 'moderator' %}active{% endif %}" href="?role=moderator">Moderator <span class="badge bg-secondary ms-1">{{ role_counts.moderator }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if role_filter == 'shop_manager' %}active{% endif %}" href="?role=shop_manager">Shop Manager <span class="badge bg-secondary ms-1">{{ role_counts.shop_manager }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if role_filter == 'university_admin' %}active{% endif %}" href="?role=university_admin">University Admin <span class="badge bg-secondary ms-1">{{ role_counts.university_admin }}</span></a></li>
+      <li class="nav-item"><a class="nav-link {% if role_filter == 'area_admin' %}active{% endif %}" href="?role=area_admin">Area Admin <span class="badge bg-secondary ms-1">{{ role_counts.area_admin }}</span></a></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      {% if users %}
+        <table class="table table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Current Role</th>
+              <th>Active</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td><strong>{{ u.username }}</strong></td>
+              <td class="text-muted small">{{ u.email }}</td>
+              <td>
+                {% if u.role == 'superadmin' %}<span class="badge bg-danger">Superadmin</span>
+                {% elif u.role == 'moderator' %}<span class="badge bg-warning text-dark">Moderator</span>
+                {% elif u.role == 'shop_manager' %}<span class="badge bg-info text-dark">Shop Manager</span>
+                {% elif u.role == 'university_admin' %}<span class="badge bg-primary">University Admin</span>
+                {% elif u.role == 'area_admin' %}<span class="badge bg-secondary">Area Admin</span>
+                {% else %}<span class="badge bg-light text-dark">{{ u.role }}</span>
+                {% endif %}
+              </td>
+              <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+              <td class="text-end">
+                <a href="{% url 'admin_assign_role' u.id %}" class="btn btn-sm btn-outline-primary">Change Role</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="text-center py-5 text-muted">No team members found.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ page_title }} — Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'admin_team_list' %}">Team</a></li>
+      <li class="breadcrumb-item active">Assign Role</li>
+    </ol>
+  </nav>
+
+  <h1 class="mb-4">{{ page_title }}</h1>
+
+  <div class="card" style="max-width:480px;">
+    <div class="card-body">
+      <div class="mb-3">
+        <div class="text-muted small">Current role</div>
+        <strong>{{ target_user.role }}</strong>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">New Role</label>
+          <select name="role" class="form-select" required>
+            {% for value, label in assignable_roles %}
+              <option value="{{ value }}" {% if target_user.role == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save Role</button>
+          <a href="{% url 'admin_team_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

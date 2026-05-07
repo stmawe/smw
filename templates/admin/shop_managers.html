@@ -1,0 +1,110 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Shop Managers — Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'admin_dashboard_full' %}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'admin_team_list' %}">Team</a></li>
+      <li class="breadcrumb-item active">Shop Managers</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Shop Managers</h1>
+      <p class="text-muted mb-0">Assign users to manage specific shops.</p>
+    </div>
+    <span class="badge bg-secondary fs-6">{{ total }} assignments</span>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Assign form -->
+  <div class="card mb-4">
+    <div class="card-header"><strong>Assign New Manager</strong></div>
+    <div class="card-body">
+      <form method="post" action="{% url 'admin_assign_shop_manager' %}" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-3">
+          <label class="form-label">Schema (tenant)</label>
+          <input type="text" name="schema" class="form-control" placeholder="e.g. bwarex" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Shop ID</label>
+          <input type="number" name="shop_id" class="form-control" placeholder="1" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Manager Username</label>
+          <input type="text" name="manager_username" class="form-control" placeholder="username" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Permissions</label>
+          <div class="d-flex gap-3 mt-1">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="can_edit_listings" id="cel" checked><label class="form-check-label" for="cel">Edit Listings</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="can_view_orders" id="cvo" checked><label class="form-check-label" for="cvo">View Orders</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="can_message_buyers" id="cmb" checked><label class="form-check-label" for="cmb">Message Buyers</label></div>
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Assign Manager</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Assignments table -->
+  <div class="card">
+    <div class="card-body p-0">
+      {% if assignments %}
+        <table class="table table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Shop</th>
+              <th>Manager</th>
+              <th>Schema</th>
+              <th>Permissions</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in assignments %}
+            <tr>
+              <td><strong>{{ a.shop_name }}</strong><div class="text-muted small">ID: {{ a.shop_id }}</div></td>
+              <td>{{ a.manager_username }}<div class="text-muted small">{{ a.manager_email }}</div></td>
+              <td><code class="small">{{ a.schema }}</code></td>
+              <td>
+                {% if a.can_edit_listings %}<span class="badge bg-success me-1">Edit</span>{% endif %}
+                {% if a.can_view_orders %}<span class="badge bg-info text-dark me-1">Orders</span>{% endif %}
+                {% if a.can_message_buyers %}<span class="badge bg-secondary me-1">Messages</span>{% endif %}
+              </td>
+              <td class="text-end">
+                <form method="post" action="{% url 'admin_revoke_shop_manager' a.assignment_id %}"
+                      onsubmit="return confirm('Revoke this manager assignment?');">
+                  {% csrf_token %}
+                  <input type="hidden" name="schema" value="{{ a.schema }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Revoke</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="text-center py-5 text-muted">No shop manager assignments yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
