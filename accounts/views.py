@@ -137,7 +137,9 @@ def register_view(request):
             )
 
             messages.success(request, 'Registration successful. Please check your email to verify your account.')
-            return redirect('accounts:login')
+            return render(request, 'accounts/setup_pending.html', {
+                'username': user.username,
+            })
 
         except Exception as e:
             messages.error(request, f'Registration failed: {str(e)}')
@@ -176,16 +178,15 @@ def login_view(request):
                 messages.error(request, 'This account is not active. Please verify your email.')
                 return redirect('accounts:login')
             login(request, user)
-            # Redirect to user's personal subdomain after login
+            # Redirect to user's personal dashboard after login
             next_url = request.GET.get('next', '')
             if not next_url:
                 from django.conf import settings as django_settings
                 base_domain = getattr(django_settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
-                # Never use localhost as base domain for subdomain redirects
                 if 'localhost' in base_domain or '127.0.0.1' in base_domain:
                     base_domain = 'smw.pgwiz.cloud'
                 protocol = 'http' if django_settings.DEBUG else 'https'
-                next_url = f'{protocol}://{user.username}.{base_domain}/'
+                next_url = f'{protocol}://{user.username}.{base_domain}/dashboard/'
             messages.success(request, f'Welcome back, {user.email}!')
             return redirect(next_url)
         else:

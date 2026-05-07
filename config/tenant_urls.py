@@ -18,6 +18,8 @@ urlpatterns = admin_subdomain_patterns + admin_crud_patterns + [
     path('admin/', admin.site.urls),
 
     # Shop path routing — must come after admin patterns
+    # /dashboard/ → seller dashboard (login required)
+    path('dashboard/', shop_routing_views.seller_dashboard_view, name='seller_dashboard'),
     # / → root shop storefront or user profile page
     path('', shop_routing_views.tenant_root_view, name='tenant_root'),
     # /{shop_slug}/ → specific shop storefront

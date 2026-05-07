@@ -82,6 +82,42 @@ def tenant_root_view(request):
     })
 
 
+def seller_dashboard_view(request):
+    """
+    Private seller dashboard at {username}.smw.pgwiz.cloud/dashboard/
+
+    Requires login. Shows the owner's shops, listings summary, and quick actions.
+    If not logged in, redirects to the main site login.
+    """
+    from django.conf import settings as _s
+
+    if not request.user.is_authenticated:
+        protocol = 'http' if _s.DEBUG else 'https'
+        login_url = f'{protocol}://smw.pgwiz.cloud/accounts/login/?next={request.build_absolute_uri()}'
+        from django.shortcuts import redirect as _redirect
+        return _redirect(login_url)
+
+    owner = _resolve_owner_from_request(request)
+
+    # Ensure the logged-in user owns this subdomain
+    if owner is None or request.user.pk != owner.pk:
+        raise Http404('Dashboard not found.')
+
+    active_shops = Shop.objects.filter(owner=owner, is_active=True).order_by('name')
+    inactive_shops = Shop.objects.filter(owner=owner, is_active=False).order_by('name')
+    has_root_shop = active_shops.filter(is_root_shop=True).exists()
+    total_shops = active_shops.count() + inactive_shops.count()
+
+    return render(request, 'shops/dashboard.html', {
+        'owner': owner,
+        'active_shops': active_shops,
+        'inactive_shops': inactive_shops,
+        'total_shops': total_shops,
+        'has_root_shop': has_root_shop,
+        'can_create_shop': total_shops < 2 and not has_root_shop,
+    })
+
+
 def shop_storefront_view(request, shop_slug):
     """
     Serve a specific shop storefront at /{shop_slug}/.
