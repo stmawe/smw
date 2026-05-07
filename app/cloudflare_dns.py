@@ -30,7 +30,7 @@ def create_subdomain_dns_record(subdomain: str) -> None:
     from django.conf import settings
     import requests as http_requests
 
-    cf_token  = getattr(settings, 'CLOUDFLARE_API_TOKEN', '') or ''
+    cf_token  = getattr(settings, 'CLOUDFLARE_API_TOKEN', '') or getattr(settings, 'CF_API_TOKEN', '') or ''
     cf_zone   = getattr(settings, 'CLOUDFLARE_ZONE_ID', '') or ''
     server_ip = getattr(settings, 'SERVER_IP', '') or ''
     base_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')

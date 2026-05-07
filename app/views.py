@@ -419,70 +419,13 @@ def create_shop_view(request):
     return render(request, 'wizard/create_shop.html', context)
 
 
-@transaction.atomic
 def tenant_register_view(request):
-    if request.method == 'POST':
-        form = TenantRegistrationForm(request.POST)
-        if form.is_valid():
-            from django.conf import settings
-            from django_tenants.utils import schema_context
-
-            university_name = form.cleaned_data['university_name']
-            preferred_subdomain = form.cleaned_data.get('preferred_subdomain')
-            main_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
-
-            # Determine subdomain
-            if preferred_subdomain:
-                subdomain = preferred_subdomain
-            else:
-                base_slug = slugify(university_name)
-                subdomain = base_slug
-                # Uniqueness check must run in public schema
-                with schema_context('public'):
-                    while ClientDomain.objects.filter(
-                        domain=f"{subdomain}.{main_domain}"
-                    ).exists():
-                        subdomain = f"{base_slug}-{int(time.time())}"
-
-            schema_name = subdomain.replace('-', '_')
-
-            # All tenant/domain creation MUST happen in the public schema
-            with schema_context('public'):
-                tenant = Client(
-                    name=university_name,
-                    schema_name=schema_name,
-                    tenant_type='university',
-                    on_trial=True,
-                )
-                tenant.save()
-
-                domain_name = f"{subdomain}.{main_domain}"
-                ClientDomain.objects.create(
-                    domain=domain_name,
-                    tenant=tenant,
-                    is_primary=True,
-                )
-
-            # User creation is schema-independent (app.User is in public schema)
-            user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                email=form.cleaned_data['email'],
-                password=form.cleaned_data['password'],
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-                role='university_admin',
-            )
-
-            messages.success(
-                request,
-                f"University '{university_name}' and admin account for '{user.username}' created successfully!",
-            )
-            return redirect('login')
-
-    else:
-        form = TenantRegistrationForm()
-
-    return render(request, 'accounts/register.html', {'form': form})
+    """
+    Legacy university registration endpoint — now redirects to the standard
+    user registration flow. Universities/entities are managed via the admin
+    panel at admin.smw.pgwiz.cloud/admin/entities/, not via self-registration.
+    """
+    return redirect('accounts:register')
 
 
 def search(request):
