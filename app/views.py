@@ -300,6 +300,19 @@ def create_shop_view(request):
     if shop_count >= 2:
         messages.error(request, 'You have reached the maximum number of shops (2). Delete an existing shop to create a new one.')
         return redirect('explore')
+
+    # Tier 1 check: if user has a root-promoted shop, they can't create another
+    has_root_shop = Shop.objects.filter(owner=request.user, is_root_shop=True, is_active=True).exists()
+    if has_root_shop:
+        messages.error(
+            request,
+            'Your shop is set as your root shop (Tier 1). '
+            'To create a second shop, first demote your root shop or request a Tier upgrade.'
+        )
+        from django.conf import settings as _s
+        base = getattr(_s, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+        protocol = 'http' if _s.DEBUG else 'https'
+        return redirect(f'{protocol}://{request.user.username}.{base}/dashboard/')
     
     # Try to load incomplete shop data if user has one cached
     incomplete_shop = get_incomplete_shop(request.user.id)
@@ -408,6 +421,7 @@ def create_shop_view(request):
         'shop_progress': shop_progress,
         'generated_slug': generate_shop_slug((incomplete_shop or {}).get('shop_name', '')) if incomplete_shop else '',
         'wizard_config': wizard_config,
+        'user_username': request.user.username,
         # Ensure all template variables have safe defaults on GET
         'form_data': {},
         'payment_phone': '',

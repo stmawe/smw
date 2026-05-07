@@ -62,8 +62,13 @@
           <input class="form-control wizard-input wizard-input--xl" id="shop-name" name="shop_name" type="text" value="{{ form_data.shop_name|default:'' }}" placeholder="e.g. Juju's Electronics" required data-preview-source="shop_name">
           <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
             <span class="wizard-chip">URL</span>
+            <span class="wizard-subdomain-lock">{{ user_username }}.smw.pgwiz.cloud/</span>
             <span class="wizard-slug" data-slug-preview>{{ generated_slug|default:'your-shop' }}</span>
             <span class="wizard-status" data-slug-status>Available</span>
+          </div>
+          <div class="wizard-counter" style="margin-top:6px;">
+            Your subdomain <strong>{{ user_username }}.smw.pgwiz.cloud</strong> is locked.
+            The path after <strong>/</strong> is what you set as your shop name.
           </div>
         </div>
 
@@ -316,6 +321,23 @@
           <input type="checkbox" name="terms" required>
           I agree to the shop creation terms.
         </label>
+
+        <!-- Tier upgrade request (shown after shop is created) -->
+        <div class="wizard-upgrade-section mt-4" id="upgradeSection" style="display:none;">
+          <div class="wizard-upgrade-card">
+            <p class="wizard-upgrade-title">Want a better URL?</p>
+            <p class="wizard-upgrade-copy">Your shop is live at <strong>{{ user_username }}.smw.pgwiz.cloud/{{ generated_slug|default:'your-shop' }}/</strong></p>
+            <div class="d-flex gap-2 flex-wrap mt-3">
+              <button type="button" class="btn wizard-btn wizard-btn--ghost wizard-btn--sm" data-upgrade="root">
+                🏠 Set as root shop <span class="wizard-tier-badge">Tier 1</span>
+              </button>
+              <button type="button" class="btn wizard-btn wizard-btn--ghost wizard-btn--sm" data-upgrade="slug">
+                ✏️ Custom slug <span class="wizard-tier-badge">Tier 2</span>
+              </button>
+            </div>
+            <p class="wizard-upgrade-note">Upgrades require admin approval. Your shop is already live.</p>
+          </div>
+        </div>
       </section>
     </div>
 

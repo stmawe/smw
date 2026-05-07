@@ -491,6 +491,9 @@
           setPaymentState('success', 'Payment confirmed. Your shop is now active.');
           window.localStorage.removeItem(storageKey);
           stopPaymentPolling();
+          // Show upgrade section after successful payment
+          const upgradeSection = document.getElementById('upgradeSection');
+          if (upgradeSection) upgradeSection.style.display = 'block';
           return;
         }
 

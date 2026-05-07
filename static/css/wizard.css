@@ -166,6 +166,18 @@
   border-radius: 18px;
 }
 
+.wizard-subdomain-lock {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-mid);
+  font: 600 12px var(--font-body);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
 .wizard-chip,
 .wizard-slug,
 .wizard-status {
@@ -730,4 +742,50 @@
   .wizard-footer {
     flex-direction: column;
   }
+}
+
+/* ============================================================
+   TIER UPGRADE SECTION
+   ============================================================ */
+
+.wizard-upgrade-card {
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(232, 176, 48, 0.25);
+  background: rgba(232, 176, 48, 0.05);
+}
+
+.wizard-upgrade-title {
+  font: 700 15px var(--font-body);
+  color: var(--gold-300);
+  margin: 0 0 4px;
+}
+
+.wizard-upgrade-copy {
+  font: 400 13px var(--font-body);
+  color: var(--text-2);
+  margin: 0;
+}
+
+.wizard-upgrade-note {
+  font: 400 12px var(--font-body);
+  color: var(--text-3);
+  margin: 10px 0 0;
+}
+
+.wizard-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(232, 176, 48, 0.15);
+  color: var(--gold-300);
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.wizard-btn--sm {
+  padding: 8px 14px;
+  font-size: 13px;
 }
