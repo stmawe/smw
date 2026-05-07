@@ -896,3 +896,56 @@ class ShopSlugRequest(TimeStampedModel):
                 raise ValidationError(
                     f'A pending {self.get_request_type_display()} request already exists for this shop.'
                 )
+
+
+class ShopManager(TimeStampedModel):
+    """
+    Assigns a user as a manager of a specific shop.
+    Managers can manage listings, orders, and messages for assigned shops
+    without being the shop owner.
+
+    Assigned by superadmin or entity_admin.
+    """
+    shop = models.ForeignKey(
+        Shop,
+        on_delete=models.CASCADE,
+        related_name='managers',
+        db_index=True,
+    )
+    manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='managed_shops',
+        db_index=True,
+    )
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='shop_manager_assignments',
+    )
+    can_edit_listings = models.BooleanField(
+        default=True,
+        help_text='Can create and edit listings for this shop',
+    )
+    can_view_orders = models.BooleanField(
+        default=True,
+        help_text='Can view orders and transactions for this shop',
+    )
+    can_message_buyers = models.BooleanField(
+        default=True,
+        help_text='Can respond to buyer messages for this shop',
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = [['shop', 'manager']]
+        indexes = [
+            models.Index(fields=['manager', 'is_active']),
+            models.Index(fields=['shop', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f'{self.manager.username} manages {self.shop.name}'

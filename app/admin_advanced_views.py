@@ -31,33 +31,63 @@ from .admin_crud_views import log_admin_action, log_activity_feed, get_client_ip
 def admin_moderation_center(request):
     """
     Main moderation hub with tabs for different content types.
+
+    Uses existing Listing.status field:
+    - 'hidden'  → flagged/removed listings needing review
+    - 'draft'   → listings pending approval before going live
+    - 'active'  → live listings (can be flagged → hidden)
     """
+    from django_tenants.utils import schema_context
+    from app.models import Client
+
     tab = request.GET.get('tab', 'flagged')
-    
-    # Get flagged listings
-    flagged_listings = Listing.objects.filter(
-        flagged_for_review=True
-    ).order_by('-updated_at')[:50]
-    
-    # Get banned users
-    banned_users = User.objects.filter(
-        is_active=False
-    ).order_by('-date_joined')[:50]
-    
-    # Get pending items
-    pending_listings = Listing.objects.filter(
-        status='pending'
-    ).count()
-    
+
+    # Collect listings across all tenant schemas
+    flagged_listings = []
+    pending_listings_list = []
+    pending_count = 0
+
+    tenants = Client.objects.exclude(schema_name='public').order_by('name')
+    for tenant in tenants:
+        try:
+            with schema_context(tenant.schema_name):
+                hidden = list(
+                    Listing.objects.filter(status='hidden')
+                    .select_related('seller', 'shop')
+                    .order_by('-updated_at')[:20]
+                )
+                for l in hidden:
+                    l._tenant_schema = tenant.schema_name
+                flagged_listings.extend(hidden)
+
+                draft_count = Listing.objects.filter(status='draft').count()
+                pending_count += draft_count
+
+                if tab == 'pending':
+                    drafts = list(
+                        Listing.objects.filter(status='draft')
+                        .select_related('seller', 'shop')
+                        .order_by('-created_at')[:20]
+                    )
+                    for l in drafts:
+                        l._tenant_schema = tenant.schema_name
+                    pending_listings_list.extend(drafts)
+        except Exception:
+            continue
+
+    # Get banned users (public schema)
+    banned_users = User.objects.filter(is_active=False).order_by('-date_joined')[:50]
+
     context = {
         'tab': tab,
-        'flagged_listings': flagged_listings,
+        'flagged_listings': flagged_listings[:50],
+        'pending_listings': pending_listings_list[:50],
         'banned_users': banned_users,
-        'pending_count': pending_listings,
-        'flagged_count': flagged_listings.count(),
+        'pending_count': pending_count,
+        'flagged_count': len(flagged_listings),
         'banned_count': banned_users.count(),
     }
-    
+
     return render(request, 'admin/moderation.html', context)
 
 
@@ -66,18 +96,35 @@ def admin_moderation_center(request):
 @require_http_methods(["POST"])
 def admin_flag_listing(request, listing_id):
     """
-    Flag a listing for review/moderation.
+    Flag a listing for review — sets status to 'hidden'.
     """
-    listing = get_object_or_404(Listing, id=listing_id)
-    
+    from django_tenants.utils import schema_context
+    from app.models import Client
+
     reason = request.POST.get('reason', 'No reason provided')
-    
-    if not hasattr(listing, 'flagged_for_review'):
-        listing.flagged_for_review = True
-    else:
-        listing.flagged_for_review = True
-    
-    listing.save()
+    schema = request.POST.get('schema', '')
+
+    # Try to find the listing in the specified schema or loop all schemas
+    schemas_to_try = [schema] if schema else [
+        t.schema_name for t in Client.objects.exclude(schema_name='public')
+    ]
+
+    for s in schemas_to_try:
+        try:
+            with schema_context(s):
+                listing = Listing.objects.filter(id=listing_id).first()
+                if listing:
+                    listing.status = 'hidden'
+                    listing.save(update_fields=['status', 'updated_at'])
+                    log_admin_action(
+                        request, 'flag_listing', 'Listing', listing_id,
+                        {'reason': reason}, {}, {'status': 'hidden'}
+                    )
+                    return JsonResponse({'success': True, 'message': f'Listing #{listing_id} flagged.'})
+        except Exception:
+            continue
+
+    return JsonResponse({'success': False, 'message': 'Listing not found.'}, status=404)
     
     log_admin_action(
         request,
@@ -106,25 +153,30 @@ def admin_flag_listing(request, listing_id):
 @require_http_methods(["POST"])
 def admin_unflag_listing(request, listing_id):
     """
-    Unflag a listing (clear moderation review).
+    Unflag a listing — restores status to 'active'.
     """
-    listing = get_object_or_404(Listing, id=listing_id)
-    
-    if hasattr(listing, 'flagged_for_review'):
-        listing.flagged_for_review = False
-        listing.save()
-        
-        log_admin_action(
-            request,
-            'other',
-            'Listing',
-            listing.id,
-            listing.title,
-            reason="Cleared moderation flag",
-        )
-        messages.success(request, "Flag cleared.")
-    
-    return redirect('admin_listing_detail', listing_id=listing.id)
+    from django_tenants.utils import schema_context
+    from app.models import Client
+
+    schema = request.POST.get('schema', '')
+    schemas_to_try = [schema] if schema else [
+        t.schema_name for t in Client.objects.exclude(schema_name='public')
+    ]
+
+    for s in schemas_to_try:
+        try:
+            with schema_context(s):
+                listing = Listing.objects.filter(id=listing_id).first()
+                if listing:
+                    listing.status = 'active'
+                    listing.save(update_fields=['status', 'updated_at'])
+                    messages.success(request, f'Listing #{listing_id} restored to active.')
+                    return redirect('admin_moderation_center')
+        except Exception:
+            continue
+
+    messages.error(request, 'Listing not found.')
+    return redirect('admin_moderation_center')
 
 
 @login_required
@@ -603,62 +655,8 @@ def api_activity_feed_updates(request):
 
 
 # ============================================================================
-# MODERATION CENTER VIEWS
+# MODERATION CENTER VIEWS (duplicates removed — see implementations above)
 # ============================================================================
-
-
-@login_required
-@permission_required('admin.can_moderate')
-@require_http_methods(["POST"])
-def admin_flag_listing(request, listing_id):
-    """Flag a listing for review"""
-    try:
-        listing = get_object_or_404(Listing, id=listing_id)
-        listing.status = 'flagged'
-        listing.save()
-        
-        messages.success(request, f'Listing {listing_id} flagged for review')
-        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
-    except Exception as e:
-        messages.error(request, f"Error flagging listing: {str(e)}")
-        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
-
-
-@login_required
-@permission_required('admin.can_moderate')
-@require_http_methods(["POST"])
-def admin_unflag_listing(request, listing_id):
-    """Remove flag from listing"""
-    try:
-        listing = get_object_or_404(Listing, id=listing_id)
-        listing.status = 'active'
-        listing.save()
-        
-        messages.success(request, f'Listing {listing_id} unflagged')
-        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
-    except Exception as e:
-        messages.error(request, f"Error unflagging listing: {str(e)}")
-        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
-
-
-@login_required
-@permission_required('admin.can_ban_users')
-@require_http_methods(["POST"])
-def admin_ban_user_extended(request, user_id):
-    """Ban user with extended options"""
-    try:
-        user = get_object_or_404(User, id=user_id)
-        reason = request.POST.get('reason', '')
-        duration_days = request.POST.get('duration_days', 0)
-        
-        user.is_active = False
-        user.save()
-        
-        messages.success(request, f'User {user.username} banned')
-        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
-    except Exception as e:
-        messages.error(request, f"Error banning user: {str(e)}")
-        return redirect(request.META.get('HTTP_REFERER', 'admin:dashboard_full'))
 
 
 @login_required

@@ -75,6 +75,8 @@ class User(AbstractUser):
         ('superadmin', 'SuperAdmin'),
         ('university_admin', 'University Admin'),
         ('area_admin', 'Area Admin'),
+        ('shop_manager', 'Shop Manager'),
+        ('moderator', 'Moderator'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='buyer')
 
