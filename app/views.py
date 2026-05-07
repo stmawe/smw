@@ -17,14 +17,89 @@ from app.shop_urls import generate_shop_slug, validate_shop_slug
 from app.shop_creation_service import ShopCreationService
 
 
+def _get_all_listings(limit=48):
+    """
+    Collect active listings from all tenant schemas.
+    Returns a list of dicts with listing data + owner/shop context.
+    Falls back to empty list if cross-schema query fails.
+    """
+    from django_tenants.utils import schema_context
+    from app.models import Client, ClientDomain
+
+    all_listings = []
+
+    # Get all non-public tenant schemas
+    tenants = Client.objects.exclude(schema_name='public').order_by('created_at')
+
+    for tenant in tenants:
+        try:
+            with schema_context(tenant.schema_name):
+                listings = Listing.objects.filter(
+                    status='active'
+                ).select_related('seller', 'shop', 'category').order_by('-created_at')[:20]
+
+                # Find the owner's username from ClientDomain
+                domain_record = ClientDomain.objects.filter(
+                    tenant=tenant, is_primary=True
+                ).first()
+                owner_username = ''
+                if domain_record:
+                    from django.conf import settings as _s
+                    base = getattr(_s, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+                    host = domain_record.domain
+                    if host.endswith(f'.{base}'):
+                        owner_username = host[: -(len(base) + 1)]
+
+                for listing in listings:
+                    shop_url = ''
+                    if listing.shop:
+                        if listing.shop.is_root_shop:
+                            shop_url = f'https://{owner_username}.smw.pgwiz.cloud/'
+                        else:
+                            shop_url = f'https://{owner_username}.smw.pgwiz.cloud/{listing.shop.domain}/'
+
+                    all_listings.append({
+                        'id': listing.id,
+                        'title': listing.title,
+                        'price': listing.price,
+                        'description': listing.description[:120] if listing.description else '',
+                        'category': listing.category.name if listing.category else '',
+                        'condition': listing.get_condition_display() if hasattr(listing, 'get_condition_display') else '',
+                        'image': listing.image.url if listing.image else None,
+                        'shop_name': listing.shop.name if listing.shop else '',
+                        'shop_url': shop_url,
+                        'owner_username': owner_username,
+                        'created_at': listing.created_at,
+                        'schema': tenant.schema_name,
+                    })
+        except Exception:
+            continue  # Skip schemas that fail — non-fatal
+
+    # Sort by created_at descending, cap at limit
+    all_listings.sort(key=lambda x: x.get('created_at') or '', reverse=True)
+    return all_listings[:limit]
+
+
 def refs(request):
-    """
-    Root path handler - shows the new homepage with hero and featured shops
-    """
-    return render(request, 'homepage.html')
+    """Root path — combined marketplace homepage."""
+    return homepage_view(request)
+
 
 def homepage_view(request):
-    return render(request, 'homepage.html')
+    """
+    Combined marketplace — shows active listings from all tenant schemas.
+    Falls back to showing active shops if no listings exist.
+    """
+    listings = _get_all_listings(limit=48)
+
+    # Fallback: get active shops from public schema for display
+    active_shops = Shop.objects.filter(is_active=True).order_by('-created_at')[:12]
+
+    return render(request, 'homepage.html', {
+        'listings': listings,
+        'active_shops': active_shops,
+        'has_listings': bool(listings),
+    })
 
 def homepage_view_x(request):
     return render(request, 'index.html')
