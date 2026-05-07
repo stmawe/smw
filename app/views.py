@@ -486,7 +486,7 @@ def create_shop_view(request):
             cache_incomplete_shop(request.user.id, incomplete_data)
 
             context = {
-                'remaining_shops': 2 - shop_count,
+                'remaining_shops': shop_limit - shop_count,
                 'shop_count': shop_count,
                 'form_data': request.POST,
                 'incomplete_shop': incomplete_data,
@@ -513,7 +513,7 @@ def create_shop_view(request):
             cache_incomplete_shop(request.user.id, incomplete_data)
 
             context = {
-                'remaining_shops': 2 - shop_count,
+                'remaining_shops': shop_limit - shop_count,
                 'shop_count': shop_count,
                 'form_data': request.POST,
                 'incomplete_shop': incomplete_data,
@@ -530,7 +530,7 @@ def create_shop_view(request):
             cache_incomplete_shop(request.user.id, incomplete_data)
 
             context = {
-                'remaining_shops': 2 - shop_count,
+                'remaining_shops': shop_limit - shop_count,
                 'shop_count': shop_count,
                 'form_data': request.POST,
                 'incomplete_shop': incomplete_data,
@@ -545,7 +545,7 @@ def create_shop_view(request):
         incomplete_data = {**payload, 'terms': bool(terms_agreed)}
         cache_incomplete_shop(request.user.id, incomplete_data)
         context = {
-            'remaining_shops': 2 - shop_count,
+            'remaining_shops': shop_limit - shop_count,
             'shop_count': shop_count,
             'form_data': request.POST,
             'incomplete_shop': incomplete_data,
