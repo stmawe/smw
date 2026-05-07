@@ -422,13 +422,31 @@ def create_shop_view(request):
         return redirect('login')
     
     from app.shop_cache import get_incomplete_shop, cache_incomplete_shop, get_shop_progress
-    
-    # Check if user already has 2 shops (max limit)
-    shop_count = Shop.objects.filter(owner=request.user, is_active=False).count() + \
-                 Shop.objects.filter(owner=request.user, is_active=True).count()
-    if shop_count >= 2:
-        messages.error(request, 'You have reached the maximum number of shops (2). Delete an existing shop to create a new one.')
-        return redirect('explore')
+    from app.shop_urls import generate_shop_slug, validate_shop_slug, get_user_tier, get_user_shop_limit
+
+    # Enforce shop limit based on user tier
+    shop_count = Shop.objects.filter(owner=request.user).count()
+    shop_limit = get_user_shop_limit(request.user)
+    user_tier = get_user_tier(request.user)
+
+    if shop_count >= shop_limit:
+        if user_tier == 1:
+            messages.error(
+                request,
+                'Your shop is set as your root shop (Tier 1). '
+                'You can only have 1 shop at this tier. '
+                'Demote your root shop or request a Tier upgrade to add more.'
+            )
+        else:
+            messages.error(
+                request,
+                f'You have reached the maximum number of shops ({shop_limit}). '
+                'Delete an existing shop to create a new one.'
+            )
+        from django.conf import settings as _s
+        base = getattr(_s, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+        protocol = 'http' if _s.DEBUG else 'https'
+        return redirect(f'{protocol}://{request.user.username}.{base}/dashboard/')
 
     # Tier 1 check: if user has a root-promoted shop, they can't create another
     has_root_shop = Shop.objects.filter(owner=request.user, is_root_shop=True, is_active=True).exists()
@@ -544,8 +562,10 @@ def create_shop_view(request):
         return render(request, 'wizard/create_shop.html', context)
     
     context = {
-        'remaining_shops': 2 - shop_count,
+        'remaining_shops': shop_limit - shop_count,
         'shop_count': shop_count,
+        'shop_limit': shop_limit,
+        'user_tier': user_tier,
         'incomplete_shop': incomplete_shop or {},
         'shop_progress': shop_progress,
         'generated_slug': generate_shop_slug((incomplete_shop or {}).get('shop_name', '')) if incomplete_shop else '',

@@ -108,13 +108,20 @@ def seller_dashboard_view(request):
     has_root_shop = active_shops.filter(is_root_shop=True).exists()
     total_shops = active_shops.count() + inactive_shops.count()
 
+    from app.shop_urls import get_user_tier, get_user_shop_limit
+    user_tier = get_user_tier(owner)
+    shop_limit = get_user_shop_limit(owner)
+
     return render(request, 'shops/dashboard.html', {
         'owner': owner,
         'active_shops': active_shops,
         'inactive_shops': inactive_shops,
         'total_shops': total_shops,
         'has_root_shop': has_root_shop,
-        'can_create_shop': total_shops < 2 and not has_root_shop,
+        'can_create_shop': total_shops < shop_limit and not has_root_shop,
+        'user_tier': user_tier,
+        'shop_limit': shop_limit,
+        'remaining_shops': shop_limit - total_shops,
     })
 
 

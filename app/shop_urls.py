@@ -214,3 +214,34 @@ def validate_shop_slug(slug, user=None):
         'slug': normalized,
         'suggestion': None,
     }
+
+
+def get_user_tier(user):
+    """
+    Derive the user's current URL tier from their shop state.
+
+    Tier 0 (default): no root shop, no custom slug — up to 2 shops
+    Tier 1 (root):    has a shop with is_root_shop=True — max 1 shop
+    Tier 2 (custom):  has a shop with slug_approved=True — up to 2 shops
+
+    Returns: int (0, 1, or 2)
+    """
+    from mydak.models import Shop
+
+    if Shop.objects.filter(owner=user, is_root_shop=True).exists():
+        return 1
+    if Shop.objects.filter(owner=user, slug_approved=True).exists():
+        return 2
+    return 0
+
+
+def get_user_shop_limit(user):
+    """
+    Return the maximum number of shops allowed for this user based on their tier.
+
+    Tier 0: 2 shops
+    Tier 1: 1 shop (root-promoted — one shop serves at /)
+    Tier 2: 2 shops (custom slug approved)
+    """
+    tier = get_user_tier(user)
+    return 1 if tier == 1 else 2

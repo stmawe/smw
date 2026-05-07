@@ -113,13 +113,24 @@
         <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="label">Slots Used</div>
-                <div class="value">{{ total_shops }}/2</div>
+                <div class="value">{{ total_shops }}/{{ shop_limit }}</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="label">Tier</div>
-                <div class="value" style="font-size:20px;">{% if has_root_shop %}1{% else %}0{% endif %}</div>
+                <div class="value" style="font-size:20px;">
+                    {% if user_tier == 1 %}
+                        <span style="color:#e8b030;">Tier 1</span>
+                        <div style="font-size:11px;color:#5c7a99;margin-top:4px;">Root shop active</div>
+                    {% elif user_tier == 2 %}
+                        <span style="color:#26b857;">Tier 2</span>
+                        <div style="font-size:11px;color:#5c7a99;margin-top:4px;">Custom slug</div>
+                    {% else %}
+                        <span style="color:#a8bdd8;">Tier 0</span>
+                        <div style="font-size:11px;color:#5c7a99;margin-top:4px;">Default</div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -132,9 +143,12 @@
                 <i class="bi bi-plus"></i> Create Shop
             </a>
         {% elif has_root_shop %}
-            <span style="font-size:13px; color:#5c7a99;">Tier 1 active — 1 shop limit. Upgrade to add more.</span>
+            <span style="font-size:13px; color:#5c7a99;">
+                Tier 1 active — 1 shop limit.
+                <a href="https://smw.pgwiz.cloud/admin/slug-requests/" style="color:#1a72e8;">Request upgrade</a> to add more.
+            </span>
         {% else %}
-            <span style="font-size:13px; color:#5c7a99;">2/2 shops used. Delete one to create another.</span>
+            <span style="font-size:13px; color:#5c7a99;">{{ total_shops }}/{{ shop_limit }} shops used. Delete one to create another.</span>
         {% endif %}
     </div>
 
