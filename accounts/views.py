@@ -26,6 +26,40 @@ def _register_user_subdomain(username: str) -> None:
     create_subdomain_dns_record(username)
 
 
+def _issue_user_ssl(username: str) -> None:
+    """
+    Issue a Let's Encrypt SSL certificate for {username}.smw.pgwiz.cloud
+    using the Serv00 devil command.
+
+    Must be called AFTER the Cloudflare DNS A record is created.
+    Non-fatal — logs errors but never raises.
+    """
+    import subprocess
+    from django.conf import settings
+
+    base_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+    if 'localhost' in base_domain:
+        logger.info('SSL skipped for %s — localhost environment', username)
+        return
+
+    subdomain = f'{username}.{base_domain}'
+    server_ip = getattr(settings, 'SERVER_IP', '128.204.223.70')
+
+    try:
+        result = subprocess.run(
+            ['devil', 'ssl', 'www', 'add', server_ip, 'le', 'le', subdomain],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            logger.info('SSL cert issued for %s', subdomain)
+        else:
+            logger.error('devil ssl failed for %s: %s', subdomain, result.stderr or result.stdout)
+    except Exception as exc:
+        logger.error('SSL issuance failed for %s: %s', subdomain, exc)
+
+
 @require_http_methods(["GET", "POST"])
 def register_view(request):
     """
@@ -90,6 +124,9 @@ def register_view(request):
 
             # Register the user's personal subdomain with Cloudflare (non-fatal)
             _register_user_subdomain(user.username)
+
+            # Issue SSL certificate for the user's subdomain via devil (non-fatal)
+            _issue_user_ssl(user.username)
 
             # Create email address record
             EmailAddress.objects.create(
