@@ -144,6 +144,60 @@ def explore_view(request):
     """Browse all shops"""
     return render(request, 'explore.html')
 
+
+def shop_profile_view(request, username):
+    """
+    smw.pgwiz.cloud/shop/{username}/ — public profile for a user on the main site.
+    Shows all their active shops and recent listings.
+    """
+    from django.conf import settings as _s
+    from django_tenants.utils import schema_context
+    from app.models import ClientDomain
+
+    try:
+        profile_user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        from django.http import Http404
+        raise Http404(f'No user found with username "{username}"')
+
+    base_domain = getattr(_s, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+    protocol = 'http' if _s.DEBUG else 'https'
+    subdomain_url = f'{protocol}://{username}.{base_domain}/'
+
+    # Find the user's tenant schema
+    domain_record = ClientDomain.objects.filter(
+        domain=f'{username}.{base_domain}'
+    ).select_related('tenant').first()
+
+    shops = []
+    recent_listings = []
+
+    if domain_record:
+        try:
+            with schema_context(domain_record.tenant.schema_name):
+                from mydak.models import Shop as TenantShop, Listing as TenantListing
+                shops = list(
+                    TenantShop.objects.filter(
+                        owner=profile_user, is_active=True
+                    ).order_by('name').values('id', 'name', 'domain', 'description', 'is_root_shop')
+                )
+                recent_listings = list(
+                    TenantListing.objects.filter(
+                        status='active'
+                    ).select_related('shop', 'category').order_by('-created_at')[:12]
+                )
+        except Exception:
+            pass
+
+    return render(request, 'shop_profile.html', {
+        'profile_user': profile_user,
+        'subdomain_url': subdomain_url,
+        'shops': shops,
+        'recent_listings': recent_listings,
+        'base_domain': base_domain,
+        'protocol': protocol,
+    })
+
 def listings_view(request):
     """Browse all listings/products"""
     return render(request, 'listings.html')

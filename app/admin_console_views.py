@@ -174,3 +174,94 @@ def _get_ssl_status(domain):
     except Exception as e:
         return {'has_ssl': False, 'domain': domain, 'error': str(e)}
 
+
+
+@admin_login_required
+def user_domains_console_view(request):
+    """
+    Admin console for managing user subdomains and their SSL certificates.
+    Accessible at: admin.smw.pgwiz.cloud/console/user-domains/
+    Shows all ClientDomain records (user subdomains) with SSL status.
+    """
+    from app.models import ClientDomain, User
+    from django.conf import settings
+
+    base_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+    server_ip = getattr(settings, 'SERVER_IP', '128.204.223.70')
+
+    # Get all user subdomains (exclude public and admin)
+    excluded = {'smw.pgwiz.cloud', 'admin.smw.pgwiz.cloud', 'localhost'}
+    client_domains = ClientDomain.objects.select_related('tenant').exclude(
+        domain__in=excluded
+    ).order_by('domain')
+
+    # Get current SSL certs from devil
+    ssl_domains = set()
+    try:
+        result = subprocess.run(
+            ['devil', 'ssl', 'www', 'list'],
+            capture_output=True, text=True, timeout=15
+        )
+        for line in result.stdout.splitlines():
+            parts = line.split()
+            if parts and '.' in parts[0] and not parts[0].startswith('Common'):
+                ssl_domains.add(parts[0].strip())
+    except Exception:
+        pass
+
+    domains_data = []
+    for cd in client_domains:
+        username = cd.domain.replace(f'.{base_domain}', '') if cd.domain.endswith(f'.{base_domain}') else cd.domain
+        has_ssl = cd.domain in ssl_domains
+        try:
+            user = User.objects.get(username=username)
+            user_email = user.email
+            user_active = user.is_active
+        except User.DoesNotExist:
+            user_email = ''
+            user_active = False
+
+        domains_data.append({
+            'domain': cd.domain,
+            'username': username,
+            'schema': cd.tenant.schema_name,
+            'has_ssl': has_ssl,
+            'user_email': user_email,
+            'user_active': user_active,
+        })
+
+    return render(request, 'admin/user_domains.html', {
+        'domains': domains_data,
+        'total': len(domains_data),
+        'ssl_count': sum(1 for d in domains_data if d['has_ssl']),
+        'server_ip': server_ip,
+        'page_title': 'User Domains',
+    })
+
+
+@admin_login_required
+@require_http_methods(['POST'])
+def issue_ssl_for_user_view(request, username):
+    """
+    Issue SSL cert for a user subdomain via devil ssl www add.
+    POST /console/user-domains/{username}/ssl/
+    """
+    from django.conf import settings
+
+    base_domain = getattr(settings, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+    server_ip = getattr(settings, 'SERVER_IP', '128.204.223.70')
+    subdomain = f'{username}.{base_domain}'
+
+    try:
+        result = subprocess.run(
+            ['devil', 'ssl', 'www', 'add', server_ip, 'le', 'le', subdomain],
+            capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode == 0:
+            messages.success(request, f'SSL certificate issued for {subdomain}')
+        else:
+            messages.error(request, f'SSL failed for {subdomain}: {result.stderr or result.stdout}')
+    except Exception as exc:
+        messages.error(request, f'SSL error for {subdomain}: {exc}')
+
+    return redirect('admin_user_domains')

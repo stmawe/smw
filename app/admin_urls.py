@@ -19,6 +19,8 @@ admin_subdomain_base = [
     path('console/domains/', admin_console_views.domains_console_view, name='admin_console_domains'),
     path('console/domains/<int:shop_id>/ssl/', admin_console_views.add_ssl_for_shop_view, name='admin_add_ssl'),
     path('console/domains/<int:shop_id>/status/', admin_console_views.ssl_status_view, name='admin_ssl_status'),
+    path('console/user-domains/', admin_console_views.user_domains_console_view, name='admin_user_domains'),
+    path('console/user-domains/<str:username>/ssl/', admin_console_views.issue_ssl_for_user_view, name='admin_issue_user_ssl'),
     
     # Dashboard and user-specific paths (requires authentication)
     path('dashboard/', admin_views.admin_dashboard_view, name='admin_dashboard_full'),

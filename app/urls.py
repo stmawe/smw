@@ -45,6 +45,7 @@ urlpatterns = [
 
     # --- MARKETPLACE URLS ---
     path('explore/', explore_view, name='explore'),
+    path('shop/<str:username>/', views.shop_profile_view, name='shop_profile'),
     path('listings/', listings_view, name='listings'),
     path('shop/<int:shop_id>/', shop_detail_view, name='shop_detail'),
     path('listing/<int:listing_id>/', listing_detail_view, name='listing_detail'),
