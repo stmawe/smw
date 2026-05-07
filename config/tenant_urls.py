@@ -1,31 +1,32 @@
 """
 Tenant URL configuration for UniMarket.
-These URLs are used for individual tenant (university/location/shop) subdomains.
+These URLs are used for individual tenant (user subdomain) requests:
+    {username}.smw.pgwiz.cloud/
+
+django-tenants middleware resolves the tenant schema from the hostname,
+then this URL conf dispatches within that schema.
+
+NOTE: Admin patterns are NOT included here — they are only served on
+admin.smw.pgwiz.cloud via AdminSubdomainMiddleware + app.admin_urls.
 """
 
-from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-# Import admin URL patterns for admin subdomain
-from app.admin_urls import admin_subdomain_patterns, admin_crud_patterns
-
-# Shop routing views — handle /{shop_slug}/ and / within a user's subdomain
 from mydak import shop_routing_views
 
-urlpatterns = admin_subdomain_patterns + admin_crud_patterns + [
-    path('admin/', admin.site.urls),
-
-    # Shop path routing — must come after admin patterns
-    # /dashboard/ → seller dashboard (login required)
+urlpatterns = [
+    # /dashboard/ → seller dashboard (login required) — MUST be before <slug:shop_slug>/
     path('dashboard/', shop_routing_views.seller_dashboard_view, name='seller_dashboard'),
-    # / → root shop storefront or user profile page
+
+    # / → root shop storefront (if Tier 1) or user profile page
     path('', shop_routing_views.tenant_root_view, name='tenant_root'),
+
     # /{shop_slug}/ → specific shop storefront
     path('<slug:shop_slug>/', shop_routing_views.shop_storefront_view, name='shop_storefront'),
 
-    # Tenant-scoped shop management (dashboard, listings, payments, etc.)
+    # Tenant-scoped shop management (listings, payments, messaging, etc.)
     path('', include('mydak.urls')),
 ]
 

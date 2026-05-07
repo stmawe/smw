@@ -25,31 +25,10 @@ def is_staff(user):
 def domains_console_view(request):
     """
     Admin console for managing domains and SSL certificates.
-    Shows all shops with their domains and SSL status.
-    Requires: admin:manage_shop_domains permission
+    Redirects to the new user_domains_console_view which shows
+    user subdomains (the current architecture).
     """
-    shops = Shop.objects.select_related('owner').all().order_by('-created_at')
-    
-    # Get SSL status for each shop
-    shops_with_ssl = []
-    for shop in shops:
-        domain = f'{shop.slug}.smw.pgwiz.cloud'
-        ssl_status = _get_ssl_status(domain)
-        
-        shops_with_ssl.append({
-            'shop': shop,
-            'domain': domain,
-            'ssl_status': ssl_status,
-            'needs_ssl': not ssl_status['has_ssl']
-        })
-    
-    context = {
-        'shops': shops_with_ssl,
-        'total_shops': shops.count(),
-        'ssl_configured': sum(1 for s in shops_with_ssl if s['ssl_status']['has_ssl']),
-    }
-    
-    return render(request, 'admin/console_domains.html', context)
+    return redirect('admin_user_domains')
 
 
 @admin_login_required

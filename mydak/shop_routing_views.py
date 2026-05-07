@@ -61,7 +61,6 @@ def tenant_root_view(request):
     owner = _resolve_owner_from_request(request)
 
     if owner is None:
-        # Hostname doesn't match a known user — fall through to 404
         raise Http404('No user found for this subdomain.')
 
     # Check for a root-promoted shop
@@ -79,6 +78,7 @@ def tenant_root_view(request):
     return render(request, 'shops/user_profile.html', {
         'profile_owner': owner,
         'shops': active_shops,
+        'is_own_profile': request.user.is_authenticated and request.user.pk == owner.pk,
     })
 
 
@@ -87,21 +87,26 @@ def seller_dashboard_view(request):
     Private seller dashboard at {username}.smw.pgwiz.cloud/dashboard/
 
     Requires login. Shows the owner's shops, listings summary, and quick actions.
-    If not logged in, redirects to the main site login.
+    - If not logged in → redirect to main site login with ?next=
+    - If logged in as a different user → redirect to their own dashboard
     """
     from django.conf import settings as _s
 
+    base_domain = getattr(_s, 'BASE_DOMAIN', 'smw.pgwiz.cloud')
+    protocol = 'http' if _s.DEBUG else 'https'
+
     if not request.user.is_authenticated:
-        protocol = 'http' if _s.DEBUG else 'https'
         login_url = f'{protocol}://smw.pgwiz.cloud/accounts/login/?next={request.build_absolute_uri()}'
         from django.shortcuts import redirect as _redirect
         return _redirect(login_url)
 
     owner = _resolve_owner_from_request(request)
 
-    # Ensure the logged-in user owns this subdomain
+    # If the logged-in user doesn't own this subdomain, redirect to their own dashboard
     if owner is None or request.user.pk != owner.pk:
-        raise Http404('Dashboard not found.')
+        own_dashboard = f'{protocol}://{request.user.username}.{base_domain}/dashboard/'
+        from django.shortcuts import redirect as _redirect
+        return _redirect(own_dashboard)
 
     active_shops = Shop.objects.filter(owner=owner, is_active=True).order_by('name')
     inactive_shops = Shop.objects.filter(owner=owner, is_active=False).order_by('name')
